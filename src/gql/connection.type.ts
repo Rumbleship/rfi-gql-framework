@@ -32,9 +32,9 @@ export class Connection<T extends Node<T>> {
 export function GQLConnection<T extends Node<T>, TEdge extends Edge<T>>(
   TClass: ClassType<T>,
   TEdgeClass: ClassType<TEdge>
-) {
+): ClassType<Connection<T>> {
   @ObjectType({ isAbstract: true })
-  abstract class GQLConnectionClass extends Connection<T> {
+  class GQLConnectionClass extends Connection<T> {
     @Field(type => PageInfo)
     pageInfo: PageInfo = new PageInfo();
     @Field(type => TEdgeClass)

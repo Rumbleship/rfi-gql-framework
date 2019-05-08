@@ -16,10 +16,10 @@ export function createBaseResolver<
   filterClsType: ClassType<TFilter>,
   inputClsType: ClassType<TInput>,
   updateClsType: ClassType<TUpdate>
-) {
+): ClassType<any> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
-  abstract class BaseResolver {
+  class BaseResolver {
     constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {}
 
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
