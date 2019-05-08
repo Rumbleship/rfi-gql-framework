@@ -1,7 +1,8 @@
 import { PageInfo } from './page-info.type';
 import { Edge } from './edge.type';
 import { Node } from './node.interface';
-import { Field, ObjectType, ClassType } from 'type-graphql';
+import { Field, ObjectType } from 'type-graphql';
+import { ClassType } from '../helpers/classtype';
 
 // see https://facebook.github.io/relay/graphql/connections.htm
 
@@ -27,6 +28,7 @@ export class Connection<T extends Node<T>> {
     return;
   }
 }
+// tslint: disable-next-line
 export function GQLConnection<T extends Node<T>, TEdge extends Edge<T>>(
   TClass: ClassType<T>,
   TEdgeClass: ClassType<TEdge>

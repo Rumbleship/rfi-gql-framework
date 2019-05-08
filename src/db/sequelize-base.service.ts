@@ -4,8 +4,9 @@ import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
 import { calculateBeforeAndAfter, calculateLimitAndOffset, modelToClass, modelKey } from './index';
 
 import { Model } from 'sequelize-typescript';
-import { ClassType } from 'type-graphql';
+
 import { toBase64 } from '../helpers/base64';
+import { ClassType } from '../helpers/classtype';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()

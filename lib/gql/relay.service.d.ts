@@ -1,5 +1,5 @@
 import { Connection, Edge, Node, Oid } from './index';
-import { ClassType } from 'type-graphql';
+import { ClassType } from '../helpers/classtype';
 export interface NodeService<T> {
     getOne(oid: Oid): Promise<T>;
     nodeType(): string;

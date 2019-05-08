@@ -1,5 +1,6 @@
-import { Resolver, Query, Arg, Args, ID, Mutation, ClassType } from 'type-graphql';
+import { Resolver, Query, Arg, Args, ID, Mutation } from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
+import { ClassType } from '../helpers/classtype';
 
 /* tslint: disable-next-line */
 export function createBaseResolver<

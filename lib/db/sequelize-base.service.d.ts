@@ -1,6 +1,6 @@
 import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
 import { Model } from 'sequelize-typescript';
-import { ClassType } from 'type-graphql';
+import { ClassType } from '../helpers/classtype';
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     private apiClass;

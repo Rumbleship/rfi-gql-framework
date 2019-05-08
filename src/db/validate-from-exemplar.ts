@@ -1,7 +1,8 @@
 import { Model } from 'sequelize-typescript';
 import { validateSync, ValidationError } from 'class-validator';
+import { ClassType } from '../helpers/classtype';
 
-import { ClassType } from 'type-graphql';
+
 
 export function validateFromExemplar<V extends Model<V>, T>(toValidate: V, exemplar: ClassType<T>) {
   const modelAsPlain = toValidate.get({ plain: true });
