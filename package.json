@@ -1,0 +1,36 @@
+{
+  "name": "rfi-gql-framework",
+  "version": "0.1.0",
+  "authors": [
+    "Mat Henshall <mat.henshall@rumbleship.com>"
+  ],
+  "main": "lib/index.js",
+  "description": "Rumbleship framework for gql and sequelize services",
+  "license": "Propriatary",
+  "private": true,
+  "engines": {
+    "node": "10.x"
+  },
+  "scripts": {
+    "build": "NODE_PATH=. tsc -p .",
+    "test": "NODE_PATH=. tsc -p . && NODE_PATH=. NODE_ENV=test jest",
+    "lint": "NODE_PATH=. tslint --project .",
+    "coverage": "NODE_PATH=. tsc -p . && NODE_PATH=. jest --coverage --coverageReporters=text-lcov | coveralls"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.3",
+    "jest": "^24.7.1",
+    "prettier": "^1.17.0",
+    "prettier-tslint": "^0.4.2",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.16.0",
+    "tslint-config-airbnb": "^5.11.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-no-focused-test": "^0.5.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "typescript": "^3.4.5"
+  }
+}

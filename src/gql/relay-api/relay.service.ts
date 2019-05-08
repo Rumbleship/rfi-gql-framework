@@ -1,0 +1,40 @@
+import { Connection, Edge, Node, Oid } from './index';
+import { ClassType } from '../../../../banking/src/helpers/index';
+
+export interface NodeService<T> {
+  getOne(oid: Oid): Promise<T>;
+  nodeType(): string;
+  getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V;
+  setServiceRegister(services: any): void;
+}
+
+export interface RelayService<
+  TApi extends Node<TApi>,
+  TConnection extends Connection<TApi>,
+  TFilter,
+  TInput,
+  TUpdate
+> extends NodeService<TApi> {
+  getAll(filterBy: TFilter): Promise<TConnection>;
+  count(filterBy: TFilter): Promise<number>;
+  getOne(oid: Oid): Promise<TApi>;
+  create(data: TInput): Promise<TApi>;
+  update(data: TUpdate): Promise<TApi>;
+  getAssociatedMany<
+    TAssocApi extends Node<TAssocApi>,
+    TAssocConnection extends Connection<TAssocApi>,
+    TAssocEdge extends Edge<TAssocApi>
+  >(
+    source: TApi,
+    assoc_key: string,
+    filterBy: any,
+    assocApiClass: ClassType<TAssocApi>,
+    assocEdgeClass: ClassType<TAssocEdge>,
+    assocConnectionClass: ClassType<TAssocConnection>
+  ): Promise<TAssocConnection>;
+  getAssociated<TAssocApi extends Node<TAssocApi>>(
+    source: TApi,
+    assoc_key: string,
+    assocApiClass: ClassType<TAssocApi>
+  ): Promise<TAssocApi | null>;
+}
