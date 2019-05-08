@@ -1,24 +1,5 @@
-import { logging as spyglassLogging } from 'spyglass';
-import { Sequelize } from 'sequelize-typescript';
-import { BankAccountModel, PaymentRequestModel, BatchModel } from '../db';
-import { config } from '../../config/config';
-import { OrderReferenceModel } from '../models/order-reference.model';
-import { ACHGatewayModel } from '../models/ach-gateway.model';
-import { FinancialInstitutionModel } from '../models/financial-institution.model';
-import { BankTransactionModel } from '../models/bank-transaction.model';
 
-// add models here:-
-// We don't use the matcher method for finding models as in typescript it can be awkward
-// better to have an explicit list anyway IMHO: MH: 02/27/2019
-const theModels = [
-  FinancialInstitutionModel,
-  BankAccountModel,
-  PaymentRequestModel,
-  BatchModel,
-  OrderReferenceModel,
-  ACHGatewayModel,
-  BankTransactionModel
-];
+import { Sequelize, Model } from 'sequelize-typescript';
 
 let theSequelizeInstance: Sequelize | null;
 
@@ -34,10 +15,15 @@ export function nullSequelizeInstance() {
  * initializes sequelize for the app and sets up a global sequelize
  * @param opt
  */
-export async function initSequelize(opt?: {
-  force: boolean;
-  dbSuffix?: string;
-}): Promise<Sequelize> {
+export async function initSequelize(
+  config: any,
+  loggingFun: ((msg: string) => any) | false,
+  dbModels: Array<typeof Model>,
+  opt?: {
+    force: boolean;
+    dbSuffix?: string;
+  }
+): Promise<Sequelize> {
   const force = opt ? opt.force : false;
   const dbSuffix = opt ? (opt.dbSuffix ? opt.dbSuffix : '') : '';
   const {
@@ -45,12 +31,6 @@ export async function initSequelize(opt?: {
   } = config;
   const db = database + dbSuffix;
 
-  type loggingFun = (msg: string) => any;
-  let logging: loggingFun | boolean = false;
-  if (config.db.logging) {
-    const logger = spyglassLogging.getLogger({ config });
-    logging = (msg: string) => logger.debug(msg);
-  }
   let options;
   if (socketPath) {
     options = {
@@ -59,7 +39,7 @@ export async function initSequelize(opt?: {
       password,
       dialect,
       pool,
-      logging,
+      logging: loggingFun,
       define,
       dialectOptions: { socketPath }
     };
@@ -69,7 +49,7 @@ export async function initSequelize(opt?: {
       username,
       password,
       dialect,
-      logging,
+      logging: loggingFun,
       define,
       host,
       port
@@ -85,7 +65,7 @@ export async function initSequelize(opt?: {
   }
   theSequelizeInstance = new Sequelize(options);
 
-  theSequelizeInstance.addModels(theModels);
+  theSequelizeInstance.addModels(dbModels);
 
   if (force) {
     await theSequelizeInstance.sync({ force });

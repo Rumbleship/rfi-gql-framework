@@ -1,9 +1,7 @@
-import { Resolver, Query, Arg, Args, ID, Mutation } from 'type-graphql';
-import { RelayService } from './relay-api/relay.service';
-import { Node, Connection, Oid } from '../../../banking/src/gql/model/index';
-import { ClassType } from '../../../banking/src/helpers/index';
+import { Resolver, Query, Arg, Args, ID, Mutation, ClassType } from 'type-graphql';
+import { RelayService, Node, Connection, Oid } from './index';
 
-/* tslint:disable-next-line */
+/* tslint: disable-next-line */
 export function createBaseResolver<
   TApi extends Node<TApi>,
   TConnection extends Connection<TApi>,

@@ -5,4 +5,4 @@ export enum AttribType {
   Update,
   Arg
 }
-export const DEFAULT_MAX_STRING_LENGTH = 255;
+

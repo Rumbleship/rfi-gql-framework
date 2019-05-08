@@ -1,8 +1,8 @@
 import { Model, DataType } from 'sequelize-typescript';
-import { ClassType } from '../../../banking/src/helpers/index';
-import { Oid, Node } from '../../../banking/src/gql/model/index';
-import { NodeService } from '../gql/relay-api/relay.service';
+import { NodeService } from '../gql/relay.service';
 import { enumAsStrings } from '../../../banking/src/helpers/enumAsStrings';
+import { Node, Oid } from '../gql/index';
+import { ClassType } from 'type-graphql';
 
 // Creates a new Object of type T and fills it with the plain proerties of the Sequelize Model
 // It is a SHALLOW copy...

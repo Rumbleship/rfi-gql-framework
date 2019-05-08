@@ -1,4 +1,4 @@
-import { AttribType } from '../scalars/index';
+import { AttribType } from './attrib.enum';
 import { InputType, ObjectType, ArgsType } from 'type-graphql';
 
 // tslint:disable-next-line: ban-types

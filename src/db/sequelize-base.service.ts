@@ -1,19 +1,13 @@
 import { Service } from 'typedi';
 import { EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
-import { Connection, Edge, Node, Oid } from '../../../banking/src/gql/model/index';
-import {
-  calculateBeforeAndAfter,
-  calculateLimitAndOffset,
-  modelToClass,
-  modelKey
-} from '../../../banking/src/db/helpers/index';
+import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
+import { calculateBeforeAndAfter, calculateLimitAndOffset, modelToClass, modelKey } from './index';
 
 import { Model } from 'sequelize-typescript';
-import { toBase64, ClassType } from '../../../banking/src/helpers/index';
-import { RelayService, NodeService } from '../gql/relay-api/index';
+import { ClassType } from 'type-graphql';
+import { toBase64 } from '../helpers/base64';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
-
 @Service()
 export class SequelizeBaseService<
   TApi extends Node<TApi>,

@@ -21,16 +21,43 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
+    "@hapi/good": "^8.1.1",
+    "@types/bluebird": "^3.5.26",
+    "@types/graphql": "^14.2.0",
+    "@types/node": "^12.0.0",
+    "@types/validator": "^10.11.0",
+    "class-transformer": "^0.2.2",
+    "class-validator": "^0.9.1",
+    "convict": "^4.2.0",
     "coveralls": "^3.0.3",
+    "dataloader-sequelize": "^1.7.10",
+    "graphql": "^14.3.0",
     "jest": "^24.7.1",
     "prettier": "^1.17.0",
     "prettier-tslint": "^0.4.2",
+    "reflect-metadata": "^0.1.13",
+    "sequelize": "^5.8.5",
+    "sequelize-typescript": "^1.0.0-beta.3",
     "ts-jest": "^24.0.2",
     "tslint": "^5.16.0",
     "tslint-config-airbnb": "^5.11.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-focused-test": "^0.5.0",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.4.5"
+    "type-graphql": "^0.17.3",
+    "typedi": "^0.8.0",
+    "typescript": "3.4.5",
+    "xxhash": "^0.2.4"
+  },
+  "peerDependencies": {
+    "@types/graphql": "^14.2.0",
+    "class-transformer": "^0.2.2",
+    "class-validator": "^0.9.1",
+    "graphql": "^14.3.0",
+    "reflect-metadata": "^0.1.13",
+    "sequelize": "^5.8.5",
+    "sequelize-typescript": "^1.0.0-beta.3",
+    "type-graphql": "^0.17.3",
+    "xxhash": "^0.2.4"
   }
 }

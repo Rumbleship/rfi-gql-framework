@@ -1,4 +1,4 @@
-import { DateRange } from '../../../banking/src/scalars/daterange.type';
+import { DateRange } from '../gql/daterange.type';
 import { Op } from 'sequelize';
 
 export function create_date_filter(

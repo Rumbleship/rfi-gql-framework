@@ -1,5 +1,5 @@
 import { Connection, Edge, Node, Oid } from './index';
-import { ClassType } from '../../../../banking/src/helpers/index';
+import { ClassType } from '../../../banking/src/helpers/index';
 
 export interface NodeService<T> {
   getOne(oid: Oid): Promise<T>;
