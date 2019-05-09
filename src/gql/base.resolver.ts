@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, Args, Mutation } from 'type-graphql';
+import { Resolver, Query, Arg, Args, Mutation, ID } from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
 
@@ -50,7 +50,7 @@ export function createBaseResolver<
       return super.getAll(filterBy);
     }
     @Query(type => objectTypeCls, { name: `${baseName}` })
-    async getOne(id: string): Promise<TApi> {
+    async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
     @Mutation(type => objectTypeCls, { name: `add${capitalizedName}` })
