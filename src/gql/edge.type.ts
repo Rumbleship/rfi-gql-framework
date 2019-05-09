@@ -9,7 +9,7 @@ export abstract class Edge<T extends Node<T>> {
   cursor!: string;
 }
 
-export function GQLEdge<T extends Node<T>>(TEdge: ClassType<T>): ClassType<Edge<T>> {
+export function GQLEdge<T extends Node<T>>(TEdge: ClassType<T>) {
   @ObjectType({ isAbstract: true })
   class GQLEdgeClass extends Edge<T> {
     // node must be overridden in a concrete class and decorated with it's actual concrete (not generic template)
@@ -19,5 +19,5 @@ export function GQLEdge<T extends Node<T>>(TEdge: ClassType<T>): ClassType<Edge<
     @Field()
     cursor!: string;
   }
-  return GQLEdgeClass;
+  return GQLEdgeClass as any;
 }
