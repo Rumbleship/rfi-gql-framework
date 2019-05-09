@@ -1,23 +1,33 @@
-
 import { Sequelize, Model } from 'sequelize-typescript';
 
 let theSequelizeInstance: Sequelize | null;
-
+/**
+ * Returns the global instance of sequelize used by this application
+ */
 export function getSequelizeInstance(): Sequelize | null {
   return theSequelizeInstance;
 }
 
+/**
+ * Nulls the global sequelize instance (for testing purposes)
+ */
 export function nullSequelizeInstance() {
   theSequelizeInstance = null;
 }
 
 /**
  * initializes sequelize for the app and sets up a global sequelize
- * @param opt
+ * @param config An object with the shape: { db: { database, username, password, dialect, host, port, pool, socketPath, define }}
+ * This is modified and passed to new Sequelize()
+ * @param loggingFun The logging function to pass in. Required
+ * @param dbModels An array of sequelize-typescript models for this application
+ * @param opt options... force: true forces a sync on the database creating new tables.
+ * dbSuffix is added to the configured name and is used in development and test environments to
+ * create isolated test databases in test suites
  */
 export async function initSequelize(
   config: any,
-  loggingFun: ((msg: string) => any) | false,
+  loggingFun: (msg: string) => any,
   dbModels: Array<typeof Model>,
   opt?: {
     force: boolean;
