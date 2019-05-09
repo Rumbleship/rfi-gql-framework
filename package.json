@@ -46,7 +46,7 @@
     "tslint-plugin-prettier": "^2.0.1",
     "type-graphql": "^0.17.3",
     "typedi": "^0.8.0",
-    "typescript": "3.4.5",
+    "typescript": "~3.3.0",
     "xxhash": "^0.2.4"
   },
   "peerDependencies": {
