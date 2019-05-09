@@ -32,7 +32,7 @@ export class Connection<T extends Node<T>> {
 export function GQLConnection<T extends Node<T>, TEdge extends Edge<T>>(
   TClass: ClassType<T>,
   TEdgeClass: ClassType<TEdge>
-) {
+): ClassType<Connection<T>> {
   @ObjectType({ isAbstract: true })
   class GQLConnectionClass extends Connection<T> {
     @Field(type => PageInfo)
@@ -44,5 +44,5 @@ export function GQLConnection<T extends Node<T>, TEdge extends Edge<T>>(
       super.addEdges(edges, hasNextPage, hasPreviousPage);
     }
   }
-  return GQLConnectionClass as any;
+  return GQLConnectionClass;
 }
