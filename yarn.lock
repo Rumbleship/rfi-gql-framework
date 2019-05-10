@@ -4171,7 +4171,7 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-graphql@^0.17.3:
+type-graphql@^0.17.1:
   version "0.17.3"
   resolved "https://registry.yarnpkg.com/type-graphql/-/type-graphql-0.17.3.tgz#91ee6b3dcc57c34d9b9a1297cbf64e4c57570176"
   integrity sha512-/y4xFjAeluoQQR47RPw7cJarmXKDfn0GQFXCeizjYTtzAdcii6RqdnXOMDpsHHvfzeGvE6BUnneJhzekUfV/+A==

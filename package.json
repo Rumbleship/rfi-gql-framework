@@ -44,7 +44,7 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-focused-test": "^0.5.0",
     "tslint-plugin-prettier": "^2.0.1",
-    "type-graphql": "^0.17.3",
+    "type-graphql": "^0.17.1",
     "typedi": "^0.8.0",
     "typescript": "3.4.1",
     "xxhash": "^0.2.4"
@@ -57,7 +57,8 @@
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.8.5",
     "sequelize-typescript": "^1.0.0-beta.3",
-    "type-graphql": "^0.17.3",
-    "xxhash": "^0.2.4"
+    "type-graphql": "^0.17.1",
+    "xxhash": "^0.2.4",
+    "typedi": "^0.8.0"
   }
 }
