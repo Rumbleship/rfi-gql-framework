@@ -1,0 +1,15 @@
+# Build artifacts
+node_modules
+node_modules.*/
+yarn-error.log
+package-lock.json
+logs/*.log
+
+.DS_Store
+
+# Deployment artifacts
+
+
+# Coverage directory used by tools like istanbul
+.nyc_output
+coverage
