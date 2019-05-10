@@ -1,7 +1,7 @@
 import { Service, Inject } from 'typedi';
 import { Resolver, Query, ID, Arg, Ctx } from 'type-graphql';
-import { Node, RelayResolver, Oid } from '../../../banking/src/gql/model/index';
-import { NodeService } from './relay-api/relay.service';
+import { Node, RelayResolver, Oid } from './index';
+import { NodeService } from './relay.service';
 
 @Service()
 @Resolver()

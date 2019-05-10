@@ -1,4 +1,4 @@
-import { fromBase64 } from '../../../banking/src/helpers';
+import { fromBase64 } from '../helpers/base64';
 
 const DEFAULT_LIMIT_NUM = 20;
 

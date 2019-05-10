@@ -1,6 +1,6 @@
 import { Model } from 'sequelize-typescript';
 import { validateSync, ValidationError } from 'class-validator';
-import { ClassType } from '../../../banking/src/helpers/index';
+import { ClassType } from '../helpers/classtype';
 
 export function validateFromExemplar<V extends Model<V>, T>(toValidate: V, exemplar: ClassType<T>) {
   const modelAsPlain = toValidate.get({ plain: true });

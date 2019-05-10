@@ -1,6 +1,7 @@
 import * as xxhash from 'xxhash';
-import { toBase64, fromBase64 } from '../../../../banking/src/helpers/index';
+
 import { Model } from 'sequelize-typescript';
+import { toBase64, fromBase64 } from '../helpers/base64';
 
 class Scopes {
   private table: string[];

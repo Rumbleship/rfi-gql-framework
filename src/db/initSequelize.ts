@@ -1,43 +1,39 @@
-import { logging as spyglassLogging } from 'spyglass';
-import { Sequelize } from 'sequelize-typescript';
-import { BankAccountModel, PaymentRequestModel, BatchModel } from '../db';
-import { config } from '../../config/config';
-import { OrderReferenceModel } from '../models/order-reference.model';
-import { ACHGatewayModel } from '../models/ach-gateway.model';
-import { FinancialInstitutionModel } from '../models/financial-institution.model';
-import { BankTransactionModel } from '../models/bank-transaction.model';
-
-// add models here:-
-// We don't use the matcher method for finding models as in typescript it can be awkward
-// better to have an explicit list anyway IMHO: MH: 02/27/2019
-const theModels = [
-  FinancialInstitutionModel,
-  BankAccountModel,
-  PaymentRequestModel,
-  BatchModel,
-  OrderReferenceModel,
-  ACHGatewayModel,
-  BankTransactionModel
-];
+import { Sequelize, Model } from 'sequelize-typescript';
 
 let theSequelizeInstance: Sequelize | null;
-
+/**
+ * Returns the global instance of sequelize used by this application
+ */
 export function getSequelizeInstance(): Sequelize | null {
   return theSequelizeInstance;
 }
 
+/**
+ * Nulls the global sequelize instance (for testing purposes)
+ */
 export function nullSequelizeInstance() {
   theSequelizeInstance = null;
 }
 
 /**
  * initializes sequelize for the app and sets up a global sequelize
- * @param opt
+ * @param config An object with the shape: { db: { database, username, password, dialect, host, port, pool, socketPath, define }}
+ * This is modified and passed to new Sequelize()
+ * @param loggingFun The logging function to pass in. Required
+ * @param dbModels An array of sequelize-typescript models for this application
+ * @param opt options... force: true forces a sync on the database creating new tables.
+ * dbSuffix is added to the configured name and is used in development and test environments to
+ * create isolated test databases in test suites
  */
-export async function initSequelize(opt?: {
-  force: boolean;
-  dbSuffix?: string;
-}): Promise<Sequelize> {
+export async function initSequelize(
+  config: any,
+  loggingFun: (msg: string) => any,
+  dbModels: Array<typeof Model>,
+  opt?: {
+    force: boolean;
+    dbSuffix?: string;
+  }
+): Promise<Sequelize> {
   const force = opt ? opt.force : false;
   const dbSuffix = opt ? (opt.dbSuffix ? opt.dbSuffix : '') : '';
   const {
@@ -45,12 +41,6 @@ export async function initSequelize(opt?: {
   } = config;
   const db = database + dbSuffix;
 
-  type loggingFun = (msg: string) => any;
-  let logging: loggingFun | boolean = false;
-  if (config.db.logging) {
-    const logger = spyglassLogging.getLogger({ config });
-    logging = (msg: string) => logger.debug(msg);
-  }
   let options;
   if (socketPath) {
     options = {
@@ -59,7 +49,7 @@ export async function initSequelize(opt?: {
       password,
       dialect,
       pool,
-      logging,
+      logging: loggingFun,
       define,
       dialectOptions: { socketPath }
     };
@@ -69,7 +59,7 @@ export async function initSequelize(opt?: {
       username,
       password,
       dialect,
-      logging,
+      logging: loggingFun,
       define,
       host,
       port
@@ -85,7 +75,7 @@ export async function initSequelize(opt?: {
   }
   theSequelizeInstance = new Sequelize(options);
 
-  theSequelizeInstance.addModels(theModels);
+  theSequelizeInstance.addModels(dbModels);
 
   if (force) {
     await theSequelizeInstance.sync({ force });
