@@ -15,8 +15,9 @@ export interface RelayService<
   TInput,
   TUpdate
 > extends NodeService<TApi> {
-  getAll(filterBy: TFilter): Promise<TConnection>;
+  getAll(filterBy: TFilter, paranoid?: boolean): Promise<TConnection>;
   count(filterBy: TFilter): Promise<number>;
+  findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;
   getOne(oid: Oid): Promise<TApi>;
   create(data: TInput): Promise<TApi>;
   update(data: TUpdate): Promise<TApi>;

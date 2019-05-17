@@ -13,7 +13,8 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel, TEdge
     setServiceRegister(services: any): void;
     nodeType(): string;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V;
-    getAll(filterBy: TFilter): Promise<TConnection>;
+    getAll(filterBy: TFilter, paranoid?: boolean): Promise<TConnection>;
+    findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;
     count(filterBy: any): Promise<number>;
     getOne(oid: Oid): Promise<TApi>;
     create(data: TInput): Promise<TApi>;

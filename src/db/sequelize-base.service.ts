@@ -39,7 +39,7 @@ export class SequelizeBaseService<
     }
     throw Error(`Service not defined for Class: ${cls.name}`);
   }
-  async getAll(filterBy: TFilter): Promise<TConnection> {
+  async getAll(filterBy: TFilter, paranoid = true): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
     // we hold cursors as base64 of the offset for this query... not perfect,
     // but good enough for now
@@ -53,6 +53,7 @@ export class SequelizeBaseService<
       where: whereClause,
       offset: limits.offset,
       limit: limits.limit,
+      paranoid,
       [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
     });
     // prime the cache
@@ -64,6 +65,14 @@ export class SequelizeBaseService<
     const connection = new this.connectionClass();
     connection.addEdges(edges, pageAfter, pageBefore);
     return connection;
+  }
+  async findOne(filterBy: TFilter, paranoid = true): Promise<TApi | null> {
+    const matched = await this.getAll(filterBy);
+    if (matched.edges.length) {
+      return matched.edges[0].node;
+    } else {
+      return null;
+    }
   }
   async count(filterBy: any) {
     return this.model.count({
