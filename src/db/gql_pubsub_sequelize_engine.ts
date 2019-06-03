@@ -1,7 +1,11 @@
 import { PubSubEngine } from 'type-graphql';
 import { Sequelize } from 'sequelize-typescript';
 import { Model, CreateOptions } from 'sequelize';
-import { NotificationOf, DbModelChangeNotification } from '../gql/node-notification';
+import {
+  NotificationOf,
+  DbModelChangeNotification,
+  NODE_CHANGE_NOTIFICATION
+} from '../gql/node-notification';
 
 /**
  *

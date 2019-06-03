@@ -8,6 +8,7 @@ export declare enum NotificationOf {
     DESTROYED = "DESTORYED",
     BULK_CHANGE = "BULK_CHANGE"
 }
+export declare const NODE_CHANGE_NOTIFICATION = "NODE_CHANGE_NOTIFICATION";
 export declare abstract class NodeNotification<T extends Node<T>> {
     sequence: number;
     notificationOf: NotificationOf;
