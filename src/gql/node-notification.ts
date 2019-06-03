@@ -1,6 +1,7 @@
 import { ObjectType, Field, registerEnumType } from 'type-graphql';
 import { Node } from './node.interface';
 import { Model } from 'sequelize';
+import { ClassType } from '../helpers/index';
 
 export enum NotificationOf {
   LAST_KNOWN_STATE = 'LAST_KNOWN_STATE',
@@ -18,18 +19,35 @@ registerEnumType(NotificationOf, {
   `
 });
 
-@ObjectType()
-export class GqlNodeNotification<T extends Node<T>> {
-  @Field()
-  sequence: number = Date.now();
-  @Field(type => NotificationOf)
+export const NODE_CHANGE_NOTIFICATION = 'NODE_CHANGE_NOTIFICATION';
+
+export abstract class NodeNotification<T extends Node<T>> {
+  sequence: number;
   notificationOf: NotificationOf;
-  @Field(type => [Node], { nullable: true })
   node: T;
   constructor(notificationOf: NotificationOf, node: T) {
     this.notificationOf = notificationOf;
     this.node = node;
+    this.sequence = Date.now();
   }
+}
+
+export function GqlNodeNotification<T extends Node<T>>(
+  clsNotification: ClassType<T>
+): ClassType<NodeNotification<T>> {
+  @ObjectType({ isAbstract: true })
+  class GqlNodeNotificationClass extends NodeNotification<T> {
+    @Field()
+    sequence!: number;
+    @Field(type => NotificationOf)
+    notificationOf!: NotificationOf;
+    @Field(type => clsNotification, { nullable: true })
+    node!: T;
+    constructor(notificationOf: NotificationOf, node: T) {
+      super(notificationOf, node);
+    }
+  }
+  return GqlNodeNotificationClass;
 }
 
 // and the type used to transmit database changes

@@ -1,8 +1,11 @@
 import { Resolver, Query, Arg, Args, Mutation, ID, Subscription, Root } from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
-import { GqlNodeNotification, DbModelChangeNotification } from './node-notification';
-import { NODE_CHANGE_NOTIFICATION } from '../db/gql_pubsub_sequelize_engine';
+import {
+  DbModelChangeNotification,
+  NodeNotification,
+  NODE_CHANGE_NOTIFICATION
+} from './node-notification';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -32,7 +35,7 @@ export function createBaseResolver<
   TFilter,
   TInput,
   TUpdate,
-  TNotification extends GqlNodeNotification<TApi>
+  TNotification extends NodeNotification<TApi>
 >(
   baseName: string,
   objectTypeCls: ClassType<TApi>,
@@ -67,16 +70,16 @@ export function createBaseResolver<
     }
 
     @Subscription(type => notificationClsType, {
-      name: `${baseName}Change`,
-      topics: () => `${NODE_CHANGE_NOTIFICATION}_${objectTypeCls.name}Model`,
+      name: `on${capitalizedName}Change`,
+      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
       nullable: true
     })
-    async onChange(@Root() payload: DbModelChangeNotification): Promise<GqlNodeNotification<TApi>> {
+    async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
       // convert to GQL Model
       const modelId: string = payload.model.get('id') as string;
       const oid = Oid.create(objectTypeCls.name, modelId);
       const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new GqlNodeNotification(payload.notificationOf, node);
+      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
       return gqlNodeNotification;
     }
   }
