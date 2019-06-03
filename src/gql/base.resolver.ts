@@ -1,6 +1,8 @@
-import { Resolver, Query, Arg, Args, Mutation, ID } from 'type-graphql';
+import { Resolver, Query, Arg, Args, Mutation, ID, Subscription, Root } from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
+import { GqlNodeNotification, DbModelChangeNotification } from './node-notification';
+import { NODE_CHANGE_NOTIFICATION } from '../db/gql_pubsub_sequelize_engine';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -29,14 +31,16 @@ export function createBaseResolver<
   TConnection extends Connection<TApi>,
   TFilter,
   TInput,
-  TUpdate
+  TUpdate,
+  TNotification extends GqlNodeNotification<TApi>
 >(
   baseName: string,
   objectTypeCls: ClassType<TApi>,
   connectionTypeCls: ClassType<TConnection>,
   filterClsType: ClassType<TFilter>,
   inputClsType: ClassType<TInput>,
-  updateClsType: ClassType<TUpdate>
+  updateClsType: ClassType<TUpdate>,
+  notificationClsType: ClassType<TNotification>
 ): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, TInput, TUpdate>> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
@@ -60,6 +64,20 @@ export function createBaseResolver<
     @Mutation(type => objectTypeCls, { name: `update${capitalizedName}` })
     async update(@Arg('input', type => updateClsType) input: TUpdate): Promise<TApi> {
       return super.update(input);
+    }
+
+    @Subscription(type => notificationClsType, {
+      name: `${baseName}Change`,
+      topics: () => `${NODE_CHANGE_NOTIFICATION}_${objectTypeCls.name}Model`,
+      nullable: true
+    })
+    async onChange(@Root() payload: DbModelChangeNotification): Promise<GqlNodeNotification<TApi>> {
+      // convert to GQL Model
+      const modelId: string = payload.model.get('id') as string;
+      const oid = Oid.create(objectTypeCls.name, modelId);
+      const node = await this.getOne(oid.toString());
+      const gqlNodeNotification = new GqlNodeNotification(payload.notificationOf, node);
+      return gqlNodeNotification;
     }
   }
   return BaseResolver;

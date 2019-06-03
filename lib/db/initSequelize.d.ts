@@ -13,9 +13,11 @@ export declare function nullSequelizeInstance(): void;
  * This is modified and passed to new Sequelize()
  * @param loggingFun The logging function to pass in. Required
  * @param dbModels An array of sequelize-typescript models for this application
- * @param opt options... force: true forces a sync on the database creating new tables.
+ * @param opt options...
+ * force: true forces a sync on the database creating new tables.
  * dbSuffix is added to the configured name and is used in development and test environments to
  * create isolated test databases in test suites
+ * pubSub is the PubSubEngine to use to publish model changes
  */
 export declare function initSequelize(config: any, loggingFun: (msg: string) => any, dbModels: Array<typeof Model>, opt?: {
     force: boolean;
