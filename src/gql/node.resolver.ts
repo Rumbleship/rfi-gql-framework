@@ -14,7 +14,6 @@ import {
 import { Node, RelayResolver, Oid } from './index';
 import { NodeService } from './relay.service';
 import {
-  GqlNodeNotification,
   NodeNotification,
   NotificationOf,
   NODE_CHANGE_NOTIFICATION,
@@ -62,15 +61,14 @@ export class NodeResolver implements RelayResolver {
     // convert to GQL Model
     const modelId: string = payload.model.get('id') as string;
     // ASSUME that the db model is suffixed with Model
-    const gqlModelName = payload.model.constructor.name.slice(0, 5);
+    const gqlModelName = payload.model.constructor.name.slice(0, 'Model'.length);
     const oid = Oid.create(gqlModelName, modelId);
-    const { scope } = oid.unwrap();
-    if (scope in this.nodeServices) {
-      const node = Reflect.get(this.nodeServices, scope).getOne(oid);
+    if (gqlModelName in this.nodeServices) {
+      const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
       const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
       return gqlNodeNotification;
     } else {
-      throw Error('Invalid OID. Scope:' + scope);
+      throw Error('Invalid OID. Scope:' + gqlModelName);
     }
   }
   // for developers and system support,
