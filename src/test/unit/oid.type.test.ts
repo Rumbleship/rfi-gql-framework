@@ -26,6 +26,17 @@ describe('That objects of type Oid work as expected:', () => {
     expect(scope).toBe(PAYMENT_REQUEST);
     expect(id).toBe(OBJECT_ID1);
   });
+  test('That an hash_id Oid can be created from its part and then destructured.', () => {
+    const PAYMENT_REQUEST = 'PaymentRequest';
+    const PAYMENT_REQUEST_SHORT_CODE = 'pr';
+    const OBJECT_ID1 = 1;
+    Oid.unregisterScopes();
+    Oid.registerScope(PAYMENT_REQUEST, PAYMENT_REQUEST_SHORT_CODE);
+    const oid: Oid = Oid.create(PAYMENT_REQUEST, OBJECT_ID1);
+    const { scope, id } = oid.unwrap();
+    expect(scope).toBe(PAYMENT_REQUEST);
+    expect(id).toBe(OBJECT_ID1);
+  });
   test('That an Oid cannot be created without the scope being registered first', () => {
     const PAYMENT_REQUEST = 'PaymentRequest';
     const OBJECT_ID1 = '0001';
@@ -35,6 +46,7 @@ describe('That objects of type Oid work as expected:', () => {
     };
     expect(t).toThrow();
   });
+
   test('That an oid can be reconstructed from a persisted value', () => {
     const PAYMENT_REQUEST = 'PaymentRequest';
     const OBJECT_ID1 = '0001';
@@ -46,16 +58,6 @@ describe('That objects of type Oid work as expected:', () => {
     const newOid = new Oid(oidAsString);
     expect(newOid).toEqual(oid);
   });
-  test('That an oid can be created with a scopeID key', () => {
-    const PAYMENT_REQUEST = 'PaymentRequest';
-    const OBJECT_ID1 = '0001';
-    Oid.unregisterScopes();
-    const paymentRequestID = Oid.registerScope(PAYMENT_REQUEST);
-    const oid: Oid = Oid.create(paymentRequestID, OBJECT_ID1);
-    const { scope, id } = oid.unwrap();
-    expect(scope).toBe(PAYMENT_REQUEST);
-    expect(id).toBe(OBJECT_ID1);
-  });
   test('An OID knows how to create a `{where: {} }` finder', () => {
     Oid.registerScope('BankAccount');
     const uuid = uuidv4();
@@ -64,5 +66,33 @@ describe('That objects of type Oid work as expected:', () => {
     expect(Oid.createWhereClauseWith(filter)).toEqual({
       id: uuid
     });
+  });
+  test('A hash_id OID and a base64 hashid cant be registered fro the same scope', () => {
+    Oid.unregisterScopes();
+    Oid.registerScope('BankAccount', 'ba');
+    const t = () => Oid.registerScope('BankAccount');
+    expect(t).toThrow();
+  });
+  test('A hash_id OID knows how to create a `{where: {} }` finder', () => {
+    Oid.unregisterScopes();
+    Oid.registerScope('BankAccount', 'ba');
+    const id = 500;
+    const oid: Oid = Oid.create('BankAccount', id);
+    const filter = { id: oid.toString() };
+    expect(Oid.createWhereClauseWith(filter)).toEqual({
+      id
+    });
+  });
+  test('A hashid based Oid can be created with a numeric id, and reconstructed from a persistant value', () => {
+    const PAYMENT_REQUEST = 'PaymentRequest';
+    const PAYMENT_REQUEST_SHORT_CODE = 'pr';
+    const OBJECT_ID1 = 1;
+    Oid.unregisterScopes();
+    Oid.registerScope(PAYMENT_REQUEST, PAYMENT_REQUEST_SHORT_CODE);
+    const oid: Oid = Oid.create(PAYMENT_REQUEST, OBJECT_ID1);
+    const oidAsString = oid.toString();
+    expect(oidAsString).toMatchInlineSnapshot(`"~pr_ovjey"`);
+    const newOid = new Oid(oidAsString);
+    expect(newOid).toEqual(oid);
   });
 });
