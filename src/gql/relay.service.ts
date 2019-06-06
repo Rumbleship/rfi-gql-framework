@@ -20,8 +20,8 @@ export interface RelayService<
   count(filterBy: TFilter): Promise<number>;
   findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;
   getOne(oid: Oid): Promise<TApi>;
-  create(data: TInput, pubSub?: PubSubEngine): Promise<TApi>;
-  update(data: TUpdate, pubSub?: PubSubEngine): Promise<TApi>;
+  create(data: TInput): Promise<TApi>;
+  update(data: TUpdate): Promise<TApi>;
   getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
