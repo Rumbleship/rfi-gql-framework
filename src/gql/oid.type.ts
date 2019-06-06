@@ -43,7 +43,7 @@ class Scopes {
       );
     }
     const pos = shortCode ? shortCode : this.hash(plaintextScopeName);
-    if (this.scope(pos) ) {
+    if (this.scope(pos)) {
       throw new Error(
         `Scope for OID can only be added once: 
           ${plaintextScopeName}-${shortCode ? shortCode : ''}

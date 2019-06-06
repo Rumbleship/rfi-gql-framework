@@ -1,6 +1,5 @@
 import { Connection, Edge, Node, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
-import { PubSubEngine } from 'type-graphql';
 
 export interface NodeService<T> {
   getOne(oid: Oid): Promise<T>;

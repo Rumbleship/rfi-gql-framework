@@ -8,16 +8,21 @@ import { Model } from 'sequelize-typescript';
 export declare class Oid {
     readonly oid: string;
     private static readonly scopes;
+    private static ALPHABET;
+    private static HASHID_MIN_LEN;
+    private static HASHID_SALT;
+    private static hashids;
+    private static hashIdRegEx;
     constructor(oid: string);
     valueOf(): string;
     toString(): string;
-    static registerScope(scope: string): number;
-    static getKey(scope: string): number;
-    static create(scope: string | number, id: string): Oid;
+    static registerScope(scope: string, shortCode?: string): number;
+    static getKey(scope: string): string | number;
+    static create(scope: string, id: string | number): Oid;
     static unregisterScopes(): void;
     static createWhereClauseWith<T extends Model<T>>(filter: any): any;
     unwrap(): {
         scope: string;
-        id: string;
+        id: string | number;
     };
 }
