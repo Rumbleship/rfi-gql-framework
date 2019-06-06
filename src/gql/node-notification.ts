@@ -1,4 +1,4 @@
-import { ObjectType, Field, registerEnumType, Int } from 'type-graphql';
+import { ObjectType, Field, registerEnumType } from 'type-graphql';
 import { Node } from './node.interface';
 import { Model } from 'sequelize';
 import { ClassType } from '../helpers/index';
@@ -37,7 +37,7 @@ export function GqlNodeNotification<T extends Node<T>>(
 ): ClassType<NodeNotification<T>> {
   @ObjectType({ isAbstract: true })
   class GqlNodeNotificationClass extends NodeNotification<T> {
-    @Field(type => Int)
+    @Field()
     sequence!: number;
     @Field(type => NotificationOf)
     notificationOf!: NotificationOf;
