@@ -18,15 +18,16 @@ export class GqlSingleTableInheritanceFactory<
 > {
   constructor(
     private nodeService: NodeService<TGql>,
+    private oidScope: string,
     private discriminatorKey: string,
-    public concreteClassMap: Map<keyof TEnum, ClassType<TGql>>
+    private concreteClassMap: Map<keyof TEnum, ClassType<TGql>>
   ) {}
   makeFrom(from: TDb): TGql {
     const discriminator = Reflect.get(from, this.discriminatorKey);
     if (discriminator) {
       const concreteClass = this.concreteClassMap.get(discriminator);
       if (concreteClass) {
-        return modelToClass(this.nodeService, concreteClass, from);
+        return modelToClass(this.nodeService, concreteClass, from, this.oidScope);
       }
     }
     throw Error(`couldnt find concrete class for: ${discriminator}`);
@@ -39,7 +40,8 @@ export class GqlSingleTableInheritanceFactory<
 export function modelToClass<T extends Node<T>, V extends Model<V>>(
   nodeService: NodeService<T>,
   to: ClassType<T>,
-  from: V
+  from: V,
+  oidScope?: string
 ): T {
   const modelAsPlain: any = from.get({ plain: true });
   // Have we already done this transforation?
@@ -48,7 +50,7 @@ export function modelToClass<T extends Node<T>, V extends Model<V>>(
   }
   const obj: T = Object.assign(new to(), modelAsPlain);
   const oid = Oid.create(
-    obj.constructor['name'],
+    oidScope ? oidScope : obj.constructor['name'],
     modelAsPlain.uuid ? modelAsPlain.uuid : modelAsPlain.id
   );
   obj.id = oid;

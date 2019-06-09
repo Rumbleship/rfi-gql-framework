@@ -11,10 +11,11 @@ export declare const apiKey: unique symbol;
  */
 export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<TGql>, TDb extends Model<TDb>> {
     private nodeService;
+    private oidScope;
     private discriminatorKey;
-    concreteClassMap: Map<keyof TEnum, ClassType<TGql>>;
-    constructor(nodeService: NodeService<TGql>, discriminatorKey: string, concreteClassMap: Map<keyof TEnum, ClassType<TGql>>);
+    private concreteClassMap;
+    constructor(nodeService: NodeService<TGql>, oidScope: string, discriminatorKey: string, concreteClassMap: Map<keyof TEnum, ClassType<TGql>>);
     makeFrom(from: TDb): TGql;
 }
-export declare function modelToClass<T extends Node<T>, V extends Model<V>>(nodeService: NodeService<T>, to: ClassType<T>, from: V): T;
+export declare function modelToClass<T extends Node<T>, V extends Model<V>>(nodeService: NodeService<T>, to: ClassType<T>, from: V, oidScope?: string): T;
 export declare function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb?: boolean): Promise<T>;
