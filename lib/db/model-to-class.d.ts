@@ -12,7 +12,7 @@ export declare const apiKey: unique symbol;
 export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<TGql>, TDb extends Model<TDb>> {
     private nodeService;
     private discriminatorKey;
-    private concreteClassMap;
+    concreteClassMap: Map<keyof TEnum, ClassType<TGql>>;
     constructor(nodeService: NodeService<TGql>, discriminatorKey: string, concreteClassMap: Map<keyof TEnum, ClassType<TGql>>);
     makeFrom(from: TDb): TGql;
 }

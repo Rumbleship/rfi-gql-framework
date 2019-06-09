@@ -19,7 +19,7 @@ export class GqlSingleTableInheritanceFactory<
   constructor(
     private nodeService: NodeService<TGql>,
     private discriminatorKey: string,
-    private concreteClassMap: Map<keyof TEnum, ClassType<TGql>>
+    public concreteClassMap: Map<keyof TEnum, ClassType<TGql>>
   ) {}
   makeFrom(from: TDb): TGql {
     const discriminator = Reflect.get(from, this.discriminatorKey);
