@@ -49,7 +49,7 @@ export function modelToClass<T extends Node<T>, V extends Model<V>>(
   const obj: T = Object.assign(new to(), modelAsPlain);
   const oid = Oid.create(
     obj.constructor['name'],
-    modelAsPlain.uuid ? modelAsPlain.uuid : String(modelAsPlain.id)
+    modelAsPlain.uuid ? modelAsPlain.uuid : modelAsPlain.id
   );
   obj.id = oid;
   obj._service = nodeService;
