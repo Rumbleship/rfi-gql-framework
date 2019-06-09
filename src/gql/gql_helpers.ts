@@ -1,5 +1,5 @@
 import { AttribType } from './attrib.enum';
-import { InputType, ObjectType, ArgsType } from 'type-graphql';
+import { InputType, ObjectType, ArgsType, InterfaceType } from 'type-graphql';
 
 // tslint:disable-next-line: ban-types
 export function GqlBaseAttribs(attribType: AttribType): ClassDecorator {
@@ -15,11 +15,17 @@ export function GqlBaseAttribs(attribType: AttribType): ClassDecorator {
         return ObjectType({ isAbstract: true })(clazz);
       case AttribType.Arg:
         return ArgsType()(clazz);
+      case AttribType.Interface:
+        return InterfaceType({ isAbstract: true })(clazz);
     }
     return clazz;
   };
 }
 
 export function isInputOrObject(attribType: AttribType): boolean {
-  return attribType === AttribType.Input || attribType === AttribType.Obj;
+  return (
+    attribType === AttribType.Input ||
+    attribType === AttribType.Obj ||
+    attribType === AttribType.Interface
+  );
 }

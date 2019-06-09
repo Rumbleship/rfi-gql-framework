@@ -1,17 +1,20 @@
 import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
+import { GqlSingleTableInheritanceFactory } from './model-to-class';
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
-export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
-    private apiClass;
-    private edgeClass;
-    private connectionClass;
-    private model;
+export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+    protected apiClass: ClassType<TApi>;
+    protected edgeClass: ClassType<TEdge>;
+    protected connectionClass: ClassType<TConnection>;
+    protected model: ModelClass<TModel> & typeof Model;
     protected sequelizeDataloaderCtx: any;
+    protected apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel> | undefined;
     private nodeServices;
-    constructor(apiClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, sequelizeDataloaderCtx: any);
+    constructor(apiClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, sequelizeDataloaderCtx: any, apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel> | undefined);
     setServiceRegister(services: any): void;
     nodeType(): string;
+    gqlFromDao(dao: TModel): TApi;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V;
     getAll(filterBy: TFilter, paranoid?: boolean): Promise<TConnection>;
     findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;

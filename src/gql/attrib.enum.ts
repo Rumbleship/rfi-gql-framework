@@ -3,5 +3,6 @@ export enum AttribType {
   Obj,
   Input,
   Update,
-  Arg
+  Arg,
+  Interface
 }

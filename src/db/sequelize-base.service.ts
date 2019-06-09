@@ -1,31 +1,34 @@
 import { Service } from 'typedi';
 import { EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
 import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
-import { calculateBeforeAndAfter, calculateLimitAndOffset, modelToClass, modelKey } from './index';
+import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
 
 import { Model } from 'sequelize-typescript';
 
 import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
+import { GqlSingleTableInheritanceFactory, modelToClass, modelKey } from './model-to-class';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
 export class SequelizeBaseService<
   TApi extends Node<TApi>,
-  TModel,
+  TModel extends Model<TModel>,
   TEdge extends Edge<TApi>,
   TConnection extends Connection<TApi>,
   TFilter,
   TInput,
-  TUpdate
+  TUpdate,
+  TDiscriminatorEnum
 > implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   private nodeServices: any;
   constructor(
-    private apiClass: ClassType<TApi>,
-    private edgeClass: ClassType<TEdge>,
-    private connectionClass: ClassType<TConnection>,
-    private model: ModelClass<TModel> & typeof Model,
-    protected sequelizeDataloaderCtx: any
+    protected apiClass: ClassType<TApi>,
+    protected edgeClass: ClassType<TEdge>,
+    protected connectionClass: ClassType<TConnection>,
+    protected model: ModelClass<TModel> & typeof Model,
+    protected sequelizeDataloaderCtx: any,
+    protected apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>
   ) {}
   setServiceRegister(services: any): void {
     this.nodeServices = services;
@@ -33,6 +36,14 @@ export class SequelizeBaseService<
   nodeType(): string {
     return this.apiClass.constructor.name;
   }
+  gqlFromDao(dao: TModel) {
+    if (this.apiClassFactory) {
+      return this.apiClassFactory.makeFrom(dao);
+    } else {
+      return modelToClass(this, this.apiClass, dao);
+    }
+  }
+
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V {
     if (cls.name in this.nodeServices) {
       return Reflect.get(this.nodeServices, cls.name);
@@ -60,7 +71,7 @@ export class SequelizeBaseService<
     // this.sequelizeDataloaderCtx.prime(rows);
     const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
     const edges: Array<Edge<TApi>> = rows.map(instance =>
-      this.makeEdge(toBase64(limits.offset++), modelToClass(this, this.apiClass, instance))
+      this.makeEdge(toBase64(limits.offset++), this.gqlFromDao(instance as any))
     );
     const connection = new this.connectionClass();
     connection.addEdges(edges, pageAfter, pageBefore);
@@ -88,12 +99,12 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${id}) not found`);
     }
-    return modelToClass(this, this.apiClass, instance);
+    return this.gqlFromDao(instance as any);
   }
 
   async create(data: TInput): Promise<TApi> {
     const instance = await this.model.create(data as any);
-    return modelToClass(this, this.apiClass, instance);
+    return this.gqlFromDao(instance as any);
   }
 
   async update(data: TUpdate): Promise<TApi> {
@@ -110,7 +121,7 @@ export class SequelizeBaseService<
         throw new Error('Account not found');
       }
       await node.update(data as any);
-      return modelToClass(this, this.apiClass, node);
+      return this.gqlFromDao(node as any);
     }
     throw new Error(`Invalid ${this.apiClass.name}: No id`);
   }

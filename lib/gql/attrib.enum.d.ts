@@ -3,5 +3,6 @@ export declare enum AttribType {
     Obj = 1,
     Input = 2,
     Update = 3,
-    Arg = 4
+    Arg = 4,
+    Interface = 5
 }
