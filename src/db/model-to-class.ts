@@ -10,6 +10,8 @@ export const apiKey = Symbol.for('api');
  * Defines a simple interface to create a concrete class from a discriminator
  * These should be added to 'NodeServices' on the context as well... and use the base classes
  * service implementation
+ *
+ * Note that the base class is used for the 'scope' of the oid.
  */
 export class GqlSingleTableInheritanceFactory<
   TEnum,
@@ -17,20 +19,22 @@ export class GqlSingleTableInheritanceFactory<
   TDb extends Model<TDb>
 > {
   constructor(
-    private nodeService: NodeService<TGql>,
-    private oidScope: string,
+    private oidScope: string, // the scope is the base class scope.
     private discriminatorKey: string,
     private concreteClassMap: Map<keyof TEnum, ClassType<TGql>>
   ) {}
-  makeFrom(from: TDb): TGql {
+  makeFrom(from: TDb, nodeService: NodeService<TGql>): TGql {
     const discriminator = Reflect.get(from, this.discriminatorKey);
     if (discriminator) {
       const concreteClass = this.concreteClassMap.get(discriminator);
       if (concreteClass) {
-        return modelToClass(this.nodeService, concreteClass, from, this.oidScope);
+        return modelToClass(nodeService, concreteClass, from, this.oidScope);
       }
     }
     throw Error(`couldnt find concrete class for: ${discriminator}`);
+  }
+  getClassFor(discriminator: keyof TEnum) {
+    return this.concreteClassMap.get(discriminator);
   }
 }
 

@@ -38,7 +38,7 @@ export class SequelizeBaseService<
   }
   gqlFromDao(dao: TModel) {
     if (this.apiClassFactory) {
-      return this.apiClassFactory.makeFrom(dao);
+      return this.apiClassFactory.makeFrom(dao, this);
     } else {
       return modelToClass(this, this.apiClass, dao);
     }
