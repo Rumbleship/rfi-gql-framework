@@ -3,7 +3,7 @@ import { ClassType } from '../helpers/classtype';
 export interface NodeService<T> {
     getOne(oid: Oid): Promise<T>;
     nodeType(): string;
-    getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V;
+    getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     setServiceRegister(services: any): void;
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {

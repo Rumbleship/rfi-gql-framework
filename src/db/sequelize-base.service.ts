@@ -44,11 +44,12 @@ export class SequelizeBaseService<
     }
   }
 
-  getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V {
-    if (cls.name in this.nodeServices) {
-      return Reflect.get(this.nodeServices, cls.name);
+  getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V {
+    const name = typeof cls === 'string' ? cls : cls.name;
+    if (name in this.nodeServices) {
+      return Reflect.get(this.nodeServices, name);
     }
-    throw Error(`Service not defined for Class: ${cls.name}`);
+    throw Error(`Service not defined for Class: ${name}`);
   }
   async getAll(filterBy: TFilter, paranoid = true): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;

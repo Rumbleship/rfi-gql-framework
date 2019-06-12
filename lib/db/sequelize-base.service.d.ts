@@ -15,7 +15,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     setServiceRegister(services: any): void;
     nodeType(): string;
     gqlFromDao(dao: TModel): TApi;
-    getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S>): V;
+    getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     getAll(filterBy: TFilter, paranoid?: boolean): Promise<TConnection>;
     findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;
     count(filterBy: any): Promise<number>;

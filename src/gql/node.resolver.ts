@@ -59,7 +59,7 @@ export class NodeResolver implements RelayResolver {
   })
   async onChange(@Root() payload: DbModelChangeNotification): Promise<ClassGqlNodeNotification> {
     // convert to GQL Model
-    const modelId: string = payload.model.get('id') as string;
+    const modelId: number | string = payload.model.get('id') as number | string;
     // ASSUME that the db model is suffixed with Model
     const gqlModelName = payload.model.constructor.name.slice(0, 'Model'.length);
     const oid = Oid.create(gqlModelName, modelId);
