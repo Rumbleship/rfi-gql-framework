@@ -6,6 +6,7 @@ export interface NodeService<T> {
   nodeType(): string;
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
   setServiceRegister(services: any): void;
+  gqlFromDao(dao: object): T;
 }
 
 export interface RelayService<

@@ -36,7 +36,7 @@ export class SequelizeBaseService<
   nodeType(): string {
     return this.apiClass.constructor.name;
   }
-  gqlFromDao(dao: TModel) {
+  gqlFromDao(dao: TModel): TApi {
     if (this.apiClassFactory) {
       return this.apiClassFactory.makeFrom(dao, this);
     } else {
@@ -167,12 +167,15 @@ export class SequelizeBaseService<
       throw new Error(`Invalid ${source.constructor.name}`);
     }
     const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
+    // TODO TODO TODO - need to put this in the associated service... and know what
+    // type its creating
+    //
     let edges: Array<Edge<TAssocApi>>;
 
     edges = associated.map(instance => {
       const edge = new assocEdgeClass();
       edge.cursor = toBase64(limits.offset++);
-      edge.node = modelToClass(this.getServiceFor(assocApiClass), assocApiClass, instance);
+      edge.node = this.getServiceFor(assocApiClass).gqlFromDao(instance);
       return edge;
     });
     const connection = new assocConnectionClass();
@@ -201,11 +204,7 @@ export class SequelizeBaseService<
       [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
     })) as Model<Model<any>>;
     if (associatedModel) {
-      Reflect.set(
-        source,
-        assoc_key,
-        modelToClass(this.getServiceFor(assocApiClass), assocApiClass, associatedModel)
-      );
+      Reflect.set(source, assoc_key, this.getServiceFor(assocApiClass).gqlFromDao(associatedModel));
       return Reflect.get(source, assoc_key);
     }
     return null;
