@@ -98,7 +98,7 @@ export class SequelizeBaseService<
       [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
     });
     if (!instance) {
-      throw new Error(`${this.apiClass.constructor.name}: oid(${id}) not found`);
+      throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
     return this.gqlFromDao(instance as any);
   }
