@@ -85,3 +85,48 @@ export function createBaseResolver<
   }
   return BaseResolver;
 }
+
+export function createReadOnlyBaseResolver<
+  TApi extends Node<TApi>,
+  TConnection extends Connection<TApi>,
+  TFilter,
+  TNotification extends NodeNotification<TApi>
+>(
+  baseName: string,
+  objectTypeCls: ClassType<TApi>,
+  connectionTypeCls: ClassType<TConnection>,
+  filterClsType: ClassType<TFilter>,
+  notificationClsType: ClassType<TNotification>
+): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, any, any>> {
+  const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
+  @Resolver({ isAbstract: true })
+  class BaseResolver extends GQLBaseResolver<TApi, TConnection, TFilter, any, any> {
+    constructor(service: RelayService<TApi, TConnection, TFilter, any, any>) {
+      super(service);
+    }
+
+    @Query(type => connectionTypeCls, { name: `${baseName}s` })
+    async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
+      return super.getAll(filterBy);
+    }
+    @Query(type => objectTypeCls, { name: `${baseName}` })
+    async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
+      return super.getOne(id);
+    }
+
+    @Subscription(type => notificationClsType, {
+      name: `on${capitalizedName}Change`,
+      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
+      nullable: true
+    })
+    async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
+      // convert to GQL Model
+      const modelId: string = payload.model.get('id') as string;
+      const oid = Oid.create(objectTypeCls.name, modelId);
+      const node = await this.getOne(oid.toString());
+      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
+      return gqlNodeNotification;
+    }
+  }
+  return BaseResolver;
+}
