@@ -5,7 +5,7 @@ export interface NodeService<T> {
     nodeType(): string;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     setServiceRegister(services: any): void;
-    gqlFromDao(dao: object): T;
+    gqlFromDbModel(dao: object): T;
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, paranoid?: boolean): Promise<TConnection>;

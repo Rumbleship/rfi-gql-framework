@@ -36,11 +36,11 @@ export class SequelizeBaseService<
   nodeType(): string {
     return this.apiClass.constructor.name;
   }
-  gqlFromDao(dao: TModel): TApi {
+  gqlFromDbModel(dbModel: TModel): TApi {
     if (this.apiClassFactory) {
-      return this.apiClassFactory.makeFrom(dao, this);
+      return this.apiClassFactory.makeFrom(dbModel, this);
     } else {
-      return modelToClass(this, this.apiClass, dao);
+      return modelToClass(this, this.apiClass, dbModel);
     }
   }
 
@@ -72,7 +72,7 @@ export class SequelizeBaseService<
     // this.sequelizeDataloaderCtx.prime(rows);
     const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
     const edges: Array<Edge<TApi>> = rows.map(instance =>
-      this.makeEdge(toBase64(limits.offset++), this.gqlFromDao(instance as any))
+      this.makeEdge(toBase64(limits.offset++), this.gqlFromDbModel(instance as any))
     );
     const connection = new this.connectionClass();
     connection.addEdges(edges, pageAfter, pageBefore);
@@ -100,12 +100,12 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    return this.gqlFromDao(instance as any);
+    return this.gqlFromDbModel(instance as any);
   }
 
   async create(data: TInput): Promise<TApi> {
     const instance = await this.model.create(data as any);
-    return this.gqlFromDao(instance as any);
+    return this.gqlFromDbModel(instance as any);
   }
 
   async update(data: TUpdate): Promise<TApi> {
@@ -122,7 +122,7 @@ export class SequelizeBaseService<
         throw new Error('Account not found');
       }
       await node.update(data as any);
-      return this.gqlFromDao(node as any);
+      return this.gqlFromDbModel(node as any);
     }
     throw new Error(`Invalid ${this.apiClass.name}: No id`);
   }
@@ -175,7 +175,7 @@ export class SequelizeBaseService<
     edges = associated.map(instance => {
       const edge = new assocEdgeClass();
       edge.cursor = toBase64(limits.offset++);
-      edge.node = this.getServiceFor(assocApiClass).gqlFromDao(instance);
+      edge.node = this.getServiceFor(assocApiClass).gqlFromDbModel(instance);
       return edge;
     });
     const connection = new assocConnectionClass();
@@ -204,7 +204,7 @@ export class SequelizeBaseService<
       [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
     })) as Model<Model<any>>;
     if (associatedModel) {
-      Reflect.set(source, assoc_key, this.getServiceFor(assocApiClass).gqlFromDao(associatedModel));
+      Reflect.set(source, assoc_key, this.getServiceFor(assocApiClass).gqlFromDbModel(associatedModel));
       return Reflect.get(source, assoc_key);
     }
     return null;

@@ -14,7 +14,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     constructor(apiClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, sequelizeDataloaderCtx: any, apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel> | undefined);
     setServiceRegister(services: any): void;
     nodeType(): string;
-    gqlFromDao(dao: TModel): TApi;
+    gqlFromDbModel(dbModel: TModel): TApi;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     getAll(filterBy: TFilter, paranoid?: boolean): Promise<TConnection>;
     findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;
