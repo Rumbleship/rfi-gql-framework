@@ -1,5 +1,4 @@
 import { Service } from 'typedi';
-import { EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
 import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
 import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
 
@@ -8,6 +7,7 @@ import { Model } from 'sequelize-typescript';
 import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory, modelToClass, modelKey } from './model-to-class';
+import { Context } from '../server/index';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -27,7 +27,7 @@ export class SequelizeBaseService<
     protected edgeClass: ClassType<TEdge>,
     protected connectionClass: ClassType<TConnection>,
     protected model: ModelClass<TModel> & typeof Model,
-    protected sequelizeDataloaderCtx: any,
+    protected ctx: Context,
     protected apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>
   ) {}
   setServiceRegister(services: any): void {
@@ -65,8 +65,7 @@ export class SequelizeBaseService<
       where: whereClause,
       offset: limits.offset,
       limit: limits.limit,
-      paranoid,
-      [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
+      paranoid
     });
     // prime the cache
     // this.sequelizeDataloaderCtx.prime(rows);
@@ -94,9 +93,7 @@ export class SequelizeBaseService<
 
   async getOne(oid: Oid): Promise<TApi> {
     const { id } = oid.unwrap();
-    const instance = await this.model.findByPk(id, {
-      [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
-    });
+    const instance = await this.model.findByPk(id);
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
@@ -114,9 +111,7 @@ export class SequelizeBaseService<
 
       delete (data as any).id;
 
-      const node = await this.model.findByPk(id, {
-        [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
-      });
+      const node = await this.model.findByPk(id);
 
       if (!node) {
         throw new Error('Account not found');
@@ -153,14 +148,12 @@ export class SequelizeBaseService<
     if (modelKey in source) {
       sourceModel = Reflect.get(source, modelKey);
       count = await sourceModel.$count(assoc_key, {
-        where: whereClause,
-        [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
+        where: whereClause
       });
       const result = await sourceModel.$get(assoc_key as any, {
         offset: limits.offset,
         limit: limits.limit,
-        where: whereClause,
-        [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
+        where: whereClause
       });
       result instanceof Array ? (associated = result) : (associated = [result]);
     } else {
@@ -200,9 +193,7 @@ export class SequelizeBaseService<
       throw new Error(`Invalid ${source.constructor.name}`);
     }
     const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
-    const associatedModel = (await sourceModel.$get(assoc_key as any, {
-      [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
-    })) as Model<Model<any>>;
+    const associatedModel = (await sourceModel.$get(assoc_key as any)) as Model<Model<any>>;
     if (associatedModel) {
       Reflect.set(
         source,
