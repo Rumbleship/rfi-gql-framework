@@ -204,7 +204,11 @@ export class SequelizeBaseService<
       [EXPECTED_OPTIONS_KEY]: this.sequelizeDataloaderCtx
     })) as Model<Model<any>>;
     if (associatedModel) {
-      Reflect.set(source, assoc_key, this.getServiceFor(assocApiClass).gqlFromDbModel(associatedModel));
+      Reflect.set(
+        source,
+        assoc_key,
+        this.getServiceFor(assocApiClass).gqlFromDbModel(associatedModel)
+      );
       return Reflect.get(source, assoc_key);
     }
     return null;
