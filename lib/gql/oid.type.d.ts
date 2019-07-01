@@ -6,13 +6,14 @@ import { Model } from 'sequelize-typescript';
  *
  */
 export declare class Oid {
-    readonly oid: string;
+    oid: string;
     private static readonly scopes;
     private static ALPHABET;
     private static HASHID_MIN_LEN;
     private static HASHID_SALT;
     private static hashids;
     private static hashIdRegEx;
+    static bankingHackTildeOptional: boolean;
     constructor(oid: string);
     valueOf(): string;
     toString(): string;
