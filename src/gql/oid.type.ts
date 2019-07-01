@@ -7,24 +7,29 @@ import Hashids from 'hashids';
 // Oid supports both base64 encoded representation (as per UUID based Oids in Banking) and
 // hash_ids as per the rest of the system.
 //
+// The strategy used is set via
+//
 // hash_ids are generally easier to consume and deal with when a human needs to write it down
-// although there is discussion of whether these make the ID more leaky.
+// although there is discussion of whether these make the ID more leaky:
 //
 // hash_id's leak the adjacency of database id's as opposed to uuid based Oid's which leak
 // the id, but its pretty hard to guess the ones either side of it... or even any other one in
 // the database
 //
 // hash_id's look like this:-
-// ~po_34dfr
-// the `~` indicates it is a hash_id the letters before the `_` are the short code for the type of entity.
-// It's the organizations responsibility to make sure we dont clash
+// po_34dfr
 //
-// `~` is not used for base64 encoding and don't have a reserved purpose in a URI.
+// see :- https://hashids.org/javascript/
+//
+//
+// base64 encoded UUID based oids are prefixed by a ~.
 //
 // TO USE a hashID encoding, simply add the short code for that type when calling Oid.registerScope()
 // Omitting the short code defaults to a base64 encoded scheme.
 //
-// see :- https://hashids.org/javascript/
+// NOTE: BIG Hack... to ease transition of banking oids to have the ~ prefix, the Oid class has the static
+// boolean member bankingHackTildeOptional which is set in banking. THis MUST be removed once the migration is complete
+//
 
 class Scopes {
   private table: Map<string | number, string>;
@@ -93,8 +98,9 @@ export class Oid {
   // as hashids are NOT meant to be secure, we add a salt just to increase the uniqueness
   private static HASHID_SALT = 'rfi_oid';
   private static hashids = new Hashids(Oid.HASHID_SALT, Oid.HASHID_MIN_LEN, Oid.ALPHABET);
-  private static hashIdRegEx = /^(~)(.+)_([a-z0-9]+)/;
-  constructor(readonly oid: string) {}
+  private static hashIdRegEx = /^(.+)_([a-z0-9]+)/;
+  public static bankingHackTildeOptional: boolean = false;
+  constructor(public oid: string) {}
 
   // Overide Object.valueOf so that the GraphQL ID type can convert to the 'primitive' type. In this case a
   // string.
@@ -118,11 +124,11 @@ export class Oid {
     if (typeof key === 'number') {
       // base64 encoded
       const oid_json = JSON.stringify({ key, id });
-      return new Oid(toBase64(oid_json));
+      return new Oid(`~${toBase64(oid_json)}`);
     } else {
       // hashid
       if (typeof id === 'number') {
-        return new Oid(`~${key}_${this.hashids.encode(id)}`);
+        return new Oid(`${key}_${this.hashids.encode(id)}`);
       } else {
         throw Error(
           `Hash_id Oids MUST have a database id of type number. Check the Oid.registerScope for : ${scope}`
@@ -148,8 +154,16 @@ export class Oid {
   unwrap(): { scope: string; id: string | number } {
     let scope: string | undefined;
     let anId: string | number;
-    if (this.oid[0] !== '~') {
-      const plain = fromBase64(this.oid);
+
+    if (Oid.bankingHackTildeOptional) {
+      // this is only set in banking while banking is transitioning the Oids to ~pre-fix
+      // SO We KNOW that is is safe todo
+      if (this.oid[0] !== '~') {
+        this.oid = '~' + this.oid.toString();
+      }
+    }
+    if (this.oid[0] === '~') {
+      const plain = fromBase64(this.oid.substring(1));
       try {
         const { key, id } = JSON.parse(plain);
         anId = id;
@@ -159,9 +173,9 @@ export class Oid {
       }
     } else {
       const matches = Oid.hashIdRegEx.exec(this.oid);
-      if (matches && matches.length === 4) {
-        scope = Oid.scopes.scope(matches[2]);
-        anId = Oid.hashids.decode(matches[3])[0];
+      if (matches && matches.length === 3) {
+        scope = Oid.scopes.scope(matches[1]);
+        anId = Oid.hashids.decode(matches[2])[0];
       } else {
         throw Error(`Invalid oid format: ${this.oid}`);
       }

@@ -54,7 +54,7 @@ describe('That objects of type Oid work as expected:', () => {
     Oid.registerScope(PAYMENT_REQUEST);
     const oid: Oid = Oid.create(PAYMENT_REQUEST, OBJECT_ID1);
     const oidAsString = oid.toString();
-    expect(oidAsString).toMatchInlineSnapshot(`"eyJrZXkiOjU1ODQ1OTI2MiwiaWQiOiIwMDAxIn0="`);
+    expect(oidAsString).toMatchInlineSnapshot(`"~eyJrZXkiOjU1ODQ1OTI2MiwiaWQiOiIwMDAxIn0="`);
     const newOid = new Oid(oidAsString);
     expect(newOid).toEqual(oid);
   });
@@ -91,7 +91,7 @@ describe('That objects of type Oid work as expected:', () => {
     Oid.registerScope(PAYMENT_REQUEST, PAYMENT_REQUEST_SHORT_CODE);
     const oid: Oid = Oid.create(PAYMENT_REQUEST, OBJECT_ID1);
     const oidAsString = oid.toString();
-    expect(oidAsString).toMatchInlineSnapshot(`"~pr_ovjey"`);
+    expect(oidAsString).toMatchInlineSnapshot(`"pr_ovjey"`);
     const newOid = new Oid(oidAsString);
     expect(newOid).toEqual(oid);
   });
