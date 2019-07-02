@@ -55,17 +55,18 @@ export class NodeResolver implements RelayResolver {
     }
     throw Error('Invalid OID. Scope:' + scope);
   }
-  @Mutation()
+  @Mutation(returns => Boolean)
   publishLastKnownState(
     @Arg('id', type => ID) oid: Oid,
     @PubSub() pubSub: PubSubEngine,
     @Ctx() ctx: any
-  ) {
+  ): boolean {
     // const oid = new Oid(oidString);
     const { scope } = oid.unwrap();
     if (scope in this.nodeServices) {
-      return Reflect.get(this.nodeServices, scope).publishLastKnownState(oid);
+      Reflect.get(this.nodeServices, scope).publishLastKnownState(oid);
     }
+    return true;
   }
   @Subscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,

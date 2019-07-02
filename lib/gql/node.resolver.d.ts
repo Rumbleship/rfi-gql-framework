@@ -12,7 +12,7 @@ export declare class NodeResolver implements RelayResolver {
     private readonly nodeServices;
     constructor(nodeServices: Array<NodeService<any>>);
     node(oidString: string, ctx: any): Promise<Node<any> | null>;
-    publishLastKnownState(oid: Oid, pubSub: PubSubEngine, ctx: any): any;
+    publishLastKnownState(oid: Oid, pubSub: PubSubEngine, ctx: any): boolean;
     onChange(payload: DbModelChangeNotification): Promise<ClassGqlNodeNotification>;
     unWrapOid(oidString: string, ctx: any): Promise<string>;
     makeOid(scope: string, id: string, ctx: any): Promise<string>;
