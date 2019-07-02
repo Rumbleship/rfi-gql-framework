@@ -77,7 +77,10 @@ export class NodeResolver implements RelayResolver {
     // convert to GQL Model
     const modelId: number | string = payload.model.get('id') as number | string;
     // ASSUME that the db model is suffixed with Model
-    const gqlModelName = payload.model.constructor.name.slice(0, 'Model'.length - 1);
+    const gqlModelName = payload.model.constructor.name.slice(
+      0,
+      payload.model.constructor.name.length - 'Model'.length - 1
+    );
     const oid = Oid.create(gqlModelName, modelId);
     if (gqlModelName in this.nodeServices) {
       const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
