@@ -7,6 +7,7 @@ export interface NodeService<T> {
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
   setServiceRegister(services: any): void;
   gqlFromDbModel(dao: object): T;
+  publishLastKnownState(oid: Oid): Promise<void>;
 }
 
 export interface RelayService<

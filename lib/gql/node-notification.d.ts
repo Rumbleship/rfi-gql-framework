@@ -4,9 +4,7 @@ import { ClassType } from '../helpers/index';
 export declare enum NotificationOf {
     LAST_KNOWN_STATE = "LAST_KNOWN_STATE",
     CREATED = "CREATED",
-    UPDATED = "UPDATED",
-    DESTROYED = "DESTORYED",
-    BULK_CHANGE = "BULK_CHANGE"
+    UPDATED = "UPDATED"
 }
 export declare const NODE_CHANGE_NOTIFICATION = "NODE_CHANGE_NOTIFICATION";
 export declare abstract class NodeNotification<T extends Node<T>> {

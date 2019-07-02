@@ -25,6 +25,16 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
   // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
 }
 
+export function publishCurrentState(instance: Model<any, any>) {
+  const pubSub = pubSubFrom(instance.sequelize as Sequelize);
+  if (pubSub) {
+    const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance);
+    pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
+    // Also publish the specific Model
+    pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
+  }
+}
+
 const PubSubKey = Symbol('PubSubEngine');
 function attachPubSubEngineToSequelize(pubSub: PubSubEngine, sequelize: Sequelize): void {
   Reflect.set(sequelize, PubSubKey, pubSub);

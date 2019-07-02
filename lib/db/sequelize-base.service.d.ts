@@ -21,6 +21,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     findOne(filterBy: TFilter, paranoid?: boolean): Promise<TApi | null>;
     count(filterBy: any): Promise<number>;
     getOne(oid: Oid): Promise<TApi>;
+    publishLastKnownState(oid: Oid): Promise<void>;
     create(data: TInput): Promise<TApi>;
     update(data: TUpdate): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>): Promise<TAssocConnection>;

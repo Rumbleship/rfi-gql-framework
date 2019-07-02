@@ -9,7 +9,10 @@ import {
   Field,
   Int,
   ObjectType,
-  Root
+  Root,
+  Mutation,
+  PubSubEngine,
+  PubSub
 } from 'type-graphql';
 import { Node, RelayResolver, Oid } from './index';
 import { NodeService } from './relay.service';
@@ -51,6 +54,18 @@ export class NodeResolver implements RelayResolver {
       return Reflect.get(this.nodeServices, scope).getOne(oid);
     }
     throw Error('Invalid OID. Scope:' + scope);
+  }
+  @Mutation()
+  publishLastKnownState(
+    @Arg('id', type => ID) oid: Oid,
+    @PubSub() pubSub: PubSubEngine,
+    @Ctx() ctx: any
+  ) {
+    // const oid = new Oid(oidString);
+    const { scope } = oid.unwrap();
+    if (scope in this.nodeServices) {
+      return Reflect.get(this.nodeServices, scope).publishLastKnownState(oid);
+    }
   }
   @Subscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,

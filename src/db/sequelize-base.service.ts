@@ -8,6 +8,7 @@ import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory, modelToClass, modelKey } from './model-to-class';
 import { Context } from '../server/index';
+import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -98,6 +99,15 @@ export class SequelizeBaseService<
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
     return this.gqlFromDbModel(instance as any);
+  }
+
+  async publishLastKnownState(oid: Oid): Promise<void> {
+    const { id } = oid.unwrap();
+    const instance = await this.model.findByPk(id);
+    if (!instance) {
+      throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
+    }
+    publishCurrentState(instance);
   }
 
   async create(data: TInput): Promise<TApi> {

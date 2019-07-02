@@ -6,10 +6,9 @@ import { ClassType } from '../helpers/index';
 export enum NotificationOf {
   LAST_KNOWN_STATE = 'LAST_KNOWN_STATE',
   CREATED = 'CREATED',
-  UPDATED = 'UPDATED',
-  DESTROYED = 'DESTORYED',
-  BULK_CHANGE = 'BULK_CHANGE'
+  UPDATED = 'UPDATED'
 }
+
 registerEnumType(NotificationOf, {
   name: 'NotificationOf',
   description: `For PubSub: The type of Notification. Note that BULK_CHANGE is sent when multiple 
