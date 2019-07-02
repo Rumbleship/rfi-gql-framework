@@ -57,11 +57,11 @@ export class NodeResolver implements RelayResolver {
   }
   @Mutation(returns => Boolean)
   publishLastKnownState(
-    @Arg('id', type => ID) oid: Oid,
+    @Arg('id', type => ID) oidString: string,
     @PubSub() pubSub: PubSubEngine,
     @Ctx() ctx: any
   ): boolean {
-    // const oid = new Oid(oidString);
+    const oid = new Oid(oidString);
     const { scope } = oid.unwrap();
     if (scope in this.nodeServices) {
       Reflect.get(this.nodeServices, scope).publishLastKnownState(oid);
