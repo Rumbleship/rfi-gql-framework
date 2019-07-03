@@ -7,7 +7,9 @@ import {
   RelayService,
   NodeService,
   NodeServiceOptions,
-  NodeServiceLock
+  NodeServiceLock,
+  NodeServiceTransaction,
+  NodeServiceIsolationLevel
 } from '../gql';
 import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
 
@@ -63,6 +65,14 @@ export class SequelizeBaseService<
     }
     throw Error(`Service not defined for Class: ${name}`);
   }
+
+  async newTransaction(isolation?: NodeServiceIsolationLevel): Promise<NodeServiceTransaction> {
+    const txn = await this.model.sequelize!.transaction({
+      isolationLevel: isolation as any
+    });
+    return (txn as unknown) as NodeServiceTransaction;
+  }
+
   convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions) {
     if (options) {
       const transaction: Transaction | undefined = options

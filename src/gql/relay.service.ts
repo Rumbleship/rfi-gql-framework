@@ -10,6 +10,13 @@ export enum NodeServiceLock {
   UPDATE = 'UPDATE',
   SHARE = 'SHARE'
 }
+export enum NodeServiceIsolationLevel {
+  READ_UNCOMMITTED = 'READ UNCOMMITTED',
+  READ_COMMITTED = 'READ COMMITTED',
+  REPEATABLE_READ = 'REPEATABLE READ',
+  SERIALIZABLE = 'SERIALIZABLE'
+}
+
 export interface NodeServiceOptions {
   paranoid?: boolean;
   transaction?: NodeServiceTransaction;
@@ -23,6 +30,7 @@ export interface NodeService<T> {
   setServiceRegister(services: any): void;
   gqlFromDbModel(dao: object): T;
   publishLastKnownState(oid: Oid): Promise<void>;
+  newTransaction(isolation: NodeServiceIsolationLevel): Promise<NodeServiceTransaction>;
 }
 
 export interface RelayService<

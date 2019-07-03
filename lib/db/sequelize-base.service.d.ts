@@ -1,4 +1,4 @@
-import { Connection, Edge, Node, Oid, RelayService, NodeService, NodeServiceOptions } from '../gql';
+import { Connection, Edge, Node, Oid, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';
@@ -18,6 +18,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
+    newTransaction(isolation?: NodeServiceIsolationLevel): Promise<NodeServiceTransaction>;
     convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions): {
         paranoid: boolean | undefined;
         transaction: Transaction | undefined;
