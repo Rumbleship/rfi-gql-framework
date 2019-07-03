@@ -1,5 +1,14 @@
 import { Service } from 'typedi';
-import { Connection, Edge, Node, Oid, RelayService, NodeService } from '../gql';
+import {
+  Connection,
+  Edge,
+  Node,
+  Oid,
+  RelayService,
+  NodeService,
+  NodeServiceOptions,
+  NodeServiceLock
+} from '../gql';
 import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
 
 import { Model } from 'sequelize-typescript';
@@ -9,6 +18,8 @@ import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory, modelToClass, modelKey } from './model-to-class';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
+import { Transaction } from 'sequelize';
+import { findEach } from 'iterable-model';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -52,7 +63,25 @@ export class SequelizeBaseService<
     }
     throw Error(`Service not defined for Class: ${name}`);
   }
-  async getAll(filterBy: TFilter, paranoid = true): Promise<TConnection> {
+  convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions) {
+    if (options) {
+      const transaction: Transaction | undefined = options
+        ? ((options.transaction as unknown) as Transaction)
+        : undefined;
+      let lock: Transaction.LOCK | undefined;
+      if (transaction) {
+        lock = options.lockLevel
+          ? options.lockLevel === NodeServiceLock.UPDATE
+            ? Transaction.LOCK.UPDATE
+            : Transaction.LOCK.SHARE
+          : undefined;
+      }
+      return { paranoid: options.paranoid, transaction, lock };
+    } else {
+      return undefined;
+    }
+  }
+  async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
     // we hold cursors as base64 of the offset for this query... not perfect,
     // but good enough for now
@@ -61,12 +90,12 @@ export class SequelizeBaseService<
     //
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = Oid.createWhereClauseWith(filter);
-
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const { rows, count } = await this.model.findAndCountAll({
       where: whereClause,
       offset: limits.offset,
       limit: limits.limit,
-      paranoid
+      ...sequelizeOptions
     });
     // prime the cache
     // this.sequelizeDataloaderCtx.prime(rows);
@@ -78,23 +107,45 @@ export class SequelizeBaseService<
     connection.addEdges(edges, pageAfter, pageBefore);
     return connection;
   }
-  async findOne(filterBy: TFilter, paranoid = true): Promise<TApi | null> {
-    const matched = await this.getAll(filterBy);
+  async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
+    const matched = await this.getAll(filterBy, options);
     if (matched.edges.length) {
       return matched.edges[0].node;
     } else {
       return null;
     }
   }
+
+  async findEach(
+    filterBy: TFilter,
+    apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
+    options?: NodeServiceOptions
+  ): Promise<void> {
+    const { after, before, first, last, ...filter } = filterBy as any;
+    const whereClause = Oid.createWhereClauseWith(filter);
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const modelFindEach = findEach.bind(this.model);
+    modelFindEach(
+      {
+        where: whereClause,
+        ...sequelizeOptions
+      },
+      (model: TModel) => {
+        apply(this.gqlFromDbModel(model));
+      }
+    );
+  }
+
   async count(filterBy: any) {
     return this.model.count({
       where: filterBy
     });
   }
 
-  async getOne(oid: Oid): Promise<TApi> {
+  async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     const { id } = oid.unwrap();
-    const instance = await this.model.findByPk(id);
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const instance = await this.model.findByPk(id, sequelizeOptions);
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
@@ -110,23 +161,25 @@ export class SequelizeBaseService<
     publishCurrentState(instance);
   }
 
-  async create(data: TInput): Promise<TApi> {
-    const instance = await this.model.create(data as any);
+  async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const instance = await this.model.create(data as any, sequelizeOptions);
     return this.gqlFromDbModel(instance as any);
   }
 
-  async update(data: TUpdate): Promise<TApi> {
+  async update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi> {
     if ((data as any).id) {
       const { id } = new Oid((data as any).id).unwrap();
 
       delete (data as any).id;
 
-      const node = await this.model.findByPk(id);
+      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+      const node = await this.model.findByPk(id, sequelizeOptions);
 
       if (!node) {
         throw new Error('Account not found');
       }
-      await node.update(data as any);
+      await node.update(data as any, sequelizeOptions);
       return this.gqlFromDbModel(node as any);
     }
     throw new Error(`Invalid ${this.apiClass.name}: No id`);
@@ -147,7 +200,8 @@ export class SequelizeBaseService<
     filterBy: any,
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
-    assocConnectionClass: ClassType<TAssocConnection>
+    assocConnectionClass: ClassType<TAssocConnection>,
+    options?: NodeServiceOptions
   ): Promise<TAssocConnection> {
     const { after, before, first, last, ...filter } = filterBy;
     const limits = calculateLimitAndOffset(after, first, before, last);
@@ -157,13 +211,15 @@ export class SequelizeBaseService<
     let associated: Array<Model<any>>;
     if (modelKey in source) {
       sourceModel = Reflect.get(source, modelKey);
+      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       count = await sourceModel.$count(assoc_key, {
         where: whereClause
       });
       const result = await sourceModel.$get(assoc_key as any, {
         offset: limits.offset,
         limit: limits.limit,
-        where: whereClause
+        where: whereClause,
+        ...sequelizeOptions
       });
       result instanceof Array ? (associated = result) : (associated = [result]);
     } else {
@@ -189,7 +245,8 @@ export class SequelizeBaseService<
   async getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
     assoc_key: string,
-    assocApiClass: ClassType<TAssocApi>
+    assocApiClass: ClassType<TAssocApi>,
+    options?: NodeServiceOptions
   ): Promise<TAssocApi | null> {
     if (assoc_key in source) {
       const ret = Reflect.get(source, assoc_key);
@@ -203,7 +260,10 @@ export class SequelizeBaseService<
       throw new Error(`Invalid ${source.constructor.name}`);
     }
     const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
-    const associatedModel = (await sourceModel.$get(assoc_key as any)) as Model<Model<any>>;
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model<
+      Model<any>
+    >;
     if (associatedModel) {
       Reflect.set(
         source,
