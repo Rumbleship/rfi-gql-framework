@@ -66,9 +66,13 @@ export class SequelizeBaseService<
     throw Error(`Service not defined for Class: ${name}`);
   }
 
-  async newTransaction(isolation?: NodeServiceIsolationLevel): Promise<NodeServiceTransaction> {
+  async newTransaction(params: {
+    isolation: NodeServiceIsolationLevel;
+    autocommit: boolean;
+  }): Promise<NodeServiceTransaction> {
     const txn = await this.model.sequelize!.transaction({
-      isolationLevel: isolation as any
+      isolationLevel: params.isolation as any,
+      autocommit: params.autocommit
     });
     return (txn as unknown) as NodeServiceTransaction;
   }

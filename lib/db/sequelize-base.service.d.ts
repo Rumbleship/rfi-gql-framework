@@ -18,7 +18,10 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
-    newTransaction(isolation?: NodeServiceIsolationLevel): Promise<NodeServiceTransaction>;
+    newTransaction(params: {
+        isolation: NodeServiceIsolationLevel;
+        autocommit: boolean;
+    }): Promise<NodeServiceTransaction>;
     convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions): {
         paranoid: boolean | undefined;
         transaction: Transaction | undefined;

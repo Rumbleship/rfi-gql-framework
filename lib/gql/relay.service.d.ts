@@ -27,7 +27,10 @@ export interface NodeService<T> {
     setServiceRegister(services: any): void;
     gqlFromDbModel(dao: object): T;
     publishLastKnownState(oid: Oid): Promise<void>;
-    newTransaction(isolation: NodeServiceIsolationLevel): Promise<NodeServiceTransaction>;
+    newTransaction(params: {
+        isolation: NodeServiceIsolationLevel;
+        autocommit: boolean;
+    }): Promise<NodeServiceTransaction>;
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;

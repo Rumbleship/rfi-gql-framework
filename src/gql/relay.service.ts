@@ -30,7 +30,10 @@ export interface NodeService<T> {
   setServiceRegister(services: any): void;
   gqlFromDbModel(dao: object): T;
   publishLastKnownState(oid: Oid): Promise<void>;
-  newTransaction(isolation: NodeServiceIsolationLevel): Promise<NodeServiceTransaction>;
+  newTransaction(params: {
+    isolation: NodeServiceIsolationLevel;
+    autocommit: boolean;
+  }): Promise<NodeServiceTransaction>;
 }
 
 export interface RelayService<
