@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@hapi/good": "^8.1.1",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#dev",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
     "@types/hashids": "^1.0.30",

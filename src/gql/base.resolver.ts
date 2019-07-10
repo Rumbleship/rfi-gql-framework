@@ -1,4 +1,14 @@
-import { Resolver, Query, Arg, Args, Mutation, ID, Subscription, Root } from 'type-graphql';
+import {
+  Resolver,
+  Query,
+  Arg,
+  Args,
+  Mutation,
+  ID,
+  Subscription,
+  Root,
+  Authorized
+} from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
 import {
@@ -6,6 +16,7 @@ import {
   NodeNotification,
   NODE_CHANGE_NOTIFICATION
 } from './node-notification';
+import { PermissionsMatrix } from '@rumbleship/acl';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -43,7 +54,8 @@ export function createBaseResolver<
   filterClsType: ClassType<TFilter>,
   inputClsType: ClassType<TInput>,
   updateClsType: ClassType<TUpdate>,
-  notificationClsType: ClassType<TNotification>
+  notificationClsType: ClassType<TNotification>,
+  permissions?: PermissionsMatrix
 ): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, TInput, TUpdate>> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
@@ -52,6 +64,7 @@ export function createBaseResolver<
       super(service);
     }
 
+    @Authorized(permissions)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);

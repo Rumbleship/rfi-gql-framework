@@ -1,19 +1,7 @@
 import { ContainerInstance } from 'typedi';
-
-export interface RfiCredentials {
-  exp: number;
-  iat: number;
-  user?: string;
-  name?: string;
-  scope?: string[];
-  roles?: {
-    admin: string[];
-    pending: string[];
-    user: string[];
-  };
-}
+import { Claims } from '@rumbleship/acl';
 export interface Context {
   requestId: string;
   container: ContainerInstance;
-  credentials: RfiCredentials;
+  credentials: Claims;
 }
