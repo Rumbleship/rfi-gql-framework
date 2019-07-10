@@ -7,7 +7,7 @@ import {
   ID,
   Subscription,
   Root,
-  Authorized
+  // Authorized
 } from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
@@ -64,7 +64,7 @@ export function createBaseResolver<
       super(service);
     }
 
-    @Authorized(permissions)
+    // @Authorized(permissions)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
