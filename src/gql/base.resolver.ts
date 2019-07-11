@@ -7,16 +7,16 @@ import {
   ID,
   Subscription,
   Root,
-  // Authorized
+  Authorized
 } from 'type-graphql';
 import { RelayService, Node, Connection, Oid } from './index';
-import { ClassType } from '../helpers/classtype';
+import { ClassType } from './../helpers/classtype';
 import {
   DbModelChangeNotification,
   NodeNotification,
   NODE_CHANGE_NOTIFICATION
 } from './node-notification';
-import { PermissionsMatrix } from '@rumbleship/acl';
+import { Scopes } from '@rumbleship/acl';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -55,7 +55,7 @@ export function createBaseResolver<
   inputClsType: ClassType<TInput>,
   updateClsType: ClassType<TUpdate>,
   notificationClsType: ClassType<TNotification>,
-  permissions?: PermissionsMatrix
+  defaultScope: Scopes | Scopes[]
 ): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, TInput, TUpdate>> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
@@ -64,19 +64,22 @@ export function createBaseResolver<
       super(service);
     }
 
-    // @Authorized(permissions)
+    @Authorized(defaultScope)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
     }
+    @Authorized(defaultScope)
     @Query(type => objectTypeCls, { name: `${baseName}` })
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
+    @Authorized(defaultScope)
     @Mutation(type => objectTypeCls, { name: `add${capitalizedName}` })
     async create(@Arg('input', type => inputClsType) input: TInput): Promise<TApi> {
       return super.create(input);
     }
+    @Authorized(defaultScope)
     @Mutation(type => objectTypeCls, { name: `update${capitalizedName}` })
     async update(@Arg('input', type => updateClsType) input: TUpdate): Promise<TApi> {
       return super.update(input);

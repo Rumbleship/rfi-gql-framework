@@ -22,6 +22,7 @@ import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction } from 'sequelize';
 import { findEach } from 'iterable-model';
+import { PermissionsMatrix, Actions, RFIAuthError } from '@rumbleship/acl';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -36,14 +37,20 @@ export class SequelizeBaseService<
   TDiscriminatorEnum
 > implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   private nodeServices: any;
+  private permissions: PermissionsMatrix;
   constructor(
     protected apiClass: ClassType<TApi>,
     protected edgeClass: ClassType<TEdge>,
     protected connectionClass: ClassType<TConnection>,
     protected model: ModelClass<TModel> & typeof Model,
     protected ctx: Context,
-    protected apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>
-  ) {}
+    protected options: {
+      permissions: PermissionsMatrix;
+      apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
+    }
+  ) {
+    this.permissions = options.permissions;
+  }
   setServiceRegister(services: any): void {
     this.nodeServices = services;
   }
@@ -51,8 +58,8 @@ export class SequelizeBaseService<
     return this.apiClass.constructor.name;
   }
   gqlFromDbModel(dbModel: TModel): TApi {
-    if (this.apiClassFactory) {
-      return this.apiClassFactory.makeFrom(dbModel, this);
+    if (this.options.apiClassFactory) {
+      return this.options.apiClassFactory.makeFrom(dbModel, this);
     } else {
       return modelToClass(this, this.apiClass, dbModel);
     }
@@ -102,32 +109,40 @@ export class SequelizeBaseService<
     // see https://facebook.github.io/relay/graphql/connections.htm#sec-Pagination-algorithm
     // However... we only support before OR after.
     //
-    const limits = calculateLimitAndOffset(after, first, before, last);
-    const whereClause = Oid.createWhereClauseWith(filter);
-    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    const { rows, count } = await this.model.findAndCountAll({
-      where: whereClause,
-      offset: limits.offset,
-      limit: limits.limit,
-      ...sequelizeOptions
-    });
-    // prime the cache
-    // this.sequelizeDataloaderCtx.prime(rows);
-    const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
-    const edges: Array<Edge<TApi>> = rows.map(instance =>
-      this.makeEdge(toBase64(limits.offset++), this.gqlFromDbModel(instance as any))
-    );
     const connection = new this.connectionClass();
-    connection.addEdges(edges, pageAfter, pageBefore);
+    if (this.ctx.authorizer.can(Actions.QUERY, filter as any, [this.permissions])) {
+      const limits = calculateLimitAndOffset(after, first, before, last);
+      const whereClause = Oid.createWhereClauseWith(filter);
+      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+      const { rows, count } = await this.model.findAndCountAll({
+        where: whereClause,
+        offset: limits.offset,
+        limit: limits.limit,
+        ...sequelizeOptions
+      });
+      // prime the cache
+      // this.sequelizeDataloaderCtx.prime(rows);
+      const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
+      const edges: Array<Edge<TApi>> = rows.map(instance =>
+        this.makeEdge(toBase64(limits.offset++), this.gqlFromDbModel(instance as any))
+      );
+
+      connection.addEdges(edges, pageAfter, pageBefore);
+    } else {
+      connection.addEdges([], false, false);
+    }
     return connection;
   }
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
-    const matched = await this.getAll(filterBy, options);
-    if (matched.edges.length) {
-      return matched.edges[0].node;
-    } else {
-      return null;
+    const { ...filter } = filterBy;
+
+    if (this.ctx.authorizer.can(Actions.QUERY, filter as any, [this.permissions])) {
+      const matched = await this.getAll(filterBy, options);
+      if (matched.edges.length) {
+        return matched.edges[0].node;
+      }
     }
+    return null;
   }
 
   async findEach(
@@ -136,24 +151,31 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     const { after, before, first, last, ...filter } = filterBy as any;
-    const whereClause = Oid.createWhereClauseWith(filter);
-    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    const modelFindEach = findEach.bind(this.model);
-    modelFindEach(
-      {
-        where: whereClause,
-        ...sequelizeOptions
-      },
-      (model: TModel) => {
-        apply(this.gqlFromDbModel(model));
-      }
-    );
+    if (this.ctx.authorizer.can(Actions.QUERY, filter as any, [this.permissions])) {
+      const whereClause = Oid.createWhereClauseWith(filter);
+      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+      const modelFindEach = findEach.bind(this.model);
+      modelFindEach(
+        {
+          where: whereClause,
+          ...sequelizeOptions
+        },
+        (model: TModel) => {
+          apply(this.gqlFromDbModel(model));
+        }
+      );
+    }
+    throw new RFIAuthError();
   }
 
   async count(filterBy: any) {
-    return this.model.count({
-      where: filterBy
-    });
+    const { ...filter } = filterBy;
+    if (this.ctx.authorizer.can(Actions.QUERY, filter as any, [this.permissions])) {
+      return this.model.count({
+        where: filterBy
+      });
+    }
+    throw new RFIAuthError();
   }
 
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
@@ -163,7 +185,10 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    return this.gqlFromDbModel(instance as any);
+    if (this.ctx.authorizer.can(Actions.QUERY, instance as any, [this.permissions])) {
+      return this.gqlFromDbModel(instance as any);
+    }
+    throw new RFIAuthError();
   }
 
   async publishLastKnownState(oid: Oid): Promise<void> {
@@ -172,29 +197,38 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    publishCurrentState(instance);
+    if (this.ctx.authorizer.can(Actions.QUERY, instance as any, [this.permissions])) {
+      publishCurrentState(instance);
+    }
+    throw new RFIAuthError();
   }
 
   async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
-    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    const instance = await this.model.create(data as any, sequelizeOptions);
-    return this.gqlFromDbModel(instance as any);
+    if (this.ctx.authorizer.can(Actions.CREATE, data as any, [this.permissions])) {
+      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+      const instance = await this.model.create(data as any, sequelizeOptions);
+      return this.gqlFromDbModel(instance as any);
+    }
+    throw new RFIAuthError();
   }
 
   async update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi> {
     if ((data as any).id) {
-      const { id } = new Oid((data as any).id).unwrap();
+      if (this.ctx.authorizer.can(Actions.UPDATE, data as any, [this.permissions])) {
+        const { id } = new Oid((data as any).id).unwrap();
 
-      delete (data as any).id;
+        delete (data as any).id;
 
-      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      const node = await this.model.findByPk(id, sequelizeOptions);
+        const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+        const node = await this.model.findByPk(id, sequelizeOptions);
 
-      if (!node) {
-        throw new Error('Account not found');
+        if (!node) {
+          throw new Error('Account not found');
+        }
+        await node.update(data as any, sequelizeOptions);
+        return this.gqlFromDbModel(node as any);
       }
-      await node.update(data as any, sequelizeOptions);
-      return this.gqlFromDbModel(node as any);
+      throw new RFIAuthError();
     }
     throw new Error(`Invalid ${this.apiClass.name}: No id`);
   }

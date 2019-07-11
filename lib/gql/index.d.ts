@@ -1,3 +1,4 @@
+export * from './auth-checker';
 export * from './connection.type';
 export * from './node.interface';
 export * from './page-info.type';
