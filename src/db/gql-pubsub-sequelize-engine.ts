@@ -16,11 +16,19 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
   // GQL classes
   attachPubSubEngineToSequelize(pubSub, sequelize);
 
-  sequelize.afterCreate((instance, options) => gqlCreateHook(pubSub, instance, options));
-  sequelize.afterUpdate((instance, options) => gqlUpdateHook(pubSub, instance, options));
-  sequelize.addHook('afterAssociate' as any, () => {
-    // tslint:disable-next-line: no-console
-    console.log('hmmm');
+  sequelize.afterCreate((instance, options) => {
+    if (options && options.transaction) {
+      options.transaction.afterCommit(t => gqlCreateHook(pubSub, instance, options));
+      return;
+    }
+    gqlCreateHook(pubSub, instance, options);
+  });
+  sequelize.afterUpdate((instance, options) => {
+    if (options && options.transaction) {
+      options.transaction.afterCommit(t => gqlUpdateHook(pubSub, instance, options));
+      return;
+    }
+    gqlUpdateHook(pubSub, instance, options);
   });
   // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
 }
