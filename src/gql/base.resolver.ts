@@ -85,6 +85,7 @@ export function createBaseResolver<
       return super.update(input);
     }
 
+    @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
@@ -112,7 +113,8 @@ export function createReadOnlyBaseResolver<
   objectTypeCls: ClassType<TApi>,
   connectionTypeCls: ClassType<TConnection>,
   filterClsType: ClassType<TFilter>,
-  notificationClsType: ClassType<TNotification>
+  notificationClsType: ClassType<TNotification>,
+  defaultScope: Scopes | Scopes[]
 ): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, any, any>> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
@@ -120,16 +122,18 @@ export function createReadOnlyBaseResolver<
     constructor(service: RelayService<TApi, TConnection, TFilter, any, any>) {
       super(service);
     }
-
+    @Authorized(defaultScope)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
     }
+    @Authorized(defaultScope)
     @Query(type => objectTypeCls, { name: `${baseName}` })
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
 
+    @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
