@@ -609,7 +609,7 @@
 
 "@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#dev":
   version "0.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/acl.git#d76e2e569e746be2048508dd018e4d73e18e0e6c"
+  resolved "git+ssh://git@github.com/rumbleship/acl.git#6c8f8d8db84547a5fbbb154e873ccab3364985e3"
   dependencies:
     jsonwebtoken "^8.5.1"
 
