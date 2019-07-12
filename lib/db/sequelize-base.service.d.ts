@@ -22,7 +22,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         permissions: PermissionsMatrix;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     });
-    can(action: Actions, authorizable: object, options?: NodeServiceOptions): boolean | undefined;
+    can(action: Actions, authorizable: object, options?: NodeServiceOptions): boolean | NodeServiceTransaction;
     setServiceRegister(services: any): void;
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;

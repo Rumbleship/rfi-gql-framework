@@ -54,8 +54,7 @@ export class SequelizeBaseService<
 
   can(action: Actions, authorizable: object, options?: NodeServiceOptions) {
     return (
-      options &&
-      options.transaction &&
+      (options && options.transaction) ||
       this.ctx.authorizer.can(action, authorizable, [this.permissions])
     );
   }
