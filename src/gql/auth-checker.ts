@@ -6,15 +6,12 @@ export const RFIAuthChecker: AuthChecker<any, PermissionsMatrix | Scopes[] | Sco
   permissionsOrScopeList
 ) => {
   const authorizer: Authorizer = context.authorizer;
-  const { operation, name } = info.operation;
+  const { operation } = info.operation;
   if (!root) {
     // resolver level permissioning
     return authorizer.inScope(permissionsOrScopeList as Scopes[]);
   }
   // attribute level, through the resolver, permissioning
-  return authorizer.can(
-    (name ? name.value : operation) as Actions,
-    root,
-    permissionsOrScopeList as PermissionsMatrix[]
-  );
+
+  return authorizer.can(operation as Actions, root, permissionsOrScopeList as PermissionsMatrix[]);
 };
