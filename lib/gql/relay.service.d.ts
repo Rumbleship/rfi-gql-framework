@@ -34,7 +34,7 @@ export interface NodeService<T> {
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
-    count(filterBy: TFilter): Promise<number>;
+    count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;

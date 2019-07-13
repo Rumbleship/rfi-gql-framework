@@ -22,7 +22,7 @@ import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction } from 'sequelize';
 import { findEach } from 'iterable-model';
-import { PermissionsMatrix, Actions, RFIAuthError } from '@rumbleship/acl';
+import { PermissionsMatrix, Actions, RFIAuthError, Resource } from '@rumbleship/acl';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -52,10 +52,22 @@ export class SequelizeBaseService<
     this.permissions = options.permissions;
   }
 
-  can(action: Actions, authorizable: object, options?: NodeServiceOptions) {
+  can(params: {
+    action: Actions;
+    authorizable: object;
+    options?: NodeServiceOptions;
+    attribute?: string;
+    resource?: Resource;
+  }) {
     return (
-      (options && options.transaction) ||
-      this.ctx.authorizer.can(action, authorizable, [this.permissions])
+      (params.options && params.options.transaction) ||
+      this.ctx.authorizer.can(
+        params.action,
+        params.authorizable,
+        [this.permissions],
+        params.attribute,
+        params.resource
+      )
     );
   }
 
@@ -118,7 +130,7 @@ export class SequelizeBaseService<
     // However... we only support before OR after.
     //
     const connection = new this.connectionClass();
-    if (this.can(Actions.QUERY, filter as any, options)) {
+    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
       const limits = calculateLimitAndOffset(after, first, before, last);
       const whereClause = Oid.createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
@@ -144,7 +156,7 @@ export class SequelizeBaseService<
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
     const { ...filter } = filterBy;
 
-    if (this.can(Actions.QUERY, filter as any, options)) {
+    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
       const matched = await this.getAll(filterBy, options);
       if (matched.edges.length) {
         return matched.edges[0].node;
@@ -159,7 +171,7 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     const { after, before, first, last, ...filter } = filterBy as any;
-    if (this.can(Actions.QUERY, filter as object, options)) {
+    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
       const whereClause = Oid.createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const modelFindEach = findEach.bind(this.model);
@@ -176,9 +188,9 @@ export class SequelizeBaseService<
     throw new RFIAuthError();
   }
 
-  async count(filterBy: any) {
+  async count(filterBy: any, options?: NodeServiceOptions) {
     const { ...filter } = filterBy;
-    if (this.can(Actions.QUERY, filter as any)) {
+    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
       return this.model.count({
         where: filterBy
       });
@@ -193,7 +205,7 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    if (this.can(Actions.QUERY, instance as object, options)) {
+    if (this.can({ action: Actions.QUERY, authorizable: instance, options })) {
       return this.gqlFromDbModel(instance as any);
     }
     throw new RFIAuthError();
@@ -205,14 +217,14 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    if (this.can(Actions.QUERY, instance as object)) {
+    if (this.can({ action: Actions.QUERY, authorizable: instance })) {
       publishCurrentState(instance);
     }
     throw new RFIAuthError();
   }
 
   async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
-    if (this.can(Actions.CREATE, data as any, options)) {
+    if (this.can({ action: Actions.CREATE, authorizable: data as any, options })) {
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(data as any, sequelizeOptions);
       return this.gqlFromDbModel(instance as any);
@@ -222,7 +234,7 @@ export class SequelizeBaseService<
 
   async update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi> {
     if ((data as any).id) {
-      if (this.can(Actions.UPDATE, data as any, options)) {
+      if (this.can({ action: Actions.UPDATE, authorizable: data as any, options })) {
         const { id } = new Oid((data as any).id).unwrap();
 
         delete (data as any).id;

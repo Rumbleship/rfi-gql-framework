@@ -4,7 +4,7 @@ import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';
 import { Context } from '../server/index';
 import { Transaction } from 'sequelize';
-import { PermissionsMatrix, Actions } from '@rumbleship/acl';
+import { PermissionsMatrix, Actions, Resource } from '@rumbleship/acl';
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     protected apiClass: ClassType<TApi>;
@@ -22,7 +22,13 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         permissions: PermissionsMatrix;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     });
-    can(action: Actions, authorizable: object, options?: NodeServiceOptions): boolean | NodeServiceTransaction;
+    can(params: {
+        action: Actions;
+        authorizable: object;
+        options?: NodeServiceOptions;
+        attribute?: string;
+        resource?: Resource;
+    }): boolean | NodeServiceTransaction;
     setServiceRegister(services: any): void;
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;
@@ -39,7 +45,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
-    count(filterBy: any): Promise<number>;
+    count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     publishLastKnownState(oid: Oid): Promise<void>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
