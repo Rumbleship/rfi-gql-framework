@@ -222,14 +222,12 @@ export class SequelizeBaseService<
 
   async update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi> {
     if ((data as any).id) {
-      if (this.can(Actions.UPDATE, data as any, options)) {
-        const { id } = new Oid((data as any).id).unwrap();
+      const { id } = new Oid((data as any).id).unwrap();
+      delete (data as any).id;
+      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+      const node = await this.model.findByPk(id, sequelizeOptions);
 
-        delete (data as any).id;
-
-        const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-        const node = await this.model.findByPk(id, sequelizeOptions);
-
+      if (this.can(Actions.UPDATE, node as object, options)) {
         if (!node) {
           throw new Error('Account not found');
         }
