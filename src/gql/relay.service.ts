@@ -44,7 +44,7 @@ export interface RelayService<
   TUpdate
 > extends NodeService<TApi> {
   getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
-  count(filterBy: TFilter): Promise<number>;
+  count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
   findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
   findEach(
     filterBy: TFilter,
