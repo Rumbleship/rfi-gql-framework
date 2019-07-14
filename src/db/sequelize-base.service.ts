@@ -241,7 +241,7 @@ export class SequelizeBaseService<
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const node = await this.model.findByPk(id, sequelizeOptions);
 
-      if (this.can({ action: Actions.UPDATE, authorizable: data as any, options })) {
+      if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
         if (!node) {
           throw new Error('Account not found');
         }
