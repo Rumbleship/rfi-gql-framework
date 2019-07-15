@@ -181,9 +181,10 @@ export class SequelizeBaseService<
           ...sequelizeOptions
         },
         (model: TModel) => {
-          apply(this.gqlFromDbModel(model));
+          apply(this.gqlFromDbModel(model), options);
         }
       );
+      return;
     }
     throw new RFIAuthError();
   }
