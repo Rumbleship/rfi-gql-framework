@@ -232,27 +232,35 @@ export class SequelizeBaseService<
     }
     throw new RFIAuthError();
   }
-
-  async update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi> {
-    if ((data as any).id) {
-      const { id } = new Oid((data as any).id).unwrap();
-
-      delete (data as any).id;
-
-      const sequelizeOptions = {
-        where: { id },
-        ...this.convertServiceOptionsToSequelizeOptions(options)
-      };
-      // const node = await this.model.findByPk(id, sequelizeOptions);
-      // TODO: How do we do this without doing a find first?
-      // if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
-      const nodes = await this.model.update(data as any, sequelizeOptions);
-      if (nodes[0]) {
-        return this.gqlFromDbModel(nodes[0] as any);
-      } else {
-        throw new Error(`Invalid ${this.apiClass.name}: Couldnt find id`);
+  /**
+   *
+   * @param data - data to uipdate
+   * @param options - may include a transaction
+   * @param target - if it does... then the preloaded Object loaded in that transaction should be passed in
+   */
+  async update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    let node;
+    if (target) {
+      // we already have the id and should have the model that was loaded
+      // this resolves issues with transactional query for update and stops having to go back and reload
+      if (modelKey in target) {
+        node = Reflect.get(target, modelKey);
       }
-      // throw new RFIAuthError();
+    } else {
+      if ((data as any).id) {
+        const { id } = new Oid((data as any).id).unwrap();
+        node = await this.model.findByPk(id, sequelizeOptions);
+      }
+    }
+    delete (data as any).id;
+    if (node) {
+      if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
+        await node.update(data as any, sequelizeOptions);
+        return this.gqlFromDbModel(node as any);
+      } else {
+        throw new RFIAuthError();
+      }
     }
     throw new Error(`Invalid ${this.apiClass.name}: No id`);
   }

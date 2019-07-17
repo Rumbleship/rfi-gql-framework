@@ -53,7 +53,7 @@ export interface RelayService<
   ): Promise<void>;
   getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
   create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
-  update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi>;
+  update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
   getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,

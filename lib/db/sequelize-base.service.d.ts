@@ -49,7 +49,13 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     publishLastKnownState(oid: Oid): Promise<void>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
-    update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi>;
+    /**
+     *
+     * @param data - data to uipdate
+     * @param options - may include a transaction
+     * @param target - if it does... then the preloaded Object loaded in that transaction should be passed in
+     */
+    update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | null>;
     private makeEdge;
