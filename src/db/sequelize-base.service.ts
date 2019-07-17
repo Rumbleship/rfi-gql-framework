@@ -239,17 +239,20 @@ export class SequelizeBaseService<
 
       delete (data as any).id;
 
-      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      const node = await this.model.findByPk(id, sequelizeOptions);
-
-      if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
-        if (!node) {
-          throw new Error('Account not found');
-        }
-        await node.update(data as any, sequelizeOptions);
-        return this.gqlFromDbModel(node as any);
+      const sequelizeOptions = {
+        where: { id },
+        ...this.convertServiceOptionsToSequelizeOptions(options)
+      };
+      // const node = await this.model.findByPk(id, sequelizeOptions);
+      // TODO: How do we do this without doing a find first?
+      // if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
+      const nodes = await this.model.update(data as any, sequelizeOptions);
+      if (nodes[0]) {
+        return this.gqlFromDbModel(nodes[0] as any);
+      } else {
+        throw new Error(`Invalid ${this.apiClass.name}: Couldnt find id`);
       }
-      throw new RFIAuthError();
+      // throw new RFIAuthError();
     }
     throw new Error(`Invalid ${this.apiClass.name}: No id`);
   }
