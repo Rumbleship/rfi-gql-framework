@@ -39,7 +39,7 @@ export interface RelayService<TApi extends Node<TApi>, TConnection extends Conne
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
-    update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi>;
+    update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | null>;
 }
