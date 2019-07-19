@@ -263,7 +263,8 @@ export class SequelizeBaseService<
       if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
         await node.update(data as any, sequelizeOptions);
         if (target) {
-          return reloadNodeFromModel(target, false);
+          await reloadNodeFromModel(target, false);
+          return target;
         } else {
           return this.gqlFromDbModel(node as any);
         }
