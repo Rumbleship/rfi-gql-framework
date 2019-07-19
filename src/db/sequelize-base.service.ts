@@ -17,7 +17,12 @@ import { Model } from 'sequelize-typescript';
 
 import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
-import { GqlSingleTableInheritanceFactory, modelToClass, modelKey } from './model-to-class';
+import {
+  GqlSingleTableInheritanceFactory,
+  modelToClass,
+  modelKey,
+  reloadNodeFromModel
+} from './model-to-class';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction } from 'sequelize';
@@ -257,7 +262,11 @@ export class SequelizeBaseService<
     if (node) {
       if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
         await node.update(data as any, sequelizeOptions);
-        return this.gqlFromDbModel(node as any);
+        if (target) {
+          return reloadNodeFromModel(target, false);
+        } else {
+          return this.gqlFromDbModel(node as any);
+        }
       } else {
         throw new RFIAuthError();
       }
