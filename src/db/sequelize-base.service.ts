@@ -180,17 +180,15 @@ export class SequelizeBaseService<
       const whereClause = Oid.createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const modelFindEach = findEach.bind(this.model);
-      const allFound = await modelFindEach(
+      return modelFindEach(
         {
           where: whereClause,
           ...sequelizeOptions
         },
-        async (model: TModel) => {
-          const res = await apply(this.gqlFromDbModel(model), options);
-          return res;
+        (model: TModel) => {
+          return apply(this.gqlFromDbModel(model), options);
         }
       );
-      return allFound;
     }
     throw new RFIAuthError();
   }
