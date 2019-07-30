@@ -67,7 +67,7 @@ export function modelToClass<T extends Node<T>, V extends Model<V>>(
 
 export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = true): Promise<T> {
   if (modelKey in node) {
-    const model = Reflect.get(node, apiKey) as Model<any>;
+    const model = Reflect.get(node, modelKey) as Model<any>;
     if (fromDb) {
       await model.reload();
     }
