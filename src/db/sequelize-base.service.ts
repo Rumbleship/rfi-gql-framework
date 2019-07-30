@@ -186,7 +186,8 @@ export class SequelizeBaseService<
           ...sequelizeOptions
         },
         (model: TModel) => {
-          return apply(this.gqlFromDbModel(model), options);
+          const apiModel = this.gqlFromDbModel(model);
+          return apply(apiModel, options);
         }
       );
     }
