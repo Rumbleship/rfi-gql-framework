@@ -100,7 +100,7 @@ export class Oid {
   private static hashids = new Hashids(Oid.HASHID_SALT, Oid.HASHID_MIN_LEN, Oid.ALPHABET);
   private static hashIdRegEx = /^(.+)_([a-z0-9]+)/;
   public static bankingHackTildeOptional: boolean = false;
-  private static alphaSalts = {
+  public static alphaSalts = {
     User: 'User',
     Buyer: 'Division',
     Supplier: 'Division',
