@@ -14,6 +14,14 @@ export declare class Oid {
     private static hashids;
     private static hashIdRegEx;
     static bankingHackTildeOptional: boolean;
+    static alphaSalts: {
+        User: string;
+        Buyer: string;
+        Supplier: string;
+        Division: string;
+        PurchaseOrder: string;
+        Shipment: string;
+    };
     constructor(oid: string);
     valueOf(): string;
     toString(): string;
