@@ -100,6 +100,14 @@ export class Oid {
   private static hashids = new Hashids(Oid.HASHID_SALT, Oid.HASHID_MIN_LEN, Oid.ALPHABET);
   private static hashIdRegEx = /^(.+)_([a-z0-9]+)/;
   public static bankingHackTildeOptional: boolean = false;
+  private static alphaSalts = {
+    User: 'User',
+    Buyer: 'Division',
+    Supplier: 'Division',
+    Division: 'Division',
+    PurchaseOrder: 'purchaseOrder',
+    Shipment: 'shipment'
+  };
   constructor(public oid: string) {}
 
   // Overide Object.valueOf so that the GraphQL ID type can convert to the 'primitive' type. In this case a
@@ -175,7 +183,12 @@ export class Oid {
       const matches = Oid.hashIdRegEx.exec(this.oid);
       if (matches && matches.length === 3) {
         scope = Oid.scopes.scope(matches[1]);
-        anId = Oid.hashids.decode(matches[2])[0];
+        const decoder =
+          scope && Object.keys(Oid.alphaSalts).includes(scope)
+            ? new Hashids(Reflect.get(Oid.alphaSalts, scope), Oid.HASHID_MIN_LEN, Oid.ALPHABET)
+            : Oid.hashids;
+
+        anId = decoder.decode(matches[2])[0];
       } else {
         throw Error(`Invalid oid format: ${this.oid}`);
       }
