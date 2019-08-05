@@ -135,7 +135,17 @@ export class SequelizeBaseService<
     // However... we only support before OR after.
     //
     const connection = new this.connectionClass();
-    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
+    const attribute = Reflect.get(this, Symbol.for(`getAllAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`getAllAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.QUERY,
+        authorizable: filter as any,
+        options,
+        attribute,
+        resource
+      })
+    ) {
       const limits = calculateLimitAndOffset(after, first, before, last);
       const whereClause = Oid.createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
@@ -160,8 +170,17 @@ export class SequelizeBaseService<
   }
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
     const { ...filter } = filterBy;
-
-    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
+    const attribute = Reflect.get(this, Symbol.for(`findOneAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`findOneAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.QUERY,
+        authorizable: filter as any,
+        options,
+        attribute,
+        resource
+      })
+    ) {
       const matched = await this.getAll(filterBy, options);
       if (matched.edges.length) {
         return matched.edges[0].node;
@@ -176,7 +195,17 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     const { after, before, first, last, ...filter } = filterBy as any;
-    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
+    const attribute = Reflect.get(this, Symbol.for(`findEachAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`findEachAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.QUERY,
+        authorizable: filter as any,
+        options,
+        resource,
+        attribute
+      })
+    ) {
       const whereClause = Oid.createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const modelFindEach = findEach.bind(this.model);
@@ -196,7 +225,17 @@ export class SequelizeBaseService<
 
   async count(filterBy: any, options?: NodeServiceOptions) {
     const { ...filter } = filterBy;
-    if (this.can({ action: Actions.QUERY, authorizable: filter as any, options })) {
+    const attribute = Reflect.get(this, Symbol.for(`countAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`countAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.QUERY,
+        authorizable: filter as any,
+        options,
+        attribute,
+        resource
+      })
+    ) {
       return this.model.count({
         where: filterBy
       });
@@ -211,7 +250,17 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    if (this.can({ action: Actions.QUERY, authorizable: instance, options })) {
+    const attribute = Reflect.get(this, Symbol.for(`getOneAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`getOneAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.QUERY,
+        authorizable: instance,
+        options,
+        resource,
+        attribute
+      })
+    ) {
       return this.gqlFromDbModel(instance as any);
     }
     throw new RFIAuthError();
@@ -223,14 +272,33 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    if (this.can({ action: Actions.QUERY, authorizable: instance })) {
+    const attribute = Reflect.get(this, Symbol.for(`publishLastKnownStateAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`publishLastKnownStateAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.QUERY,
+        authorizable: instance,
+        attribute,
+        resource
+      })
+    ) {
       publishCurrentState(instance);
     }
     throw new RFIAuthError();
   }
 
   async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
-    if (this.can({ action: Actions.CREATE, authorizable: data as any, options })) {
+    const attribute = Reflect.get(this, Symbol.for(`createAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`createAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.CREATE,
+        authorizable: data as any,
+        options,
+        attribute,
+        resource
+      })
+    ) {
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(data as any, sequelizeOptions);
       return this.gqlFromDbModel(instance as any);
@@ -260,7 +328,17 @@ export class SequelizeBaseService<
     }
     delete (data as any).id;
     if (node) {
-      if (this.can({ action: Actions.UPDATE, authorizable: node as any, options })) {
+      const attribute = Reflect.get(this, Symbol.for(`updateAuthorizedAttribute`));
+      const resource = Reflect.get(this, Symbol.for(`updateAuthorizedResource`));
+      if (
+        this.can({
+          action: Actions.UPDATE,
+          authorizable: node as any,
+          options,
+          attribute,
+          resource
+        })
+      ) {
         await node.update(data as any, sequelizeOptions);
         if (target) {
           await reloadNodeFromModel(target, false);

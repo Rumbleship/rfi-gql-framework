@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@hapi/good": "^8.1.1",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#0.0.1",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#dev",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
     "@types/hashids": "^1.0.30",
@@ -60,7 +60,7 @@
     "xxhash": "^0.2.4"
   },
   "peerDependencies": {
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#0.0.1",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#dev",
     "@types/graphql": "^14.1.0",
     "@types/hashids": "^1.0.30",
     "class-transformer": "^0.2.0",
