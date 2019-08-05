@@ -65,7 +65,7 @@ export class SequelizeBaseService<
     resource?: Resource;
   }) {
     return (
-      (params.options && params.options.transaction) ||
+      (params.options && (params.options.transaction || params.options.skipAuthorizationCheck)) ||
       this.ctx.authorizer.can(
         params.action,
         params.authorizable,

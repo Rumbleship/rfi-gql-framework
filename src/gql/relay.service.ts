@@ -21,6 +21,7 @@ export interface NodeServiceOptions {
   paranoid?: boolean;
   transaction?: NodeServiceTransaction;
   lockLevel?: NodeServiceLock;
+  skipAuthorizationCheck?: boolean;
 }
 
 export interface NodeService<T> {
