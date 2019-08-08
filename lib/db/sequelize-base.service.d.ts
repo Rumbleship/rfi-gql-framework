@@ -26,7 +26,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         action: Actions;
         authorizable: object;
         options?: NodeServiceOptions;
-        attribute?: string;
+        attribute?: string | string[];
         resource?: Resource;
     }): boolean | NodeServiceTransaction;
     setServiceRegister(services: any): void;

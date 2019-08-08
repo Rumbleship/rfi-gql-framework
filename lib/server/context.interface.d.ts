@@ -4,4 +4,5 @@ export interface Context {
     requestId: string;
     container: ContainerInstance;
     authorizer: Authorizer;
+    logger: object;
 }

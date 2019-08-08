@@ -70,7 +70,8 @@ export class SequelizeBaseService<
         params.action,
         params.authorizable,
         [this.permissions],
-        params.attribute,
+        // stopgap fix until we upgrade @rumbleship/acl for compatibility with attribute possibly being string[]
+        params.attribute ? params.attribute[0] : undefined,
         params.resource
       )
     );
