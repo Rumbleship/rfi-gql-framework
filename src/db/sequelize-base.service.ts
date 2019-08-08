@@ -61,7 +61,7 @@ export class SequelizeBaseService<
     action: Actions;
     authorizable: object;
     options?: NodeServiceOptions;
-    attribute?: string;
+    attribute?: string | string[];
     resource?: Resource;
   }) {
     return (
