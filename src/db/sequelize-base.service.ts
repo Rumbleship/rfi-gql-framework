@@ -399,19 +399,27 @@ export class SequelizeBaseService<
   async update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     let node;
+    let oid;
     if (target) {
       // we already have the id and should have the model that was loaded
       // this resolves issues with transactional query for update and stops having to go back and reload
       if (modelKey in target) {
         node = Reflect.get(target, modelKey);
+        oid = Oid.create(target.constructor.name, node.id);
+      } else {
+        // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
+        throw new Error(`Invalid ${this.apiClass.name}: No id`);
       }
     } else {
       if ((data as any).id) {
-        const { id } = new Oid((data as any).id).unwrap();
+        oid = new Oid((data as any).id.toString());
+        const { id } = oid.unwrap();
         node = await this.model.findByPk(id, sequelizeOptions);
+      } else {
+        // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
+        throw new Error(`Invalid ${this.apiClass.name}: No id`);
       }
     }
-    const oid = new Oid(node.id.toString());
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         update: {
@@ -422,35 +430,34 @@ export class SequelizeBaseService<
       }
     });
     delete (data as any).id;
-    if (node) {
-      const attribute = Reflect.get(this, Symbol.for(`updateAuthorizedAttribute`));
-      const resource = Reflect.get(this, Symbol.for(`updateAuthorizedResource`));
-      if (
-        this.can({
-          action: Actions.UPDATE,
-          authorizable: node as any,
-          options,
-          attribute,
-          resource
-        })
-      ) {
-        await node.update(data as any, sequelizeOptions);
-        if (target) {
-          await reloadNodeFromModel(target, false);
-          return target;
-        } else {
-          return this.gqlFromDbModel(node as any);
-        }
+    // TODO(@isparling) given moving of the throws around, this check should no longer be needed.
+
+    const attribute = Reflect.get(this, Symbol.for(`updateAuthorizedAttribute`));
+    const resource = Reflect.get(this, Symbol.for(`updateAuthorizedResource`));
+    if (
+      this.can({
+        action: Actions.UPDATE,
+        authorizable: node as any,
+        options,
+        attribute,
+        resource
+      })
+    ) {
+      await node.update(data as any, sequelizeOptions);
+      if (target) {
+        await reloadNodeFromModel(target, false);
+        return target;
       } else {
-        this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-          [this.spyglassKey]: {
-            method: 'update'
-          }
-        });
-        throw new RFIAuthError();
+        return this.gqlFromDbModel(node as any);
       }
+    } else {
+      this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+        [this.spyglassKey]: {
+          method: 'update'
+        }
+      });
+      throw new RFIAuthError();
     }
-    throw new Error(`Invalid ${this.apiClass.name}: No id`);
   }
 
   /* <TAssocApi extends Node,
