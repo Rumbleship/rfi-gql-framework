@@ -107,6 +107,7 @@ export class SequelizeBaseService<
       isolationLevel: params.isolation as any,
       autocommit: params.autocommit
     });
+    this.ctx.logger.addMetadata({ txn });
     return (txn as unknown) as NodeServiceTransaction;
   }
 
