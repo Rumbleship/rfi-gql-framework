@@ -295,7 +295,7 @@ export class SequelizeBaseService<
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
-        getOne: { oid }
+        getOne: { ...oid, id: oid.unwrap().id, scope: oid.unwrap().scope }
       }
     });
     const { id } = oid.unwrap();
@@ -328,7 +328,11 @@ export class SequelizeBaseService<
   async publishLastKnownState(oid: Oid): Promise<void> {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
-        publishLastKnownState: { oid }
+        publishLastKnownState: {
+          ...oid,
+          id: oid.unwrap().id,
+          scope: oid.unwrap().scope
+        }
       }
     });
     const { id } = oid.unwrap();
@@ -403,7 +407,11 @@ export class SequelizeBaseService<
     }
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
-        update: { oid: node.id }
+        update: {
+          ...node.id,
+          id: node.id.unwrap().id,
+          scope: node.id.unwrap().scope
+        }
       }
     });
     delete (data as any).id;
