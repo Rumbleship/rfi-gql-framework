@@ -78,7 +78,11 @@ export class SequelizeBaseService<
         params.authorizable,
         [this.permissions],
         // stopgap fix until we upgrade @rumbleship/acl for compatibility with attribute possibly being string[]
-        params.attribute ? params.attribute[0] : undefined,
+        params.attribute
+          ? Array.isArray(params.attribute)
+            ? params.attribute[0]
+            : params.attribute
+          : undefined,
         params.resource
       )
     );
