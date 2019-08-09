@@ -43,6 +43,7 @@ export class SequelizeBaseService<
 > implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   private nodeServices: any;
   private permissions: PermissionsMatrix;
+  private spyglassKey: string;
   constructor(
     protected apiClass: ClassType<TApi>,
     protected edgeClass: ClassType<TEdge>,
@@ -54,9 +55,10 @@ export class SequelizeBaseService<
       apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     }
   ) {
+    this.spyglassKey = apiClass.constructor.name;
     this.permissions = options.permissions;
     this.ctx.logger.addMetadata({
-      [apiClass.constructor.name]: {
+      [this.spyglassKey]: {
         permissions: this.permissions
       }
     });
@@ -137,14 +139,8 @@ export class SequelizeBaseService<
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
     this.ctx.logger.addMetadata({
-      [this.apiClass.constructor.name]: {
-        getAll: {
-          after,
-          before,
-          first,
-          last,
-          filter
-        }
+      [this.spyglassKey]: {
+        getAll: { filterBy }
       }
     });
     // we hold cursors as base64 of the offset for this query... not perfect,
@@ -182,11 +178,21 @@ export class SequelizeBaseService<
 
       connection.addEdges(edges, pageAfter, pageBefore);
     } else {
+      this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+        [this.spyglassKey]: {
+          method: 'getAll'
+        }
+      });
       connection.addEdges([], false, false);
     }
     return connection;
   }
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
+    this.ctx.logger.addMetadata({
+      [this.spyglassKey]: {
+        findOne: { filterBy }
+      }
+    });
     const { ...filter } = filterBy;
     const attribute = Reflect.get(this, Symbol.for(`findOneAuthorizedAttribute`));
     const resource = Reflect.get(this, Symbol.for(`findOneAuthorizedResource`));
@@ -204,6 +210,11 @@ export class SequelizeBaseService<
         return matched.edges[0].node;
       }
     }
+    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+      [this.spyglassKey]: {
+        method: 'findOne'
+      }
+    });
     return null;
   }
 
@@ -212,6 +223,11 @@ export class SequelizeBaseService<
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
+    this.ctx.logger.addMetadata({
+      [this.spyglassKey]: {
+        findEach: { filterBy }
+      }
+    });
     const { after, before, first, last, ...filter } = filterBy as any;
     const attribute = Reflect.get(this, Symbol.for(`findEachAuthorizedAttribute`));
     const resource = Reflect.get(this, Symbol.for(`findEachAuthorizedResource`));
@@ -238,10 +254,20 @@ export class SequelizeBaseService<
         }
       );
     }
+    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+      [this.spyglassKey]: {
+        method: 'findEach'
+      }
+    });
     throw new RFIAuthError();
   }
 
   async count(filterBy: any, options?: NodeServiceOptions) {
+    this.ctx.logger.addMetadata({
+      [this.spyglassKey]: {
+        count: { filterBy }
+      }
+    });
     const { ...filter } = filterBy;
     const attribute = Reflect.get(this, Symbol.for(`countAuthorizedAttribute`));
     const resource = Reflect.get(this, Symbol.for(`countAuthorizedResource`));
@@ -258,10 +284,20 @@ export class SequelizeBaseService<
         where: filterBy
       });
     }
+    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+      [this.spyglassKey]: {
+        method: 'count'
+      }
+    });
     throw new RFIAuthError();
   }
 
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
+    this.ctx.logger.addMetadata({
+      [this.spyglassKey]: {
+        getOne: { oid }
+      }
+    });
     const { id } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const instance = await this.model.findByPk(id, sequelizeOptions);
@@ -281,10 +317,20 @@ export class SequelizeBaseService<
     ) {
       return this.gqlFromDbModel(instance as any);
     }
+    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+      [this.spyglassKey]: {
+        method: 'getOne'
+      }
+    });
     throw new RFIAuthError();
   }
 
   async publishLastKnownState(oid: Oid): Promise<void> {
+    this.ctx.logger.addMetadata({
+      [this.spyglassKey]: {
+        publishLastKnownState: { oid }
+      }
+    });
     const { id } = oid.unwrap();
     const instance = await this.model.findByPk(id);
     if (!instance) {
@@ -302,9 +348,15 @@ export class SequelizeBaseService<
     ) {
       publishCurrentState(instance);
     }
+    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+      [this.spyglassKey]: {
+        method: 'publishLastKnownState'
+      }
+    });
     throw new RFIAuthError();
   }
 
+  // Unsure how or where to add the create|update data in a "safe" way here, generically -- so skipping for now.
   async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
     const attribute = Reflect.get(this, Symbol.for(`createAuthorizedAttribute`));
     const resource = Reflect.get(this, Symbol.for(`createAuthorizedResource`));
@@ -321,6 +373,11 @@ export class SequelizeBaseService<
       const instance = await this.model.create(data as any, sequelizeOptions);
       return this.gqlFromDbModel(instance as any);
     }
+    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+      [this.spyglassKey]: {
+        method: 'create'
+      }
+    });
     throw new RFIAuthError();
   }
   /**
@@ -344,6 +401,11 @@ export class SequelizeBaseService<
         node = await this.model.findByPk(id, sequelizeOptions);
       }
     }
+    this.ctx.logger.addMetadata({
+      [this.spyglassKey]: {
+        update: { oid: node.id }
+      }
+    });
     delete (data as any).id;
     if (node) {
       const attribute = Reflect.get(this, Symbol.for(`updateAuthorizedAttribute`));
@@ -365,6 +427,11 @@ export class SequelizeBaseService<
           return this.gqlFromDbModel(node as any);
         }
       } else {
+        this.ctx.logger.info('sequelize_base_service_authorization_denied', {
+          [this.spyglassKey]: {
+            method: 'update'
+          }
+        });
         throw new RFIAuthError();
       }
     }

@@ -18,6 +18,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     };
     private nodeServices;
     private permissions;
+    private spyglassKey;
     constructor(apiClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: Context, options: {
         permissions: PermissionsMatrix;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;

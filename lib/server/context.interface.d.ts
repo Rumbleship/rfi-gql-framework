@@ -2,16 +2,16 @@ import { ContainerInstance } from 'typedi';
 import { Authorizer } from '@rumbleship/acl';
 export interface SpyglassLogger {
     addMetadata: (object: object) => void;
-    log: (any: any) => void;
-    emerg: (any: any) => void;
-    alert: (any: any) => void;
-    crit: (any: any) => void;
-    error: (any: any) => void;
-    warn: (any: any) => void;
-    warning: (any: any) => void;
-    notice: (any: any) => void;
-    info: (any: any) => void;
-    debug: (any: any) => void;
+    log: (message: any, metadata?: object) => void;
+    emerg: (message: any, metadata?: object) => void;
+    alert: (message: any, metadata?: object) => void;
+    crit: (message: any, metadata?: object) => void;
+    error: (message: any, metadata?: object) => void;
+    warn: (message: any, metadata?: object) => void;
+    warning: (message: any, metadata?: object) => void;
+    notice: (message: any, metadata?: object) => void;
+    info: (message: any, metadata?: object) => void;
+    debug: (message: any, metadata?: object) => void;
 }
 export interface Context {
     requestId: string;
