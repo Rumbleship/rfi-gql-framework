@@ -411,12 +411,13 @@ export class SequelizeBaseService<
         node = await this.model.findByPk(id, sequelizeOptions);
       }
     }
+    const oid = new Oid(node.id.toString());
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         update: {
-          ...node.id,
-          id: node.id.unwrap().id,
-          scope: node.id.unwrap().scope
+          ...oid,
+          id: oid.unwrap().id,
+          scope: oid.unwrap().scope
         }
       }
     });
