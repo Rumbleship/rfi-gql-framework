@@ -54,7 +54,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      *
      * @param data - data to uipdate
      * @param options - may include a transaction
-     * @param target - if it does... then the preloaded Object loaded in that transaction should be passed in
+     * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
      */
     update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;

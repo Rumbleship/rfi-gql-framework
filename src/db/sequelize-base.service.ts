@@ -394,7 +394,7 @@ export class SequelizeBaseService<
    *
    * @param data - data to uipdate
    * @param options - may include a transaction
-   * @param target - if it does... then the preloaded Object loaded in that transaction should be passed in
+   * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
   async update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
@@ -405,7 +405,11 @@ export class SequelizeBaseService<
       // this resolves issues with transactional query for update and stops having to go back and reload
       if (modelKey in target) {
         node = Reflect.get(target, modelKey);
-        oid = Oid.create(target.constructor.name, node.id);
+        const gqlModelName = node.constructor.name.slice(
+          0,
+          node.constructor.name.length - 'Model'.length
+        );
+        oid = Oid.create(gqlModelName, node.id);
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
         throw new Error(`Invalid ${this.apiClass.name}: No id`);
