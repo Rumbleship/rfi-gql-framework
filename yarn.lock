@@ -618,6 +618,17 @@
   dependencies:
     jsonwebtoken "^8.5.1"
 
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#2.0.1":
+  version "2.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#1fc9859d45f9834921f4e229fc6132996670b057"
+  dependencies:
+    "@google-cloud/debug-agent" "^3.0.1"
+    "@google-cloud/error-reporting" "^0.6.0"
+    "@google-cloud/logging-winston" "^0.11.0"
+    "@google-cloud/trace-agent" "^3.6.0"
+    "@hapi/hoek" "^6.2.1"
+    winston "^3.1.0"
+
 "@sindresorhus/is@^0.15.0":
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.15.0.tgz#96915baa05e6a6a1d137badf4984d3fc05820bb6"
@@ -4896,17 +4907,6 @@ sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
-
-"spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#2.0.1":
-  version "2.0.1"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#1fc9859d45f9834921f4e229fc6132996670b057"
-  dependencies:
-    "@google-cloud/debug-agent" "^3.0.1"
-    "@google-cloud/error-reporting" "^0.6.0"
-    "@google-cloud/logging-winston" "^0.11.0"
-    "@google-cloud/trace-agent" "^3.6.0"
-    "@hapi/hoek" "^6.2.1"
-    winston "^3.1.0"
 
 sqlstring@^2.3.1:
   version "2.3.1"
