@@ -23,11 +23,11 @@ import {
   modelKey,
   reloadNodeFromModel
 } from './model-to-class';
-import { Context } from '../server/index';
+import { Context, SpyglassLogger } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction } from 'sequelize';
 import { findEach } from 'iterable-model';
-import { PermissionsMatrix, Actions, RFIAuthError, Resource } from '@rumbleship/acl';
+import { PermissionsMatrix, Actions, RFIAuthError, Resource, Authorizer } from '@rumbleship/acl';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -57,7 +57,7 @@ export class SequelizeBaseService<
   ) {
     this.spyglassKey = apiClass.constructor.name;
     this.permissions = options.permissions;
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         permissions: this.permissions
       }
@@ -73,7 +73,7 @@ export class SequelizeBaseService<
   }) {
     return (
       (params.options && (params.options.transaction || params.options.skipAuthorizationCheck)) ||
-      this.ctx.authorizer.can(
+      (this.ctx.container.get('authorizer') as Authorizer).can(
         params.action,
         params.authorizable,
         [this.permissions],
@@ -114,7 +114,7 @@ export class SequelizeBaseService<
       isolationLevel: params.isolation as any,
       autocommit: params.autocommit
     });
-    this.ctx.logger.addMetadata({ txn });
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({ txn });
     return (txn as unknown) as NodeServiceTransaction;
   }
 
@@ -138,7 +138,7 @@ export class SequelizeBaseService<
   }
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         getAll: { filterBy }
       }
@@ -178,17 +178,20 @@ export class SequelizeBaseService<
 
       connection.addEdges(edges, pageAfter, pageBefore);
     } else {
-      this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-        [this.spyglassKey]: {
-          method: 'getAll'
+      (this.ctx.container.get('logger') as SpyglassLogger).info(
+        'sequelize_base_service_authorization_denied',
+        {
+          [this.spyglassKey]: {
+            method: 'getAll'
+          }
         }
-      });
+      );
       connection.addEdges([], false, false);
     }
     return connection;
   }
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         findOne: { filterBy }
       }
@@ -210,11 +213,14 @@ export class SequelizeBaseService<
         return matched.edges[0].node;
       }
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'findOne'
+    (this.ctx.container.get('logger') as SpyglassLogger).info(
+      'sequelize_base_service_authorization_denied',
+      {
+        [this.spyglassKey]: {
+          method: 'findOne'
+        }
       }
-    });
+    );
     return null;
   }
 
@@ -223,7 +229,7 @@ export class SequelizeBaseService<
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         findEach: { filterBy }
       }
@@ -254,16 +260,19 @@ export class SequelizeBaseService<
         }
       );
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'findEach'
+    (this.ctx.container.get('logger') as SpyglassLogger).info(
+      'sequelize_base_service_authorization_denied',
+      {
+        [this.spyglassKey]: {
+          method: 'findEach'
+        }
       }
-    });
+    );
     throw new RFIAuthError();
   }
 
   async count(filterBy: any, options?: NodeServiceOptions) {
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         count: { filterBy }
       }
@@ -284,16 +293,19 @@ export class SequelizeBaseService<
         where: filterBy
       });
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'count'
+    (this.ctx.container.get('logger') as SpyglassLogger).info(
+      'sequelize_base_service_authorization_denied',
+      {
+        [this.spyglassKey]: {
+          method: 'count'
+        }
       }
-    });
+    );
     throw new RFIAuthError();
   }
 
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         getOne: { oid }
       }
@@ -317,16 +329,19 @@ export class SequelizeBaseService<
     ) {
       return this.gqlFromDbModel(instance as any);
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'getOne'
+    (this.ctx.container.get('logger') as SpyglassLogger).info(
+      'sequelize_base_service_authorization_denied',
+      {
+        [this.spyglassKey]: {
+          method: 'getOne'
+        }
       }
-    });
+    );
     throw new RFIAuthError();
   }
 
   async publishLastKnownState(oid: Oid): Promise<void> {
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         publishLastKnownState: { oid }
       }
@@ -348,11 +363,14 @@ export class SequelizeBaseService<
     ) {
       publishCurrentState(instance);
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'publishLastKnownState'
+    (this.ctx.container.get('logger') as SpyglassLogger).info(
+      'sequelize_base_service_authorization_denied',
+      {
+        [this.spyglassKey]: {
+          method: 'publishLastKnownState'
+        }
       }
-    });
+    );
     throw new RFIAuthError();
   }
 
@@ -373,11 +391,14 @@ export class SequelizeBaseService<
       const instance = await this.model.create(data as any, sequelizeOptions);
       return this.gqlFromDbModel(instance as any);
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'create'
+    (this.ctx.container.get('logger') as SpyglassLogger).info(
+      'sequelize_base_service_authorization_denied',
+      {
+        [this.spyglassKey]: {
+          method: 'create'
+        }
       }
-    });
+    );
     throw new RFIAuthError();
   }
   /**
@@ -401,7 +422,7 @@ export class SequelizeBaseService<
         node = await this.model.findByPk(id, sequelizeOptions);
       }
     }
-    this.ctx.logger.addMetadata({
+    (this.ctx.container.get('logger') as SpyglassLogger).addMetadata({
       [this.spyglassKey]: {
         update: { oid: node.id }
       }
@@ -427,11 +448,14 @@ export class SequelizeBaseService<
           return this.gqlFromDbModel(node as any);
         }
       } else {
-        this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-          [this.spyglassKey]: {
-            method: 'update'
+        (this.ctx.container.get('logger') as SpyglassLogger).info(
+          'sequelize_base_service_authorization_denied',
+          {
+            [this.spyglassKey]: {
+              method: 'update'
+            }
           }
-        });
+        );
         throw new RFIAuthError();
       }
     }
