@@ -55,6 +55,11 @@ export class SequelizeBaseService<
     }
   ) {
     this.permissions = options.permissions;
+    this.ctx.logger.addMetadata({
+      [apiClass.constructor.name]: {
+        permissions: this.permissions
+      }
+    });
   }
 
   can(params: {
@@ -131,6 +136,17 @@ export class SequelizeBaseService<
   }
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
+    this.ctx.logger.addMetadata({
+      [this.apiClass.constructor.name]: {
+        getAll: {
+          after,
+          before,
+          first,
+          last,
+          filter
+        }
+      }
+    });
     // we hold cursors as base64 of the offset for this query... not perfect,
     // but good enough for now
     // see https://facebook.github.io/relay/graphql/connections.htm#sec-Pagination-algorithm
