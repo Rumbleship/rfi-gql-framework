@@ -1,0 +1,169 @@
+version: 2
+
+common_ssh_keys:
+  rumbleship_ops_key: &rumbleship_ops_key
+    fingerprints:
+      - 93:1d:d0:59:a8:83:d7:00:6b:e9:b2:e4:ee:53:df:78
+
+common_commands:
+  configure_git: &configure_git
+    name: Initialize Git configuration
+    command: |
+      set -ex;
+      git config --global user.email 37818125+rumbleship-ops@users.noreply.github.com;
+      git config --global user.name "Rumbleship Operations Machine User";
+  install_cici: &install_cici
+    name: Install cici
+    command: npm install -g --prod 'git+ssh://git@github.com/rumbleship/cici.git#master'
+
+workflows:
+  version: 2
+  build_and_publish:
+    jobs:
+      - build
+      - docs:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+                - dev
+      - approve_for_publishing:
+          type: approval
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+      - publish:
+          requires:
+            - build
+            - approve_for_publishing
+          filters:
+            branches:
+              only:
+                - master
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:10
+    working_directory: ~/repos/rfi-gql-framework
+    steps:
+      - add_ssh_keys: *rumbleship_ops_key
+      - restore_cache:
+          keys:
+            - v1-git-{{ .Branch }}
+      - checkout
+      - save_cache:
+          key: v1-git-{{ .Branch }}
+          paths:
+            - ".git"
+      - restore_cache:
+          keys:
+            - v1-node-deps-node-{{ checksum "package.json" }}
+      - run:
+          name: Install Node dependencies
+          command: yarn install
+      - save_cache:
+          key: v1-node-deps-node-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: Run tests
+          command: yarn test
+      - run:
+          name: Running tslint
+          command: yarn lint
+      - persist_to_workspace:
+          root: ~/repos/rfi-gql-framework
+          paths:
+            - .
+  docs:
+    docker:
+      - image: rumbleship/deployer
+        environment:
+          TERM: xterm-256color
+    working_directory: ~/repos/rfi-gql-framework
+    steps:
+      - attach_workspace:
+          at: ~/repos/rfi-gql-framework
+      - add_ssh_keys: *rumbleship_ops_key
+      - run: *configure_git
+      - run: *install_cici
+      - run:
+          name: Clone docs
+          environment:
+            TERM: xterm-256color
+          command: |
+            set -ex;
+            ([[ ! -e /root/repos/docs ]] && git clone git@github.com:Rumbleship/docs.git /root/repos/docs || true);
+      - deploy:
+          name: Copy project's docs into docs project
+          working_directory: ~/repos/docs
+          environment:
+            TERM: xterm-256color
+          command: |
+            set -ex;
+            export DOCS_REPO_ROOT="/root/repos/docs/repositories/${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BRANCH}";
+            export VERSION=$(cici get-current-version -f ~/repos/${CIRCLE_PROJECT_REPONAME}/package.json);
+            export SHA1_SHORT=$(echo "${CIRCLE_SHA1}" | cut -b1-7)
+            git remote update -p;
+            git checkout master;
+            git reset --hard origin/master;
+            mkdir -p "${DOCS_REPO_ROOT}";
+            [[ -e "/root/repos/${CIRCLE_PROJECT_REPONAME}/README.md" ]] && cp -af "/root/repos/${CIRCLE_PROJECT_REPONAME}/README.md" \
+                                                                                  "${DOCS_REPO_ROOT}/" || true;
+            [[ -e "/root/repos/${CIRCLE_PROJECT_REPONAME}/CHANGELOG.md" ]] && cp -af "/root/repos/${CIRCLE_PROJECT_REPONAME}/CHANGELOG.md" \
+                                                                                     "${DOCS_REPO_ROOT}/" || true;
+            [[ -e "/root/repos/${CIRCLE_PROJECT_REPONAME}/docs" ]] && cp -af "/root/repos/${CIRCLE_PROJECT_REPONAME}/docs" \
+                                                                             "${DOCS_REPO_ROOT}/" || true;
+            git add "${DOCS_REPO_ROOT}";
+            git diff-index --quiet HEAD -- || (git commit -m "Update docs for repository ${CIRCLE_PROJECT_REPONAME}/${VERSION}-${CIRCLE_BRANCH}@${SHA1_SHORT}"; \
+              git push origin master)
+  publish:
+    docker:
+      - image: rumbleship/deployer
+        environment:
+          TERM: xterm-256color
+    working_directory: ~/repos/rfi-gql-framework
+    steps:
+      - add_ssh_keys: *rumbleship_ops_key
+      - attach_workspace:
+          at: ~/repos/rfi-gql-framework
+      - run: *configure_git
+      - run: *install_cici
+      - deploy:
+          name: Bump version, compile and release package
+          command: |
+            cici bump-version;
+            export VERSION=$(cici get-current-version);
+            cici render-changelog -m release-only -d;
+            rm -rf lib/;
+            yarn build;
+            git add lib/ package.json .circleci/version.json CHANGELOG.md;
+            git commit -m "Release version ${VERSION} [skip ci]";
+            git push origin master;
+            git tag -a "${VERSION}" -m "Release version ${VERSION}";
+            git push --tags;
+      - deploy:
+          name: Merge released package back to dev
+          command: |
+            export VERSION=$(cici get-current-version);
+            git remote update -p;
+            git checkout dev;
+            git reset --hard origin/dev;
+            git merge --no-ff -m "Merge with master after releasing version ${VERSION} [skip ci]" origin/master;
+            cici render-changelog -m boilerplate-only;
+            git add CHANGELOG.md;
+            git commit -m "Re-add changelog boilerplate text after releasing version ${VERSION} [skip ci]";
+            git push origin dev
+
+experimental:
+  notify:
+    branches:
+      only:
+        - dev
+        - master
