@@ -1,6 +1,7 @@
 // helpers for defining a Relay compliant graphQL API
 // see https://facebook.github.io/relay/docs/en/graphql-server-specification.html
 
+export * from './auth-checker';
 export * from './connection.type';
 export * from './node.interface';
 export * from './page-info.type';

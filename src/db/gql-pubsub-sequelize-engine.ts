@@ -16,13 +16,31 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
   // GQL classes
   attachPubSubEngineToSequelize(pubSub, sequelize);
 
-  sequelize.afterCreate((instance, options) => gqlCreateHook(pubSub, instance, options));
-  sequelize.afterUpdate((instance, options) => gqlUpdateHook(pubSub, instance, options));
-  sequelize.addHook('afterAssociate' as any, () => {
-    // tslint:disable-next-line: no-console
-    console.log('hmmm');
+  sequelize.afterCreate((instance, options) => {
+    if (options && options.transaction) {
+      options.transaction.afterCommit(t => gqlCreateHook(pubSub, instance, options));
+      return;
+    }
+    gqlCreateHook(pubSub, instance, options);
+  });
+  sequelize.afterUpdate((instance, options) => {
+    if (options && options.transaction) {
+      options.transaction.afterCommit(t => gqlUpdateHook(pubSub, instance, options));
+      return;
+    }
+    gqlUpdateHook(pubSub, instance, options);
   });
   // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
+}
+
+export function publishCurrentState(instance: Model<any, any>) {
+  const pubSub = pubSubFrom(instance.sequelize as Sequelize);
+  if (pubSub) {
+    const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance);
+    pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
+    // Also publish the specific Model
+    pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
+  }
 }
 
 const PubSubKey = Symbol('PubSubEngine');

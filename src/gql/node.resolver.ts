@@ -9,7 +9,10 @@ import {
   Field,
   Int,
   ObjectType,
-  Root
+  Root,
+  Mutation,
+  PubSubEngine,
+  PubSub
 } from 'type-graphql';
 import { Node, RelayResolver, Oid } from './index';
 import { NodeService } from './relay.service';
@@ -52,6 +55,19 @@ export class NodeResolver implements RelayResolver {
     }
     throw Error('Invalid OID. Scope:' + scope);
   }
+  @Mutation(returns => Boolean)
+  publishLastKnownState(
+    @Arg('id', type => ID) oidString: string,
+    @PubSub() pubSub: PubSubEngine,
+    @Ctx() ctx: any
+  ): boolean {
+    const oid = new Oid(oidString);
+    const { scope } = oid.unwrap();
+    if (scope in this.nodeServices) {
+      Reflect.get(this.nodeServices, scope).publishLastKnownState(oid);
+    }
+    return true;
+  }
   @Subscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
     topics: `${NODE_CHANGE_NOTIFICATION}`,
@@ -61,7 +77,10 @@ export class NodeResolver implements RelayResolver {
     // convert to GQL Model
     const modelId: number | string = payload.model.get('id') as number | string;
     // ASSUME that the db model is suffixed with Model
-    const gqlModelName = payload.model.constructor.name.slice(0, 'Model'.length - 1);
+    const gqlModelName = payload.model.constructor.name.slice(
+      0,
+      payload.model.constructor.name.length - 'Model'.length
+    );
     const oid = Oid.create(gqlModelName, modelId);
     if (gqlModelName in this.nodeServices) {
       const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);

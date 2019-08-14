@@ -1,2 +1,2 @@
-# rfi-gql-framework
+# @rumbleship/gql
 Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
