@@ -19,6 +19,7 @@ export interface NodeServiceOptions {
     paranoid?: boolean;
     transaction?: NodeServiceTransaction;
     lockLevel?: NodeServiceLock;
+    skipAuthorizationCheck?: boolean;
 }
 export interface NodeService<T> {
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
@@ -34,12 +35,12 @@ export interface NodeService<T> {
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
-    count(filterBy: TFilter): Promise<number>;
+    count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
-    update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi>;
+    update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | null>;
 }

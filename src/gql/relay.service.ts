@@ -21,6 +21,7 @@ export interface NodeServiceOptions {
   paranoid?: boolean;
   transaction?: NodeServiceTransaction;
   lockLevel?: NodeServiceLock;
+  skipAuthorizationCheck?: boolean;
 }
 
 export interface NodeService<T> {
@@ -44,7 +45,7 @@ export interface RelayService<
   TUpdate
 > extends NodeService<TApi> {
   getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
-  count(filterBy: TFilter): Promise<number>;
+  count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
   findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
   findEach(
     filterBy: TFilter,
@@ -53,7 +54,7 @@ export interface RelayService<
   ): Promise<void>;
   getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
   create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
-  update(data: TUpdate, options?: NodeServiceOptions): Promise<TApi>;
+  update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
   getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
