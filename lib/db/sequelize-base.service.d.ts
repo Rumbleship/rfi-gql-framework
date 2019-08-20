@@ -33,6 +33,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     setServiceRegister(services: any): void;
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;
+    getContext(): Context;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     newTransaction(params: {
         isolation: NodeServiceIsolationLevel;
