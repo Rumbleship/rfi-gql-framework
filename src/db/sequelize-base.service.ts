@@ -97,6 +97,10 @@ export class SequelizeBaseService<
     }
   }
 
+  getContext(): Context {
+    return this.ctx;
+  }
+
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V {
     const name = typeof cls === 'string' ? cls : cls.name;
     if (name in this.nodeServices) {
