@@ -123,6 +123,17 @@ export class SequelizeBaseService<
     return (txn as unknown) as NodeServiceTransaction;
   }
 
+  async endTransaction(transaction: Transaction, action: 'commit' | 'rollback'): Promise<void> {
+    switch (action) {
+      case 'commit':
+        this.ctx.logger.info('transaction_commit');
+        return transaction.commit();
+      case 'rollback':
+        this.ctx.logger.info('transaction_rollback');
+        return transaction.rollback();
+    }
+  }
+
   convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions) {
     if (options) {
       const transaction: Transaction | undefined = options

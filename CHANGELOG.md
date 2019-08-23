@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * SequelizeBaseService.getContext(): Context;
+  * SequelizeBaseService.endTransaction(), which wraps ending a transaciton in spyglass logging.
 ### Removed
 ### Changed
 ### Fixed
