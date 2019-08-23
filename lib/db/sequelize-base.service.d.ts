@@ -39,7 +39,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
     }): Promise<NodeServiceTransaction>;
-    endTransaction(transaction: Transaction, action: 'commit' | 'rollback'): Promise<void>;
+    endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
     convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions): {
         paranoid: boolean | undefined;
         transaction: Transaction | undefined;

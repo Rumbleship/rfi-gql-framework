@@ -123,7 +123,10 @@ export class SequelizeBaseService<
     return (txn as unknown) as NodeServiceTransaction;
   }
 
-  async endTransaction(transaction: Transaction, action: 'commit' | 'rollback'): Promise<void> {
+  async endTransaction(
+    transaction: NodeServiceTransaction,
+    action: 'commit' | 'rollback'
+  ): Promise<void> {
     switch (action) {
       case 'commit':
         this.ctx.logger.info('transaction_commit');
