@@ -37,6 +37,7 @@ export interface NodeService<T> {
     isolation: NodeServiceIsolationLevel;
     autocommit: boolean;
   }): Promise<NodeServiceTransaction>;
+  endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
 
 export interface RelayService<

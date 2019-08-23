@@ -34,6 +34,7 @@ export interface NodeService<T> {
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
     }): Promise<NodeServiceTransaction>;
+    endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
