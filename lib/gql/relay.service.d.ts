@@ -1,3 +1,4 @@
+import { Context } from './../server/context.interface';
 import { Connection, Edge, Node, Oid } from './index';
 import { ClassType } from '../helpers/classtype';
 export interface NodeServiceTransaction {
@@ -24,6 +25,7 @@ export interface NodeServiceOptions {
 export interface NodeService<T> {
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
     nodeType(): string;
+    getContext(): Context;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     setServiceRegister(services: any): void;
     gqlFromDbModel(dao: object): T;
@@ -32,6 +34,7 @@ export interface NodeService<T> {
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
     }): Promise<NodeServiceTransaction>;
+    endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;

@@ -97,6 +97,10 @@ export class SequelizeBaseService<
     }
   }
 
+  getContext(): Context {
+    return this.ctx;
+  }
+
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V {
     const name = typeof cls === 'string' ? cls : cls.name;
     if (name in this.nodeServices) {
@@ -117,6 +121,20 @@ export class SequelizeBaseService<
       txn: { id: (txn as any).id, options: (txn as any).options }
     });
     return (txn as unknown) as NodeServiceTransaction;
+  }
+
+  async endTransaction(
+    transaction: NodeServiceTransaction,
+    action: 'commit' | 'rollback'
+  ): Promise<void> {
+    switch (action) {
+      case 'commit':
+        this.ctx.logger.info('transaction_commit');
+        return transaction.commit();
+      case 'rollback':
+        this.ctx.logger.info('transaction_rollback');
+        return transaction.rollback();
+    }
   }
 
   convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions) {
