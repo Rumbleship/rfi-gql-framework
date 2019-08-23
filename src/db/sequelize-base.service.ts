@@ -120,6 +120,7 @@ export class SequelizeBaseService<
     this.ctx.logger.addMetadata({
       txn: { id: (txn as any).id, options: (txn as any).options }
     });
+    this.ctx.logger.info('transaction_started');
     return (txn as unknown) as NodeServiceTransaction;
   }
 
