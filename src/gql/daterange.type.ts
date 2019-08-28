@@ -8,7 +8,7 @@ export class DateRange {
 
 export const DateRangeGQL = new GraphQLScalarType({
   name: 'DateRange',
-  description: ' Defines a date range to filter "{from:String, to:String}"',
+  description: ' Defines a date range to filter: {from:String, to:String}',
   parseValue(value: string) {
     return plainToClass(DateRange, JSON.parse(value)); // value from the client input variables
   },
