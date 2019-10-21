@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * AuthChecker no longer tries to inflect about creation rights in Auth question #4, instead
+    it simply asks for querying whatever data got created.
 ### Fixed
 ### Deprecated
 ### Security
