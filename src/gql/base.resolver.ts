@@ -9,7 +9,8 @@ import {
   Root,
   Authorized
 } from 'type-graphql';
-import { RelayService, Node, Connection, Oid } from './index';
+import { Oid } from '@rumbleship/types';
+import { RelayService, Node, Connection } from './index';
 import { ClassType } from './../helpers/classtype';
 import {
   DbModelChangeNotification,

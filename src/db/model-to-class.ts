@@ -1,6 +1,7 @@
 import { Model } from 'sequelize-typescript';
+import { Oid } from '@rumbleship/types';
 import { NodeService } from '../gql/relay.service';
-import { Node, Oid } from '../gql/index';
+import { Node } from '../gql/index';
 import { ClassType } from '../helpers/classtype';
 
 export const modelKey = Symbol.for('model');

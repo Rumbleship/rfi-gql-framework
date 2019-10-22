@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
-import { Oid } from '../../gql/index';
+import { Oid } from '@rumbleship/types';
+import { createWhereClauseWith } from '../../gql/create-where-clause-with';
 
 Oid.bankingHackTildeOptional = true;
 
@@ -67,11 +68,11 @@ describe('When the banking hack of tilde optional is set:', () => {
     const uuid = uuidv4();
     const oid: Oid = Oid.create('BankAccount', uuid);
     const filter = { id: oid.toString() };
-    expect(Oid.createWhereClauseWith(filter)).toEqual({
+    expect(createWhereClauseWith(filter)).toEqual({
       id: uuid
     });
     const filterNoTilde = { id: oid.toString().substring(1) };
-    expect(Oid.createWhereClauseWith(filterNoTilde)).toEqual({
+    expect(createWhereClauseWith(filterNoTilde)).toEqual({
       id: uuid
     });
   });

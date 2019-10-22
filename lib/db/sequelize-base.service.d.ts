@@ -1,4 +1,5 @@
-import { Connection, Edge, Node, Oid, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel } from '../gql';
+import { Oid } from '@rumbleship/types';
+import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';

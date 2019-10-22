@@ -629,6 +629,10 @@
     "@hapi/hoek" "^6.2.1"
     winston "^3.1.0"
 
+"@rumbleship/types@git+ssh://git@github.com/rumbleship/types#0.0.3":
+  version "0.0.3"
+  resolved "git+ssh://git@github.com/rumbleship/types#3dd2a3cbb3260a2f6f41879594a571c344149256"
+
 "@sindresorhus/is@^0.15.0":
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.15.0.tgz#96915baa05e6a6a1d137badf4984d3fc05820bb6"

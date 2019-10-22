@@ -1,5 +1,5 @@
 import { ID, InterfaceType, Field } from 'type-graphql';
-import { Oid } from './oid.type';
+import { Oid } from '@rumbleship/types';
 import { NodeService } from './relay.service';
 
 @InterfaceType()

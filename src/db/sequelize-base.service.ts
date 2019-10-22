@@ -1,9 +1,9 @@
 import { Service } from 'typedi';
+import { Oid } from '@rumbleship/types';
 import {
   Connection,
   Edge,
   Node,
-  Oid,
   RelayService,
   NodeService,
   NodeServiceOptions,
@@ -28,6 +28,7 @@ import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction } from 'sequelize';
 import { findEach } from 'iterable-model';
 import { PermissionsMatrix, Actions, RFIAuthError, Resource } from '@rumbleship/acl';
+import { createWhereClauseWith } from '../gql/create-where-clause-with';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -181,7 +182,7 @@ export class SequelizeBaseService<
       })
     ) {
       const limits = calculateLimitAndOffset(after, first, before, last);
-      const whereClause = Oid.createWhereClauseWith(filter);
+      const whereClause = createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const { rows, count } = await this.model.findAndCountAll({
         where: whereClause,
@@ -260,7 +261,7 @@ export class SequelizeBaseService<
         attribute
       })
     ) {
-      const whereClause = Oid.createWhereClauseWith(filter);
+      const whereClause = createWhereClauseWith(filter);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const modelFindEach = findEach.bind(this.model);
       return modelFindEach(
@@ -498,7 +499,7 @@ export class SequelizeBaseService<
   ): Promise<TAssocConnection> {
     const { after, before, first, last, ...filter } = filterBy;
     const limits = calculateLimitAndOffset(after, first, before, last);
-    const whereClause = Oid.createWhereClauseWith(filter);
+    const whereClause = createWhereClauseWith(filter);
     let sourceModel: Model<Model<any>>;
     let count = 0;
     let associated: Array<Model<any>>;

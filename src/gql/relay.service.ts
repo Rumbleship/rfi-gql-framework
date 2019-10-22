@@ -1,5 +1,6 @@
 import { Context } from './../server/context.interface';
-import { Connection, Edge, Node, Oid } from './index';
+import { Oid } from '@rumbleship/types';
+import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';
 
 export interface NodeServiceTransaction {
