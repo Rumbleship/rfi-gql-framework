@@ -16,3 +16,4 @@ export * from './daterange.type';
 export * from './gql_helpers';
 export * from './node.resolver';
 export * from './node-notification';
+export * from './create-where-clause-with';
