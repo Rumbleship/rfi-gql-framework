@@ -1,5 +1,5 @@
 import { Model } from 'sequelize-typescript';
-import { Oid } from '@rumbleship/types';
+import { Oid } from '@rumbleship/oid';
 import { NodeService } from '../gql/relay.service';
 import { Node } from '../gql/index';
 import { ClassType } from '../helpers/classtype';
@@ -54,7 +54,7 @@ export function modelToClass<T extends Node<T>, V extends Model<V>>(
     return Reflect.get(from, apiKey);
   }
   const obj: T = Object.assign(new to(), modelAsPlain);
-  const oid = Oid.create(
+  const oid = Oid.Create(
     oidScope ? oidScope : obj.constructor['name'],
     modelAsPlain.uuid ? modelAsPlain.uuid : modelAsPlain.id
   );

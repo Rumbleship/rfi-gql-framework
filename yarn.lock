@@ -618,6 +618,10 @@
   dependencies:
     jsonwebtoken "^8.5.1"
 
+"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#1.0.1":
+  version "1.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/oid#b6cf83cc6b7d3166ee22fa9e9d8912f230662e2d"
+
 "@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#2.0.1":
   version "2.0.1"
   resolved "git+ssh://git@github.com/rumbleship/spyglass.git#1fc9859d45f9834921f4e229fc6132996670b057"
@@ -628,10 +632,6 @@
     "@google-cloud/trace-agent" "^3.6.0"
     "@hapi/hoek" "^6.2.1"
     winston "^3.1.0"
-
-"@rumbleship/types@git+ssh://git@github.com/rumbleship/types#0.0.4":
-  version "0.0.4"
-  resolved "git+ssh://git@github.com/rumbleship/types#34256a2677785d3cec6b832c7aaf3397904b4221"
 
 "@sindresorhus/is@^0.15.0":
   version "0.15.0"

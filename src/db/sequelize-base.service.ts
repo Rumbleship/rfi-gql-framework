@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { Oid } from '@rumbleship/types';
+import { Oid } from '@rumbleship/oid';
 import {
   Connection,
   Edge,
@@ -424,7 +424,7 @@ export class SequelizeBaseService<
           0,
           node.constructor.name.length - 'Model'.length
         );
-        oid = Oid.create(gqlModelName, node.id);
+        oid = Oid.Create(gqlModelName, node.id);
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
         throw new Error(`Invalid ${this.apiClass.name}: No id`);

@@ -1,4 +1,4 @@
-import { Oid } from '@rumbleship/types';
+import { Oid } from '@rumbleship/oid';
 import { Model } from 'sequelize-typescript';
 
 export function createWhereClauseWith<T extends Model<T>>(filter: any): any {

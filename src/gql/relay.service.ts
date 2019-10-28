@@ -1,5 +1,5 @@
 import { Context } from './../server/context.interface';
-import { Oid } from '@rumbleship/types';
+import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';
 

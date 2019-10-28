@@ -14,7 +14,7 @@ import {
   PubSubEngine,
   PubSub
 } from 'type-graphql';
-import { Oid } from '@rumbleship/types';
+import { Oid } from '@rumbleship/oid';
 import { Node, RelayResolver } from './index';
 import { NodeService } from './relay.service';
 import {
@@ -83,7 +83,7 @@ export class NodeResolver implements RelayResolver {
       0,
       payload.model.constructor.name.length - 'Model'.length
     );
-    const oid = Oid.create(gqlModelName, modelId);
+    const oid = Oid.Create(gqlModelName, modelId);
     if (gqlModelName in this.nodeServices) {
       const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
       const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
@@ -106,7 +106,7 @@ export class NodeResolver implements RelayResolver {
     @Arg('id', type => String) id: string,
     @Ctx() ctx: any
   ): Promise<string> {
-    const oid = Oid.create(scope, `${id}`);
+    const oid = Oid.Create(scope, `${id}`);
     return oid.toString();
   }
 }

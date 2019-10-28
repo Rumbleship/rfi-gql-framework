@@ -1,4 +1,4 @@
-import { Oid } from '@rumbleship/types';
+import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
