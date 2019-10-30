@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * dev and peer depedency on `@rumbleship/oid`, which abstracts managing oids across the Rumbleship ecosystem
 ### Removed
+  * defintion of `oid.type`; see new dependency on `@rumbleship/oid`
 ### Changed
+  * `createWhereClause` is an explicitly defined function, instead of a static on `Oid`
 ### Fixed
 ### Deprecated
 ### Security

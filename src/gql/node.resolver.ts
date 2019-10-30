@@ -14,7 +14,8 @@ import {
   PubSubEngine,
   PubSub
 } from 'type-graphql';
-import { Node, RelayResolver, Oid } from './index';
+import { Oid } from '@rumbleship/oid';
+import { Node, RelayResolver } from './index';
 import { NodeService } from './relay.service';
 import {
   NodeNotification,
@@ -42,7 +43,8 @@ class ClassGqlNodeNotification extends NodeNotification<any> {
 export class NodeResolver implements RelayResolver {
   constructor(
     // constructor injection of service
-    @Inject('nodeServices') private readonly nodeServices: Array<NodeService<any>>
+    @Inject('nodeServices')
+    private readonly nodeServices: Array<NodeService<any>>
   ) {}
   // to conform with the Relay Connection spec
   // this is the generic resolver givin an ID, it can always resolcve to one of the domain objects..
@@ -81,7 +83,7 @@ export class NodeResolver implements RelayResolver {
       0,
       payload.model.constructor.name.length - 'Model'.length
     );
-    const oid = Oid.create(gqlModelName, modelId);
+    const oid = Oid.Create(gqlModelName, modelId);
     if (gqlModelName in this.nodeServices) {
       const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
       const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
@@ -104,7 +106,7 @@ export class NodeResolver implements RelayResolver {
     @Arg('id', type => String) id: string,
     @Ctx() ctx: any
   ): Promise<string> {
-    const oid = Oid.create(scope, `${id}`);
+    const oid = Oid.Create(scope, `${id}`);
     return oid.toString();
   }
 }
