@@ -9,7 +9,8 @@ import {
   Root,
   Authorized
 } from 'type-graphql';
-import { RelayService, Node, Connection, Oid } from './index';
+import { Oid } from '@rumbleship/oid';
+import { RelayService, Node, Connection } from './index';
 import { ClassType } from './../helpers/classtype';
 import {
   DbModelChangeNotification,
@@ -94,7 +95,7 @@ export function createBaseResolver<
     async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
       // convert to GQL Model
       const modelId: string = payload.model.get('id') as string;
-      const oid = Oid.create(objectTypeCls.name, modelId);
+      const oid = Oid.Create(objectTypeCls.name, modelId);
       const node = await this.getOne(oid.toString());
       const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
       return gqlNodeNotification;
@@ -142,7 +143,7 @@ export function createReadOnlyBaseResolver<
     async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
       // convert to GQL Model
       const modelId: string = payload.model.get('id') as string;
-      const oid = Oid.create(objectTypeCls.name, modelId);
+      const oid = Oid.Create(objectTypeCls.name, modelId);
       const node = await this.getOne(oid.toString());
       const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
       return gqlNodeNotification;
