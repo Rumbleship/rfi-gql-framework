@@ -1,4 +1,4 @@
 {
-  "policy": "major",
+  "policy": "patch",
   "revert": "patch"
 }
