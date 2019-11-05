@@ -20,14 +20,39 @@ registerEnumType(NotificationOf, {
 
 export const NODE_CHANGE_NOTIFICATION = 'NODE_CHANGE_NOTIFICATION';
 
+export interface ModelDelta {
+  key: string;
+  previousValue: any;
+  newValue: any;
+}
+
+@ObjectType()
+export class GqlModelDelta {
+  @Field()
+  key!: string;
+  @Field({ nullable: true })
+  previousValue!: string;
+  @Field()
+  newValue!: string;
+  constructor(delta: ModelDelta) {
+    this.key = delta.key;
+    this.previousValue = JSON.stringify(delta.previousValue);
+    this.newValue = JSON.stringify(delta.newValue);
+  }
+}
+
 export abstract class NodeNotification<T extends Node<T>> {
   sequence: number;
   notificationOf: NotificationOf;
   node: T;
-  constructor(notificationOf: NotificationOf, node: T) {
+  deltas: GqlModelDelta[];
+  constructor(notificationOf: NotificationOf, node: T, deltas: ModelDelta[]) {
     this.notificationOf = notificationOf;
     this.node = node;
     this.sequence = Date.now();
+    this.deltas = deltas.map(delta => {
+      return new GqlModelDelta(delta);
+    });
   }
 }
 
@@ -42,8 +67,10 @@ export function GqlNodeNotification<T extends Node<T>>(
     notificationOf!: NotificationOf;
     @Field(type => clsNotification, { nullable: true })
     node!: T;
-    constructor(notificationOf: NotificationOf, node: T) {
-      super(notificationOf, node);
+    @Field(type => [GqlModelDelta])
+    deltas!: GqlModelDelta[];
+    constructor(notificationOf: NotificationOf, node: T, deltas: ModelDelta[]) {
+      super(notificationOf, node, deltas);
     }
   }
   return GqlNodeNotificationClass;
@@ -54,6 +81,6 @@ export class DbModelChangeNotification {
   constructor(
     public notificationOf: NotificationOf,
     public model: Model<any, any>,
-    public changedValues?: object
+    public deltas: ModelDelta[]
   ) {}
 }

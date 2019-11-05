@@ -21,7 +21,9 @@ import {
   NodeNotification,
   NotificationOf,
   NODE_CHANGE_NOTIFICATION,
-  DbModelChangeNotification
+  DbModelChangeNotification,
+  GqlModelDelta,
+  ModelDelta
 } from './node-notification';
 
 // we make a specific concreate type here for the concrete general Node notification
@@ -33,8 +35,10 @@ class ClassGqlNodeNotification extends NodeNotification<any> {
   notificationOf!: NotificationOf;
   @Field(type => Node, { nullable: true })
   node!: Node<any>;
-  constructor(notificationOf: NotificationOf, node: Node<any>) {
-    super(notificationOf, node);
+  @Field(type => [GqlModelDelta], { nullable: true })
+  deltas!: GqlModelDelta[];
+  constructor(notificationOf: NotificationOf, node: Node<any>, deltas: ModelDelta[]) {
+    super(notificationOf, node, deltas);
   }
 }
 
@@ -86,7 +90,11 @@ export class NodeResolver implements RelayResolver {
     const oid = Oid.Create(gqlModelName, modelId);
     if (gqlModelName in this.nodeServices) {
       const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
-      const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
+      const gqlNodeNotification = new ClassGqlNodeNotification(
+        payload.notificationOf,
+        node,
+        payload.deltas
+      );
       return gqlNodeNotification;
     } else {
       throw Error('Invalid OID. Scope:' + gqlModelName);

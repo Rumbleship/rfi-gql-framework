@@ -4,7 +4,8 @@ import { Model, CreateOptions, UpdateOptions } from 'sequelize';
 import {
   NotificationOf,
   DbModelChangeNotification,
-  NODE_CHANGE_NOTIFICATION
+  NODE_CHANGE_NOTIFICATION,
+  ModelDelta
 } from '../gql/node-notification';
 
 /**
@@ -19,38 +20,47 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
   sequelize.afterCreate((instance, options) => {
     // Cache the previous values to closure so they can be published __after__ commit
     // (the previous vales will be overwritten on commit)
-    const previous = getChangedAttributes(instance);
+    const deltas = getChangedAttributes(instance);
 
     if (options && options.transaction) {
-      options.transaction.afterCommit(t => gqlCreateHook(pubSub, instance, previous, options));
+      options.transaction.afterCommit(t => gqlCreateHook(pubSub, instance, deltas, options));
       return;
     }
-    gqlCreateHook(pubSub, instance, previous, options);
+    gqlCreateHook(pubSub, instance, deltas, options);
   });
   sequelize.afterUpdate((instance, options) => {
-    const previous = getChangedAttributes(instance);
+    const deltas = getChangedAttributes(instance);
     if (options && options.transaction) {
-      options.transaction.afterCommit(t => gqlUpdateHook(pubSub, instance, previous, options));
+      options.transaction.afterCommit(t => gqlUpdateHook(pubSub, instance, deltas, options));
       return;
     }
-    gqlUpdateHook(pubSub, instance, previous, options);
+    gqlUpdateHook(pubSub, instance, deltas, options);
   });
   // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
 }
 
-function getChangedAttributes(instance: Model<any, any>): object {
-  const changed: string[] = instance.changed() as string[];
-  const previous = {};
-  changed.forEach(key => {
-    Reflect.set(previous, key, instance.previous(key as any));
-  });
-  return previous;
+function getChangedAttributes(instance: Model<any, any>): ModelDelta[] {
+  const deltas: ModelDelta[] = [];
+  const values = instance.get({ plain: true });
+  for (const key in values) {
+    if (values.hasOwnProperty(key)) {
+      if (instance.changed(key as any)) {
+        const delta: ModelDelta = {
+          key,
+          previousValue: instance.previous(key as any),
+          newValue: instance.get(key as any)
+        };
+        deltas.push(delta);
+      }
+    }
+  }
+  return deltas;
 }
 
 export function publishCurrentState(instance: Model<any, any>) {
   const pubSub = pubSubFrom(instance.sequelize as Sequelize);
   if (pubSub) {
-    const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance);
+    const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance, []);
     pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
     // Also publish the specific Model
     pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
@@ -76,10 +86,10 @@ export function pubSubFrom(sequelize: Sequelize): PubSubEngine | null {
 function gqlCreateHook(
   pubSub: PubSubEngine,
   instance: Model<any, any>,
-  previous: object,
+  deltas: ModelDelta[],
   options: CreateOptions
 ) {
-  const payload = new DbModelChangeNotification(NotificationOf.CREATED, instance, previous);
+  const payload = new DbModelChangeNotification(NotificationOf.CREATED, instance, deltas);
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   // Also publish the specific Model
   pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
@@ -87,10 +97,10 @@ function gqlCreateHook(
 function gqlUpdateHook(
   pubSub: PubSubEngine,
   instance: Model<any, any>,
-  previous: object,
+  deltas: ModelDelta[],
   options: UpdateOptions
 ) {
-  const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance, previous);
+  const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance, deltas);
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   // Also publish the specific Model
   pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
