@@ -90,7 +90,7 @@ function gqlUpdateHook(
   previous: object,
   options: UpdateOptions
 ) {
-  const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance);
+  const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance, previous);
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   // Also publish the specific Model
   pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
