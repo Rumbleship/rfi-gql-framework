@@ -17,5 +17,6 @@ export declare function GqlNodeNotification<T extends Node<T>>(clsNotification: 
 export declare class DbModelChangeNotification {
     notificationOf: NotificationOf;
     model: Model<any, any>;
-    constructor(notificationOf: NotificationOf, model: Model<any, any>);
+    changedValues?: object | undefined;
+    constructor(notificationOf: NotificationOf, model: Model<any, any>, changedValues?: object | undefined);
 }

@@ -51,5 +51,9 @@ export function GqlNodeNotification<T extends Node<T>>(
 
 // and the type used to transmit database changes
 export class DbModelChangeNotification {
-  constructor(public notificationOf: NotificationOf, public model: Model<any, any>) {}
+  constructor(
+    public notificationOf: NotificationOf,
+    public model: Model<any, any>,
+    public changedValues?: object
+  ) {}
 }
