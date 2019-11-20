@@ -42,6 +42,7 @@ export interface NodeService<T> {
   newTransaction(params: {
     isolation: NodeServiceIsolationLevel;
     autocommit: boolean;
+    type?: NodeServiceTransactionType;
   }): Promise<NodeServiceTransaction>;
   endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
