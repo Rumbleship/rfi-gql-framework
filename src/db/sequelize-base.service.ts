@@ -9,7 +9,8 @@ import {
   NodeServiceOptions,
   NodeServiceLock,
   NodeServiceTransaction,
-  NodeServiceIsolationLevel
+  NodeServiceIsolationLevel,
+  NodeServiceTransactionType
 } from '../gql';
 import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
 
@@ -113,10 +114,12 @@ export class SequelizeBaseService<
   async newTransaction(params: {
     isolation: NodeServiceIsolationLevel;
     autocommit: boolean;
+    type?: NodeServiceTransactionType;
   }): Promise<NodeServiceTransaction> {
     const txn = await this.model.sequelize!.transaction({
       isolationLevel: params.isolation as any,
-      autocommit: params.autocommit
+      autocommit: params.autocommit,
+      type: params.type as any
     });
     this.ctx.logger.addMetadata({
       txn: { id: (txn as any).id, options: (txn as any).options }

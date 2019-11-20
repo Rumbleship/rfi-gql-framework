@@ -18,6 +18,11 @@ export enum NodeServiceIsolationLevel {
   REPEATABLE_READ = 'REPEATABLE READ',
   SERIALIZABLE = 'SERIALIZABLE'
 }
+export enum NodeServiceTransactionType {
+  DEFERRED = 'DEFERRED',
+  IMMEDIATE = 'IMMEDIATE',
+  EXCLUSIVE = 'EXCLUSIVE'
+}
 
 export interface NodeServiceOptions {
   paranoid?: boolean;

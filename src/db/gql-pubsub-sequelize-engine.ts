@@ -28,6 +28,7 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
     }
     gqlCreateHook(pubSub, instance, deltas, options);
   });
+
   sequelize.afterUpdate((instance, options) => {
     const deltas = getChangedAttributes(instance);
     if (options && options.transaction) {

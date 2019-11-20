@@ -618,13 +618,13 @@
   dependencies:
     jsonwebtoken "^8.5.1"
 
-"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#1.0.2":
-  version "1.0.2"
-  resolved "git+ssh://git@github.com/rumbleship/oid#40325f6c20116fa7cca43545adaade9b764c8138"
+"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#2.0.0":
+  version "2.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/oid#8670f0e4e68dde7945606b91e814360194fd75aa"
 
-"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#2.0.1":
-  version "2.0.1"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#1fc9859d45f9834921f4e229fc6132996670b057"
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5":
+  version "2.2.5"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#611112b2232623abe9a0b4252109d025c020b763"
   dependencies:
     "@google-cloud/debug-agent" "^3.0.1"
     "@google-cloud/error-reporting" "^0.6.0"
