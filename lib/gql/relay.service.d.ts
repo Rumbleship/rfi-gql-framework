@@ -17,6 +17,11 @@ export declare enum NodeServiceIsolationLevel {
     REPEATABLE_READ = "REPEATABLE READ",
     SERIALIZABLE = "SERIALIZABLE"
 }
+export declare enum NodeServiceTransactionType {
+    DEFERRED = "DEFERRED",
+    IMMEDIATE = "IMMEDIATE",
+    EXCLUSIVE = "EXCLUSIVE"
+}
 export interface NodeServiceOptions {
     paranoid?: boolean;
     transaction?: NodeServiceTransaction;
