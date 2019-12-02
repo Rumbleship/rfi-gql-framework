@@ -72,7 +72,7 @@ export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = t
     if (fromDb) {
       await model.reload();
     }
-    const modelAsPlain: any = model.get({ plain: true });
+    const modelAsPlain: any = model.get({ plain: true, clone: true });
     delete modelAsPlain.id;
     Object.assign(node, modelAsPlain);
   }
