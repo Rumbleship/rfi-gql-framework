@@ -149,7 +149,11 @@ export function createReadOnlyBaseResolver<
       const modelId: string = payload.model.get('id') as string;
       const oid = Oid.Create(objectTypeCls.name, modelId);
       const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
+      const gqlNodeNotification = new notificationClsType(
+        payload.notificationOf,
+        node,
+        payload.deltas
+      );
       return gqlNodeNotification;
     }
   }
