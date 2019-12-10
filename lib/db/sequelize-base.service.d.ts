@@ -1,5 +1,5 @@
 import { Oid } from '@rumbleship/oid';
-import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel } from '../gql';
+import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';
@@ -39,6 +39,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     newTransaction(params: {
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
+        type?: NodeServiceTransactionType;
     }): Promise<NodeServiceTransaction>;
     endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
     convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions): {

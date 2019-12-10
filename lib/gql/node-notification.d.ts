@@ -7,6 +7,11 @@ export declare enum NotificationOf {
     UPDATED = "UPDATED"
 }
 export declare const NODE_CHANGE_NOTIFICATION = "NODE_CHANGE_NOTIFICATION";
+export interface ModelDelta {
+    key: string;
+    previousValue: any;
+    newValue: any;
+}
 export declare abstract class NodeNotification<T extends Node<T>> {
     sequence: number;
     notificationOf: NotificationOf;
@@ -17,5 +22,6 @@ export declare function GqlNodeNotification<T extends Node<T>>(clsNotification: 
 export declare class DbModelChangeNotification {
     notificationOf: NotificationOf;
     model: Model<any, any>;
-    constructor(notificationOf: NotificationOf, model: Model<any, any>);
+    deltas: ModelDelta[];
+    constructor(notificationOf: NotificationOf, model: Model<any, any>, deltas: ModelDelta[]);
 }

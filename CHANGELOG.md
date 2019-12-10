@@ -8,9 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+* Adds 'delta's to the DbNotification allow reasoning around what has changed when subscribing at the Db Model level
+* This DOES NOT propagate to the GqlSubscriptions, as sending all the deltas to any old client is a big security hole. 
 ### Removed
 ### Changed
+
 ### Fixed
+reloadFromModel when there was NO custom getter, referenced to the data rather than cloned
 ### Deprecated
 ### Security
 
