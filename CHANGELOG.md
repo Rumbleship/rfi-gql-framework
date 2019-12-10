@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+* Adds 'delta's to the DbNotification allow reasoning around what has changed when subscribing at the Db Model level
+* This DOES NOT propagate to the GqlSubscriptions, as sending all the deltas to any old client is a big security hole. 
+### Removed
+### Changed
+
+### Fixed
+reloadFromModel when there was NO custom getter, referenced to the data rather than cloned
+### Deprecated
+### Security
+
+
 ## [1.0.1] -- 2019-10-30
 
 ### Changed

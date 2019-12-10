@@ -1,4 +1,4 @@
-export function enumAsStrings<TEnum>(toConvert: TEnum) {
+export function enumAsStrings<TEnum extends object>(toConvert: TEnum) {
   const strings: string[] = [];
   for (const txnType in toConvert) {
     if (toConvert.hasOwnProperty(txnType)) {

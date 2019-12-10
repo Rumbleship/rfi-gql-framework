@@ -18,6 +18,11 @@ export enum NodeServiceIsolationLevel {
   REPEATABLE_READ = 'REPEATABLE READ',
   SERIALIZABLE = 'SERIALIZABLE'
 }
+export enum NodeServiceTransactionType {
+  DEFERRED = 'DEFERRED',
+  IMMEDIATE = 'IMMEDIATE',
+  EXCLUSIVE = 'EXCLUSIVE'
+}
 
 export interface NodeServiceOptions {
   paranoid?: boolean;
@@ -37,6 +42,7 @@ export interface NodeService<T> {
   newTransaction(params: {
     isolation: NodeServiceIsolationLevel;
     autocommit: boolean;
+    type?: NodeServiceTransactionType;
   }): Promise<NodeServiceTransaction>;
   endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }

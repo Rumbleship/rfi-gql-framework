@@ -20,6 +20,12 @@ registerEnumType(NotificationOf, {
 
 export const NODE_CHANGE_NOTIFICATION = 'NODE_CHANGE_NOTIFICATION';
 
+export interface ModelDelta {
+  key: string;
+  previousValue: any;
+  newValue: any;
+}
+
 export abstract class NodeNotification<T extends Node<T>> {
   sequence: number;
   notificationOf: NotificationOf;
@@ -42,6 +48,7 @@ export function GqlNodeNotification<T extends Node<T>>(
     notificationOf!: NotificationOf;
     @Field(type => clsNotification, { nullable: true })
     node!: T;
+
     constructor(notificationOf: NotificationOf, node: T) {
       super(notificationOf, node);
     }
@@ -51,5 +58,9 @@ export function GqlNodeNotification<T extends Node<T>>(
 
 // and the type used to transmit database changes
 export class DbModelChangeNotification {
-  constructor(public notificationOf: NotificationOf, public model: Model<any, any>) {}
+  constructor(
+    public notificationOf: NotificationOf,
+    public model: Model<any, any>,
+    public deltas: ModelDelta[]
+  ) {}
 }
