@@ -26,33 +26,14 @@ export interface ModelDelta {
   newValue: any;
 }
 
-@ObjectType()
-export class GqlModelDelta {
-  @Field()
-  key!: string;
-  @Field({ nullable: true })
-  previousValue!: string;
-  @Field()
-  newValue!: string;
-  constructor(delta: ModelDelta) {
-    this.key = delta.key;
-    this.previousValue = JSON.stringify(delta.previousValue);
-    this.newValue = JSON.stringify(delta.newValue);
-  }
-}
-
 export abstract class NodeNotification<T extends Node<T>> {
   sequence: number;
   notificationOf: NotificationOf;
   node: T;
-  deltas: GqlModelDelta[];
-  constructor(notificationOf: NotificationOf, node: T, deltas: ModelDelta[]) {
+  constructor(notificationOf: NotificationOf, node: T) {
     this.notificationOf = notificationOf;
     this.node = node;
     this.sequence = Date.now();
-    this.deltas = deltas.map(delta => {
-      return new GqlModelDelta(delta);
-    });
   }
 }
 
@@ -67,10 +48,9 @@ export function GqlNodeNotification<T extends Node<T>>(
     notificationOf!: NotificationOf;
     @Field(type => clsNotification, { nullable: true })
     node!: T;
-    @Field(type => [GqlModelDelta])
-    deltas!: GqlModelDelta[];
-    constructor(notificationOf: NotificationOf, node: T, deltas: ModelDelta[]) {
-      super(notificationOf, node, deltas);
+
+    constructor(notificationOf: NotificationOf, node: T) {
+      super(notificationOf, node);
     }
   }
   return GqlNodeNotificationClass;

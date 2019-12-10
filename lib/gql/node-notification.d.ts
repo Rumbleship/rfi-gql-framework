@@ -12,18 +12,11 @@ export interface ModelDelta {
     previousValue: any;
     newValue: any;
 }
-export declare class GqlModelDelta {
-    key: string;
-    previousValue: string;
-    newValue: string;
-    constructor(delta: ModelDelta);
-}
 export declare abstract class NodeNotification<T extends Node<T>> {
     sequence: number;
     notificationOf: NotificationOf;
     node: T;
-    deltas: GqlModelDelta[];
-    constructor(notificationOf: NotificationOf, node: T, deltas: ModelDelta[]);
+    constructor(notificationOf: NotificationOf, node: T);
 }
 export declare function GqlNodeNotification<T extends Node<T>>(clsNotification: ClassType<T>): ClassType<NodeNotification<T>>;
 export declare class DbModelChangeNotification {
