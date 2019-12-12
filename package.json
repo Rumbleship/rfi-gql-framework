@@ -16,7 +16,9 @@
     "build": "NODE_PATH=. tsc -p .",
     "test": "NODE_PATH=. tsc -p . && NODE_PATH=. NODE_ENV=test jest",
     "lint": "NODE_PATH=. tslint --project .",
-    "coverage": "NODE_PATH=. tsc -p . && NODE_PATH=. jest --coverage --coverageReporters=text-lcov | coveralls"
+    "coverage": "NODE_PATH=. tsc -p . && NODE_PATH=. jest --coverage --coverageReporters=text-lcov | coveralls",
+    "setup": "NODE_PATH='local_node_modules/' yarn; NODE_PATH='local_node_modules/' yarn install --frozen-lockfile",
+	"do-the-thing": "mv node_modules.not node_modules; yarn build; mv node_modules node_modules.not;"
   },
   "jest": {
     "testEnvironment": "node"
@@ -77,5 +79,8 @@
     "type-graphql": "^0.17.5",
     "typedi": "^0.8.0",
     "xxhash": "^0.2.4"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "^1.1.6"
   }
 }
