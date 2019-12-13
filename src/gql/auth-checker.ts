@@ -8,11 +8,11 @@ export const RFIAuthChecker: AuthChecker<any, Permissions | Scopes[] | Scopes> =
   // Question #1 ("Do I exist?" has been answered; we have an authenticated Authorizer
   const authorizer: Authorizer = context.authorizer;
 
-  if (permissionsOrScopeList instanceof Permissions) {
+  if (permissionsOrScopeList[0] instanceof Permissions) {
     // Question #3 ("Can I ask this specific question") has been answered by DB/authorizer
     //  integration in the sequelize-base-service, so we can...
     // Answer Question #4: "Do I have the rights to read whatever I'm asking for?"
-    return authorizer.can(Actions.QUERY, root, permissionsOrScopeList);
+    return authorizer.can(Actions.QUERY, root, permissionsOrScopeList[0]);
   }
   // Answer Question #2: "Do I have the rights to ask this kind of -question?"
   // if (!root) {
