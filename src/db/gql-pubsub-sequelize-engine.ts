@@ -2,77 +2,84 @@ import { PubSubEngine } from 'type-graphql';
 import { Sequelize } from 'sequelize-typescript';
 import { Model, CreateOptions, UpdateOptions } from 'sequelize';
 import {
-  NotificationOf,
-  DbModelChangeNotification,
+  // NotificationOf,
+  // DbModelChangeNotification,
   NODE_CHANGE_NOTIFICATION,
   ModelDelta
 } from '../gql/node-notification';
 
+import { Oid } from '@rumbleship/oid';
 
 // For creating topics which don't exist
-//import { GooglePubSub as PubSub } from '@axelspringer/graphql-google-pubsub';
-import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
+import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
+// use the gcloud pubsub apollo lib elsewhere
+// import { GooglePubSub as AsyncPubSub } from '@axelspringer/graphql-google-pubsub';
 
-//const {PubSub} = require('@google-cloud/pubsub');
-
-//FIXME - do better than 'any'
+// FIXME - do better than 'any'
 // the issue is 'publish' 404's on the pubSubEngine obj
 const googlePubSub: any = new GooglePubSub();
+// this is threaded through from arbiter
+// const asyncPubSub: PubSubEngine = new AsyncPubSub();
 
-//async googlePubSub.createTopic(NODE_CHANGE_NOTIFICATION);
-// FIXME - this is racey
+// global to hold the list of existing topics
+let topicList: string[] = [];
+let topicListLoaded: boolean = false;
 
+// Create a topic if it doesn't already exist
+// This needs listAllTopics to have finished but loading that is racy
+// model observer and event-dispatcher jump ahead before we're ready
+export function CreateTopic(topicName: string): Promise<void> {
+  return new Promise(
+    (resolve: any, reject: any): void => {
+      // TODO - log to platform logger
+      console.log('CreateTopic wants to add topic:', topicName, 'Loaded topics::', topicList);
+      // FIXME - fix the race so we don't need to do this
+      if (!topicListLoaded) {
+        // the topic will get created later in publish
+        console.log("No topics loaded, aborting add of", topicName);
+        //reject({topicName})
+        return;
+      }
+      if (!topicList.includes(topicName)) {
+        console.log('Creating topic', topicName, 'Loaded topics:', topicList);
+        googlePubSub.createTopic(topicName, (err: { code: number }, topic: Topic) => {
+          // couldn't figure out the proper type but err.code is sufficient to catch
+          if (err === null) {
+            console.log('Topic', topicName, 'created successfully');
+            topicList.push(topicName);
+            resolve({ topicName });
+          } else {
+            console.log('Problem creating topic, err:', err, 'topic was:', topic);
+            reject({ topicName });
+          }
+        });
+      } else {
+        console.log('topic', topicName, 'aready exists, no need to create');
+        resolve({ topicName });
+      }
+    }
+  );
+}
 
-var topicList: string[] = [];
-
+// getTopics being async forces the whole chain to be async, which doesn't help
+// how much there's a race going on
 
 async function listAllTopics() {
-  // Lists all topics in the current project
   const [topics] = await googlePubSub.getTopics();
-  
-  topics.forEach((topic: any) => {
-    const i = topic.name.lastIndexOf("/")+1;
+
+  topics.forEach((topic: { name: string }) => {
+    const i = topic.name.toString().lastIndexOf('/') + 1;
     const topicShortName = topic.name.slice(i);
     topicList.push(topicShortName);
   });
-  
-  
-  //topicList.push(...topics);
-
-  //console.log('Topics:');
-  // FIXME - do better than 'any'
-  //topics.forEach((topic: any) => console.log(topic.name));
-
-  console.log('topicList has', topicList);
+  topicListLoaded = true;
+  console.log('existing topic list loaded:', topicList);
 }
 
-function setupGooglePubSub() {
-  listAllTopics();
+async function initGooglePubSub() {
+  await listAllTopics();
+  await CreateTopic(NODE_CHANGE_NOTIFICATION);
 }
-
-setupGooglePubSub();
-
-// FIXME - this may be racy
-
-// need to do this using promise/await/async/whatever
-//googlePubSub.createTopic(NODE_CHANGE_NOTIFICATION);
-
-
-
-/*
-function getTopic(cb) {
-  pubsub.createTopic(topicName, (err, topic) => {
-    // topic already exists.
-    if (err && err.code === 6) {
-      cb(null, pubsub.topic(topicName));
-      return;
-    }
-    cb(err, topic);
-  });
-}
-*/
-
-
 
 /**
  *
@@ -81,6 +88,15 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
   // Install hooks on Sequelize that publish GqlNodeNotifications
   // Takes advantage of the RFI frameworks connection of sequelize Model<> class to our
   // GQL classes
+
+  // FIXME - is this the right place for this (prolly not);
+  // where wants to be aware that we're doing google pub sub?
+  // also libraryize
+  // cant await this
+  initGooglePubSub();
+
+  //googlePubSub.publish('topic404', '{payload}');
+
   attachPubSubEngineToSequelize(pubSub, sequelize);
 
   sequelize.afterCreate((instance, options) => {
@@ -126,12 +142,14 @@ function getChangedAttributes(instance: Model<any, any>): ModelDelta[] {
 
 export function publishCurrentState(instance: Model<any, any>) {
   const pubSub = pubSubFrom(instance.sequelize as Sequelize);
-  if (pubSub) {
-    const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance, []);
-    pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
-    // Also publish the specific Model
-    pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
-  }
+  publishPayload(pubSub, instance);
+
+  // if (pubSub) {
+  //   const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance, []);
+  //   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
+  //   // Also publish the specific Model
+  //   pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
+  // }
 }
 
 const PubSubKey = Symbol('PubSubEngine');
@@ -156,9 +174,8 @@ function gqlCreateHook(
   deltas: ModelDelta[],
   options: CreateOptions
 ) {
-
-  publishPayload(instance);
-
+  //const foo = await instance.getBuyerApplication();
+  publishPayload(pubSub, instance);
   // const payload = new DbModelChangeNotification(NotificationOf.CREATED, instance, deltas);
   // pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   // // Also publish the specific Model
@@ -170,76 +187,40 @@ function gqlUpdateHook(
   deltas: ModelDelta[],
   options: UpdateOptions
 ) {
-  publishPayload(instance);
-  //const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance, deltas);
-  //pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
+  publishPayload(pubSub, instance);
+  // const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance, deltas);
+  // pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   //// Also publish the specific Model
-  //pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
+  // pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
 }
 
 // go into
 // https://github.com/googleapis/nodejs-pubsub/blob/master/samples/topics.js
 // and add retry logic to the below
 
-function getPayload(obj: Model): string {
-  console.log('obj')
-  console.log(obj)
-
-  var className = 'unknown'
-  var objectId = 'no id'
-  if (typeof obj !== 'undefined') {
-    className = obj.constructor.name
-    objectId = obj.get('id') as string
-  }
-  return JSON.stringify({'class': className, 'id': objectId});
+function makePayload(rawPayload: Model): string {
+  const fullClassName: string = rawPayload.constructor.name;
+  const idx: number = fullClassName.toString().lastIndexOf('Model')
+  const payloadClassName: string = fullClassName.substr(0, idx);
+  // @ts-ignore: not sure how to tell it get returns a string
+  const oid = Oid.create(payloadClassName, rawPayload.get('id')).toString();
+  return JSON.stringify({ oid: oid });
 }
 
-function publishPayload(rawPayload: Model): void {
-
-  const payload: string = getPayload(rawPayload)
-
-  const topicName: string = 
-        `${NODE_CHANGE_NOTIFICATION}_${rawPayload.constructor.name}`
-  console.log(topicName, 'in pub payload');
-
-  function publish(): void {
-    googlePubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
-    // Also publish the specific Model
-    googlePubSub.publish(topicName, payload);
-  }
-
-  if (!topicList.includes(topicName)) {
-    console.log(topicName, 'Is miSSING!\nCreating...')
-    googlePubSub.createTopic(topicName, (err: any, topic: string) => {
-      console.log("createTopic callbedback");
-      topicList.push(topicName);
-      if (err && err.code != 6) {
-        // FIXME - log to platform logging system
-        console.log("could not create topic");
-        publish();
-      }
-    });
+// note last known state changes based on the kind of update
+// @ts-ignore
+async function publishPayload(pubSub: PubSubEngine | null, rawPayload: Model): Promise<void> {
+  const payload: string = makePayload(rawPayload);
+  const topicName: string = `${NODE_CHANGE_NOTIFICATION}_${rawPayload.constructor.name}`;
+  await CreateTopic(topicName);
+  if (!pubSub) {
     return;
   }
-  publish()
-
-/*
-
-  // FIXME - can we do better for 'err' than 'any'? 
-  // has 'code' property that is unknown on 'object'
-  googlePubSub.createTopic(topicName, (err: any, topic: string) => {
-    console.log('creating topic, got', err.code, 'for', topic);
-    // topic already exists.
-    if (err && err.code === 6) {
-      publish();
-      return;
-    }
-    publish();
-  })
-  */
-
-  //pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
-  //// Also publish the specific Model
-  //pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
+  // TODO- take in an additional arg for notficationOf
+  console.log('Publishing', payload, 'to topic', NODE_CHANGE_NOTIFICATION);
+  pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
+  // Also publish the specific Model
+  console.log('Publishing', payload, 'to topic', topicName);
+  pubSub.publish(topicName, payload);
 }
 

@@ -1,6 +1,7 @@
 import { PubSubEngine } from 'type-graphql';
 import { Sequelize } from 'sequelize-typescript';
 import { Model } from 'sequelize';
+export declare function CreateTopic(topicName: string): Promise<void>;
 /**
  *
  */

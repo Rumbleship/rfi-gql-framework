@@ -18,7 +18,7 @@
     "lint": "NODE_PATH=. tslint --project .",
     "coverage": "NODE_PATH=. tsc -p . && NODE_PATH=. jest --coverage --coverageReporters=text-lcov | coveralls",
     "setup": "NODE_PATH='local_node_modules/' yarn; NODE_PATH='local_node_modules/' yarn install --frozen-lockfile",
-	"do-the-thing": "mv node_modules.not node_modules; yarn build; mv node_modules node_modules.not;"
+    "do-the-thing": "mv node_modules.not node_modules; yarn build; mv node_modules node_modules.not;"
   },
   "jest": {
     "testEnvironment": "node"
@@ -81,6 +81,7 @@
     "xxhash": "^0.2.4"
   },
   "dependencies": {
+    "@axelspringer/graphql-google-pubsub": "^2.0.0",
     "@google-cloud/pubsub": "^1.1.6"
   }
 }
