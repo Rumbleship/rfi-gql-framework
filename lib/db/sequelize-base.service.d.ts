@@ -5,7 +5,7 @@ import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';
 import { Context } from '../server/index';
 import { Transaction } from 'sequelize';
-import { PermissionsMatrix, Actions, Resource } from '@rumbleship/acl';
+import { Actions, Permissions } from '@rumbleship/acl';
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     protected apiClass: ClassType<TApi>;
@@ -14,22 +14,20 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     protected model: ModelClass<TModel> & typeof Model;
     protected ctx: Context;
     protected options: {
-        permissions: PermissionsMatrix;
+        permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     };
     private nodeServices;
     private permissions;
     private spyglassKey;
     constructor(apiClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: Context, options: {
-        permissions: PermissionsMatrix;
+        permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     });
     can(params: {
         action: Actions;
         authorizable: object;
         options?: NodeServiceOptions;
-        attribute?: string | string[];
-        resource?: Resource;
     }): boolean | NodeServiceTransaction;
     setServiceRegister(services: any): void;
     nodeType(): string;

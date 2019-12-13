@@ -28,7 +28,7 @@ import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction } from 'sequelize';
 import { findEach } from 'iterable-model';
-import { PermissionsMatrix, Actions, RFIAuthError, Resource } from '@rumbleship/acl';
+import { Actions, RFIAuthError, Permissions } from '@rumbleship/acl';
 import { createWhereClauseWith } from '../gql/create-where-clause-with';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
@@ -44,7 +44,7 @@ export class SequelizeBaseService<
   TDiscriminatorEnum
 > implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   private nodeServices: any;
-  private permissions: PermissionsMatrix;
+  private permissions: Permissions;
   private spyglassKey: string;
   constructor(
     protected apiClass: ClassType<TApi>,
@@ -53,7 +53,7 @@ export class SequelizeBaseService<
     protected model: ModelClass<TModel> & typeof Model,
     protected ctx: Context,
     protected options: {
-      permissions: PermissionsMatrix;
+      permissions: Permissions;
       apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     }
   ) {
@@ -70,17 +70,17 @@ export class SequelizeBaseService<
     action: Actions;
     authorizable: object;
     options?: NodeServiceOptions;
-    attribute?: string | string[];
-    resource?: Resource;
+    // attribute?: string | string[];
+    // resource?: Resource;
   }) {
     return (
       (params.options && (params.options.transaction || params.options.skipAuthorizationCheck)) ||
       this.ctx.authorizer.can(
         params.action,
         params.authorizable,
-        [this.permissions],
-        params.attribute,
-        params.resource
+        this.permissions
+        // params.attribute,
+        // params.resource
       )
     );
   }
@@ -173,15 +173,13 @@ export class SequelizeBaseService<
     // However... we only support before OR after.
     //
     const connection = new this.connectionClass();
-    const attribute = Reflect.get(this, Symbol.for(`getAllAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`getAllAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`getAllAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`getAllAuthorizedResource`));
     if (
       this.can({
         action: Actions.QUERY,
         authorizable: filter as any,
-        options,
-        attribute,
-        resource
+        options
       })
     ) {
       const limits = calculateLimitAndOffset(after, first, before, last);
@@ -218,15 +216,15 @@ export class SequelizeBaseService<
       }
     });
     const { ...filter } = filterBy;
-    const attribute = Reflect.get(this, Symbol.for(`findOneAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`findOneAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`findOneAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`findOneAuthorizedResource`));
     if (
       this.can({
         action: Actions.QUERY,
         authorizable: filter as any,
-        options,
-        attribute,
-        resource
+        options
+        // attribute,
+        // resource
       })
     ) {
       const matched = await this.getAll(filterBy, options);
@@ -253,15 +251,15 @@ export class SequelizeBaseService<
       }
     });
     const { after, before, first, last, ...filter } = filterBy as any;
-    const attribute = Reflect.get(this, Symbol.for(`findEachAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`findEachAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`findEachAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`findEachAuthorizedResource`));
     if (
       this.can({
         action: Actions.QUERY,
         authorizable: filter as any,
-        options,
-        resource,
-        attribute
+        options
+        // resource,
+        // attribute
       })
     ) {
       const whereClause = createWhereClauseWith(filter);
@@ -293,15 +291,15 @@ export class SequelizeBaseService<
       }
     });
     const { ...filter } = filterBy;
-    const attribute = Reflect.get(this, Symbol.for(`countAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`countAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`countAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`countAuthorizedResource`));
     if (
       this.can({
         action: Actions.QUERY,
         authorizable: filter as any,
-        options,
-        attribute,
-        resource
+        options
+        // attribute,
+        // resource
       })
     ) {
       return this.model.count({
@@ -328,15 +326,15 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    const attribute = Reflect.get(this, Symbol.for(`getOneAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`getOneAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`getOneAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`getOneAuthorizedResource`));
     if (
       this.can({
         action: Actions.QUERY,
         authorizable: instance,
-        options,
-        resource,
-        attribute
+        options
+        // resource,
+        // attribute
       })
     ) {
       return this.gqlFromDbModel(instance as any);
@@ -364,14 +362,14 @@ export class SequelizeBaseService<
     if (!instance) {
       throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
     }
-    const attribute = Reflect.get(this, Symbol.for(`publishLastKnownStateAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`publishLastKnownStateAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`publishLastKnownStateAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`publishLastKnownStateAuthorizedResource`));
     if (
       this.can({
         action: Actions.QUERY,
-        authorizable: instance,
-        attribute,
-        resource
+        authorizable: instance
+        // attribute,
+        // resource
       })
     ) {
       publishCurrentState(instance);
@@ -386,15 +384,15 @@ export class SequelizeBaseService<
 
   // Unsure how or where to add the create|update data in a "safe" way here, generically -- so skipping for now.
   async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
-    const attribute = Reflect.get(this, Symbol.for(`createAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`createAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`createAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`createAuthorizedResource`));
     if (
       this.can({
         action: Actions.CREATE,
         authorizable: data as any,
-        options,
-        attribute,
-        resource
+        options
+        // attribute,
+        // resource
       })
     ) {
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
@@ -454,15 +452,15 @@ export class SequelizeBaseService<
     delete (data as any).id;
     // TODO(@isparling) given moving of the throws around, this check should no longer be needed.
 
-    const attribute = Reflect.get(this, Symbol.for(`updateAuthorizedAttribute`));
-    const resource = Reflect.get(this, Symbol.for(`updateAuthorizedResource`));
+    // const attribute = Reflect.get(this, Symbol.for(`updateAuthorizedAttribute`));
+    // const resource = Reflect.get(this, Symbol.for(`updateAuthorizedResource`));
     if (
       this.can({
         action: Actions.UPDATE,
         authorizable: node as any,
-        options,
-        attribute,
-        resource
+        options
+        // attribute,
+        // resource
       })
     ) {
       await node.update(data as any, sequelizeOptions);
