@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Upgrade to @rumbleship/acl#1.0.0 (TEMP: `#feature/authorized-attribute-class`)
+    * Removed references to the `PermissionsMatrix` in favor of class-based `Permissions` object
 ### Fixed
 ### Deprecated
 ### Security
