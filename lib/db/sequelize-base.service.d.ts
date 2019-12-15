@@ -5,7 +5,7 @@ import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';
 import { Context } from '../server/index';
 import { Transaction } from 'sequelize';
-import { Actions, Permissions } from '@rumbleship/acl';
+import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     protected apiClass: ClassType<TApi>;
@@ -28,6 +28,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         action: Actions;
         authorizable: object;
         options?: NodeServiceOptions;
+        treatAsAuthorizerMap?: AuthorizerTreatAsMap;
     }): boolean | NodeServiceTransaction;
     setServiceRegister(services: any): void;
     nodeType(): string;
