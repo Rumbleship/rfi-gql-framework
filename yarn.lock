@@ -612,9 +612,9 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#feature/authorized-attribute-class":
-  version "0.0.2"
-  resolved "git+ssh://git@github.com/rumbleship/acl.git#e3c11c4473d275f79d872beb4b617a1c35d2351a"
+"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#1.0.0":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/acl.git#6657573a65ba47baba806aad1fca38b006a82b25"
   dependencies:
     jsonwebtoken "^8.5.1"
 

@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@hapi/good": "^8.1.1",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#feature/authorized-attribute-class",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.0",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#2.0.0",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
     "@types/bluebird": "^3.5.26",
@@ -61,7 +61,7 @@
     "xxhash": "^0.2.4"
   },
   "peerDependencies": {
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#feature/authorized-attribute-class",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.0",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#2.0.0",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
     "class-transformer": "^0.2.0",
