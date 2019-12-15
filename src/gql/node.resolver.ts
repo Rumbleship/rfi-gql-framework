@@ -5,7 +5,7 @@ import {
   ID,
   Arg,
   Ctx,
-  Subscription,
+  //Subscription,
   Field,
   Int,
   ObjectType,
@@ -70,6 +70,7 @@ export class NodeResolver implements RelayResolver {
     }
     return true;
   }
+  /**
   @Subscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
     topics: `${NODE_CHANGE_NOTIFICATION}`,
@@ -92,6 +93,7 @@ export class NodeResolver implements RelayResolver {
       throw Error('Invalid OID. Scope:' + gqlModelName);
     }
   }
+  **/
   // for developers and system support,
   @Query(returns => String)
   async unWrapOid(@Arg('id', type => ID) oidString: string, @Ctx() ctx: any): Promise<string> {

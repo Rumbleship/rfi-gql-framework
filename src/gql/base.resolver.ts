@@ -86,6 +86,7 @@ export function createBaseResolver<
       return super.update(input);
     }
 
+    /**
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
@@ -100,6 +101,7 @@ export function createBaseResolver<
       const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
       return gqlNodeNotification;
     }
+    **/
   }
   return BaseResolver;
 }
@@ -140,12 +142,22 @@ export function createReadOnlyBaseResolver<
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
       nullable: true
     })
-    async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
-      // convert to GQL Model
-      const modelId: string = payload.model.get('id') as string;
-      const oid = Oid.Create(objectTypeCls.name, modelId);
+    //async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
+    // @ts-ignore
+    async onChange(@Root() rawPayload): Promise<NodeNotification<TApi>> {
+      const recieved = JSON.parse(rawPayload.data.toString())
+      const strOid = recieved.oid
+
+      console.log('got', strOid, 'oid');
+
+      const oid: Oid = new Oid(strOid)
+      const { id , scope } = oid.unwrap();
+      const classNameString = `${scope}Model`;
+
+      console.log('which translates to', scope, 'and', id, 'of', classNameString);
+
       const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
+      const gqlNodeNotification = new notificationClsType(recieved.action, node);
       return gqlNodeNotification;
     }
   }
