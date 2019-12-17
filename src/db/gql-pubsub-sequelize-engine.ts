@@ -12,6 +12,8 @@ import { hostname } from 'os';
 
 import { Oid } from '@rumbleship/oid';
 
+import { CreateTopic } from '../pubsub';
+
 // For creating topics which don't exist
 import { PubSub as GooglePubSub, Subscription, Topic } from '@google-cloud/pubsub';
 // use the gcloud pubsub apollo lib elsewhere
@@ -27,189 +29,8 @@ const googlePubSub: any = new GooglePubSub();
 let topicList: string[] = [];
 let topicListLoaded: boolean = false;
 
-// Create a topic if it doesn't already exist
-// This needs listAllTopics to have finished but loading that is racy
-// model observer and event-dispatcher jump ahead before we're ready
-export function CreateTopic(topicName: string): Promise<void> {
-  return new Promise(
-    (resolve: any, reject: any): void => {
-      // TODO - log to platform logger
-      //console.log('CreateTopic adding topic', topicName);
-      // FIXME - fix the race so we don't need to do this
-      if (!topicListLoaded) {
-        // the topic will get created later in publish
-        console.log("No topics loaded, aborting add of", topicName);
-        //reject({topicName})
-        resolve({topicName});
-        return;
-      }
-      if (!topicList.includes(topicName)) {
-        console.log('Creating topic', topicName);
-        googlePubSub.createTopic(topicName, (err: { code: number }, topic: Topic) => {
-          // couldn't figure out the proper type but err.code is sufficient to catch
-          if (err === null) {
-            console.log('Topic', topicName, 'created successfully');
-            topicList.push(topicName);
-            resolve({ topicName });
-          } else {
-            console.log('Problem creating topic, err:', err, 'topic was:', topic);
-            reject({ topicName });
-          }
-        });
-      } else {
-        console.log('topic', topicName, 'aready exists, no need to create');
-        resolve({ topicName });
-      }
-    }
-  );
-}
-
 // getTopics being async forces the whole chain to be async, which doesn't help
 // how much there's a race going on
-
-async function listAllTopics() {
-  const [topics] = await googlePubSub.getTopics();
-
-  topics.forEach((topic: { name: string }) => {
-    const i = topic.name.toString().lastIndexOf('/') + 1;
-    const topicShortName = topic.name.slice(i);
-    topicList.push(topicShortName);
-  });
-  topicListLoaded = true;
-  console.log('Loaded existing topics');
-}
-
-// FIXME - 'any'
-// @ts-in
-export async function SubscribeToThings(notificationClass: string, callback: any): Promise<void>{
-// call back recieves the msg json
-
-  //const topicName = NODE_CHANGE_NOTIFICATION
-  const localTopicName: string = `${NODE_CHANGE_NOTIFICATION}_${notificationClass}`;
-  //const fullTopicName =`# `projects/rumbleship/topics/NODE_CHANGE_NOTIFICATION`;
-  const topicName: string = `projects/rumbleship/topics/${localTopicName}`;
-
-  const strHostname: string = hostname()
-  // FIXME - find a uniq
-  const subscriptionName: string = `testSub-${strHostname}-${notificationClass}`;
-
-  //Creates a new subscription
-  const topic: Topic = googlePubSub.topic(topicName)
-  try {
-    await topic.createSubscription(subscriptionName);
-  } catch (err) {
-    console.log('error creating subscription')
-  //} finally {
-    //dgaf
-  }
-
-  // has now been created
-
-  console.log(`Subscription ${subscriptionName} created.`);
-// sub created
-
-  const maxInProgress = 5;
-
-  const subscriberOptions = {
-    flowControl: {
-      maxMessages: maxInProgress,
-    },
-  };
-
-  var topic2:Topic = googlePubSub.topic(topicName);
-  var subs: Subscription = topic2.subscription(subscriptionName, subscriberOptions);
-
-  console.log('subs:', subs);
-  subs.on('error', function(err) {
-    console.log('subs error', err);
-  });
-
-  function onMessage(msg: any) {
-    const data = JSON.parse(msg.data.toString())
-    console.log('recieved msg', msg.id, 'at', msg.Timestamp)
-    console.log('msg', data)
-    callback(data);
-    msg.ack();
-  // message.id = ID of the message.
-  // message.ackId = ID used to acknowledge the message receival.
-  // message.data = Contents of the message.
-  // message.attributes = Attributes of the message.
-  // message.timestamp = Timestamp when Pub/Sub received the message.
-
-  // Ack the message:
-  // message.ack();
-  }
-
-  subs.on('message', onMessage);
-
-  // there's a better rval...
-  return new Promise((resolve, reject) => {
-    resolve()
-  });
-
-/*
-  //Creates a new subscription
-  
-  // has now been created
-  //await googlePubSub.topic(topicName).createSubscription(subscriptionName);
-
-  console.log(`Subscription ${subscriptionName} created.`);
-
-  // sub created
-
-  const maxInProgress = 5;
-
-  const subscriberOptions = {
-    flowControl: {
-      maxMessages: maxInProgress,
-    },
-  };
-
-
-  // References an existing subscription.
-  // Note that flow control settings are not persistent across subscribers.
-  const subscription = googlePubSub.subscription(subscriptionName, subscriberOptions);
-
-  console.log(
-    `Subscriber to subscription ${subscription.name} is ready to receive messages at a controlled volume of ${maxInProgress} messages.`
-  );
-
-  // @ts-ignore
-  const messageHandler = message => {
-    console.log(`Received message: ${message.id}`);
-    console.log(`\tData: ${message.data}`);
-    console.log(`\tAttributes: ${message.attributes}`);
-
-    // "Ack" (acknowledge receipt of) the message
-    message.ack();
-  };
-
-  subscription.on(`message`, messageHandler);
-
-  setTimeout(() => {
-    subscription.close();
-  }, timeout * 1000);
-
-
-
-  const timeout = 100;
-
-  setTimeout(() => {
-    subscription.close();
-  }, timeout * 1000);
-
-  // setTimeout(fn, 500);
-*/
-}
-
-async function initGooglePubSub() {
-  await listAllTopics();
-  await CreateTopic(NODE_CHANGE_NOTIFICATION);
-  // await SubscribeToThings('BuilderApplicationModel', (data: any) => {
-  //   console.log('got msg', data);
-  // });
-}
-
 
 /**
  *
@@ -224,8 +45,6 @@ export function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Seq
   // also libraryize
   // cant await this
   initGooglePubSub();
-
-  //googlePubSub.publish('topic404', '{payload}');
 
   attachPubSubEngineToSequelize(pubSub, sequelize);
 
