@@ -103,10 +103,6 @@ const PubSubKey = Symbol('PubSubEngine');
 function attachPubSubEngineToSequelize(pubSub: PubSubEngine, sequelize: Sequelize): void {
   Reflect.set(sequelize, PubSubKey, pubSub);
 }
-export function pubSubFrom(sequelize: Sequelize): PubSubEngine | null {
-  const pubSub = Reflect.get(sequelize, PubSubKey);
-  return pubSub ? pubSub : null;
-}
 
 /*function gqlBulkCreateHook(
   pubSub: PubSubEngine,
