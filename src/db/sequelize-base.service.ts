@@ -96,6 +96,9 @@ export class SequelizeBaseService<
       return modelToClass(this, this.apiClass, dbModel);
     }
   }
+  dbModel(): ClassType<TModel> {
+    return this.model;
+  }
 
   getContext(): Context {
     return this.ctx;
