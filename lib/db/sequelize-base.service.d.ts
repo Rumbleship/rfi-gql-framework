@@ -31,6 +31,12 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         options?: NodeServiceOptions;
         treatAsAuthorizerMap?: AuthorizerTreatAsMap;
     }): boolean | NodeServiceTransaction;
+    setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
+    /**
+     *
+     * @param findOptions Called by the hook. Dont call directly
+     * @param nodeServiceOptions
+     */
     addAuthorizationToWhere(findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions): FindOptions;
     static addAuthCheckHook(modelClass: typeof Model): void;
     setServiceRegister(services: any): void;
