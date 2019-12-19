@@ -34,7 +34,8 @@ import {
   createAuthWhereClause,
   getAuthorizeThroughEntries,
   AuthIncludeEntry,
-  getAuthorizeContext
+  getAuthorizeContext,
+  setAuthorizeContext
 } from './create-auth-where-clause';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
@@ -92,6 +93,14 @@ export class SequelizeBaseService<
     );
   }
 
+  setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions) {
+    return setAuthorizeContext(target, { nodeServiceOptions, service: this });
+  }
+  /**
+   *
+   * @param findOptions Called by the hook. Dont call directly
+   * @param nodeServiceOptions
+   */
   addAuthorizationToWhere(
     findOptions: FindOptions,
     nodeServiceOptions?: NodeServiceOptions
