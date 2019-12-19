@@ -26,10 +26,16 @@ import {
 } from './model-to-class';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
-import { Transaction } from 'sequelize';
+import { Transaction, FindOptions, Op } from 'sequelize';
 import { findEach } from 'iterable-model';
-import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
+import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
 import { createWhereClauseWith } from '../gql/create-where-clause-with';
+import {
+  createAuthWhereClause,
+  getAuthorizeThroughEntries,
+  AuthIncludeEntry,
+  getAuthorizeContext
+} from './create-auth-where-clause';
 
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -43,11 +49,12 @@ export class SequelizeBaseService<
   TUpdate,
   TDiscriminatorEnum
 > implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+  protected static hooksMap: Set<typeof Model>;
   private nodeServices: any;
   private permissions: Permissions;
   private spyglassKey: string;
   constructor(
-    protected apiClass: ClassType<TApi>,
+    protected relayClass: ClassType<TApi>,
     protected edgeClass: ClassType<TEdge>,
     protected connectionClass: ClassType<TConnection>,
     protected model: ModelClass<TModel> & typeof Model,
@@ -57,13 +64,15 @@ export class SequelizeBaseService<
       apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     }
   ) {
-    this.spyglassKey = apiClass.constructor.name;
+    this.spyglassKey = relayClass.constructor.name;
     this.permissions = options.permissions;
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         permissions: this.permissions
       }
     });
+    // Force authorizations on retrieve from db
+    SequelizeBaseService.addAuthCheckHook(model);
   }
 
   can(params: {
@@ -83,17 +92,99 @@ export class SequelizeBaseService<
     );
   }
 
+  addAuthorizationToWhere(
+    findOptions: FindOptions,
+    nodeServiceOptions?: NodeServiceOptions
+  ): FindOptions {
+    if (!nodeServiceOptions?.skipAuthorizationCheck) {
+      const whereAuthClause = createAuthWhereClause(
+        this.permissions,
+        this.ctx.authorizer,
+        this.relayClass.prototype
+      );
+      // any associated objects that must be scanned?
+      const authThroughEntries = getAuthorizeThroughEntries(this.relayClass.prototype);
+      const eagerLoads: AuthIncludeEntry[] = [];
+      let includedWhereAuthClause = {};
+      for (const authEntry of authThroughEntries) {
+        includedWhereAuthClause = {
+          ...includedWhereAuthClause,
+          ...createAuthWhereClause(
+            this.permissions,
+            this.ctx.authorizer,
+            authEntry.targetClass().prototype,
+            authEntry.associationName
+          )
+        };
+        // We must also eager load the association to ensure that it is in scope of the where
+        const assocModel = this.getServiceFor(
+          authEntry.targetClass() as any
+        ).dbModel() as ClassType<Model> & typeof Model;
+        eagerLoads.push({
+          model: assocModel,
+          as: authEntry.associationName
+        });
+      }
+
+      // [sequelize.literal('`TheAlias->RecipeIngredient`.amount'), 'amount']
+      findOptions.where = {
+        ...findOptions.where,
+        ...{ [Op.or]: [includedWhereAuthClause, whereAuthClause] }
+      };
+      if (eagerLoads.length) {
+        findOptions.include = { ...findOptions.include, ...eagerLoads };
+      }
+    }
+    return findOptions;
+  }
+
+  static addAuthCheckHook(modelClass: typeof Model) {
+    // We keep a set of models that have already had a hook added.
+    // Its kind of ugly but seems the best way. Although I'm inclined to have a global
+    // hook so ALL finds are checked for auth filters...
+    //
+    // In the meantime... Watch for closures, this gets added once, so dont add anything but static/globals
+    // to the members
+    // so all of the conext MUST be got form the options object passsed into the find.
+    //
+    //
+    if (!SequelizeBaseService.hooksMap.has(modelClass)) {
+      SequelizeBaseService.hooksMap.add(modelClass);
+      modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
+        const authorizeContext = getAuthorizeContext(findOptions);
+        if (!authorizeContext) {
+          throw new Error(
+            'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
+          );
+        }
+        if (!authorizeContext.nodeServiceOptions?.skipAuthorizationCheck) {
+          if (!authorizeContext.authApplied) {
+            // only do once
+            if (!authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)) {
+              // This is ugly... but not sure how best to accomplish with typesafety
+              (authorizeContext.service as any).addAuthorizationToWhere(
+                findOptions,
+                authorizeContext.nodeServiceOptions
+              );
+              authorizeContext.authApplied = true;
+            }
+          }
+        }
+      });
+    }
+  }
+
   setServiceRegister(services: any): void {
     this.nodeServices = services;
   }
   nodeType(): string {
-    return this.apiClass.constructor.name;
+    return this.relayClass.constructor.name;
   }
   gqlFromDbModel(dbModel: TModel): TApi {
     if (this.options.apiClassFactory) {
       return this.options.apiClassFactory.makeFrom(dbModel, this);
     } else {
-      return modelToClass(this, this.apiClass, dbModel);
+      return modelToClass(this, this.relayClass, dbModel);
     }
   }
   dbModel(): ClassType<TModel> {
@@ -148,7 +239,7 @@ export class SequelizeBaseService<
       const transaction: Transaction | undefined = options
         ? ((options.transaction as unknown) as Transaction)
         : undefined;
-      let lock: Transaction.LOCK | undefined;
+      let lock: any | undefined;
       if (transaction) {
         lock = options.lockLevel
           ? options.lockLevel === NodeServiceLock.UPDATE
@@ -311,7 +402,7 @@ export class SequelizeBaseService<
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const instance = await this.model.findByPk(id, sequelizeOptions);
     if (!instance) {
-      throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
+      throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
     if (
       this.can({
@@ -343,7 +434,7 @@ export class SequelizeBaseService<
     const { id } = oid.unwrap();
     const instance = await this.model.findByPk(id);
     if (!instance) {
-      throw new Error(`${this.apiClass.constructor.name}: oid(${oid}) not found`);
+      throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
     if (
       this.can({
@@ -403,7 +494,7 @@ export class SequelizeBaseService<
         oid = Oid.Create(gqlModelName, node.id);
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
-        throw new Error(`Invalid ${this.apiClass.name}: No id`);
+        throw new Error(`Invalid ${this.relayClass.name}: No id`);
       }
     } else {
       if ((data as any).id) {
@@ -412,7 +503,7 @@ export class SequelizeBaseService<
         node = await this.model.findByPk(id, sequelizeOptions);
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
-        throw new Error(`Invalid ${this.apiClass.name}: No id`);
+        throw new Error(`Invalid ${this.relayClass.name}: No id`);
       }
     }
     this.ctx.logger.addMetadata({

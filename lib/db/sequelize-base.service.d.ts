@@ -4,11 +4,11 @@ import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './model-to-class';
 import { Context } from '../server/index';
-import { Transaction } from 'sequelize';
+import { Transaction, FindOptions } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
-    protected apiClass: ClassType<TApi>;
+    protected relayClass: ClassType<TApi>;
     protected edgeClass: ClassType<TEdge>;
     protected connectionClass: ClassType<TConnection>;
     protected model: ModelClass<TModel> & typeof Model;
@@ -17,10 +17,11 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     };
+    protected static hooksMap: Set<typeof Model>;
     private nodeServices;
     private permissions;
     private spyglassKey;
-    constructor(apiClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: Context, options: {
+    constructor(relayClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: Context, options: {
         permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     });
@@ -30,6 +31,8 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         options?: NodeServiceOptions;
         treatAsAuthorizerMap?: AuthorizerTreatAsMap;
     }): boolean | NodeServiceTransaction;
+    addAuthorizationToWhere(findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions): FindOptions;
+    static addAuthCheckHook(modelClass: typeof Model): void;
     setServiceRegister(services: any): void;
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;
@@ -45,7 +48,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions): {
         paranoid: boolean | undefined;
         transaction: Transaction | undefined;
-        lock: Transaction.LOCK | undefined;
+        lock: any;
     } | undefined;
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
