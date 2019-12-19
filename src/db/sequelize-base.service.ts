@@ -49,7 +49,7 @@ export class SequelizeBaseService<
   TUpdate,
   TDiscriminatorEnum
 > implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
-  protected static hooksMap: Set<typeof Model>;
+  protected static hooksMap: Set<typeof Model> = new Set();
   private nodeServices: any;
   private permissions: Permissions;
   private spyglassKey: string;
