@@ -37,7 +37,7 @@ class AuthThroughEntry {
   }
 }
 export function getAuthorizeThroughEntries(target: object): AuthThroughEntry[] {
-  return Reflect.getMetadata(AUTHORIZE_THROUGH_ENTRIES, target);
+  return Reflect.getMetadata(AUTHORIZE_THROUGH_ENTRIES, target) ?? [];
 }
 
 export function addAuthorizeThrough(
