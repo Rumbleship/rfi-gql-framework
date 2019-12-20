@@ -141,7 +141,10 @@ export class SequelizeBaseService<
         ...{ [Op.or]: [includedWhereAuthClause, whereAuthClause] }
       };
       if (eagerLoads.length) {
-        findOptions.include = { ...findOptions.include, ...eagerLoads };
+        if (!findOptions.include) {
+          findOptions.include = [];
+        }
+        findOptions.include.push(...eagerLoads);
       }
     }
     return findOptions;
