@@ -192,29 +192,34 @@ export class SequelizeBaseService<
     // so all of the conext MUST be got form the options object passsed into the find.
     //
     //
-    if (!SequelizeBaseService.hooksMap.has(modelClass)) {
-      SequelizeBaseService.hooksMap.add(modelClass);
-      modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
-        const authorizeContext = getAuthorizeContext(findOptions);
-        if (!authorizeContext) {
-          throw new Error(
-            'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
-          );
-        }
-        if (!authorizeContext.nodeServiceOptions?.skipAuthorizationCheck) {
-          if (!authorizeContext.authApplied) {
-            // only do once
-            if (!authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)) {
-              // This is ugly... but not sure how best to accomplish with typesafety
-              (authorizeContext.service as any).addAuthorizationToWhere(
-                findOptions,
-                authorizeContext.nodeServiceOptions
-              );
-              authorizeContext.authApplied = true;
+    // there are times (eg unit testing), when we dont want to actually add the hook and the Model is not
+    //  initialized so only do this when we have an initialized sequelize model
+    //
+    if (modelClass.isInitialized) {
+      if (!SequelizeBaseService.hooksMap.has(modelClass)) {
+        SequelizeBaseService.hooksMap.add(modelClass);
+        modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
+          const authorizeContext = getAuthorizeContext(findOptions);
+          if (!authorizeContext) {
+            throw new Error(
+              'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
+            );
+          }
+          if (!authorizeContext.nodeServiceOptions?.skipAuthorizationCheck) {
+            if (!authorizeContext.authApplied) {
+              // only do once
+              if (!authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)) {
+                // This is ugly... but not sure how best to accomplish with typesafety
+                (authorizeContext.service as any).addAuthorizationToWhere(
+                  findOptions,
+                  authorizeContext.nodeServiceOptions
+                );
+                authorizeContext.authApplied = true;
+              }
             }
           }
-        }
-      });
+        });
+      }
     }
   }
 
