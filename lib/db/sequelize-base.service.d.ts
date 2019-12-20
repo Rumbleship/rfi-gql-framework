@@ -6,8 +6,13 @@ import { GqlSingleTableInheritanceFactory } from './model-to-class';
 import { Context } from '../server/index';
 import { Transaction, FindOptions } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
+export interface SequelizeBaseServiceInterface<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+    dbModel(): ModelClass<TModel> & typeof Model;
+    gqlFromDbModel(dao: object): TApi;
+}
+export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate>;
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
-export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate> {
     protected relayClass: ClassType<TApi>;
     protected edgeClass: ClassType<TEdge>;
     protected connectionClass: ClassType<TConnection>;
@@ -44,7 +49,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     setServiceRegister(services: any): void;
     nodeType(): string;
     gqlFromDbModel(dbModel: TModel): TApi;
-    dbModel(): ClassType<TModel>;
+    dbModel(): ModelClass<TModel> & typeof Model;
     getContext(): Context;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     newTransaction(params: {

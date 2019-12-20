@@ -37,8 +37,6 @@ export interface NodeService<T> {
   getContext(): Context;
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
   setServiceRegister(services: any): void;
-  gqlFromDbModel(dao: object): T;
-  dbModel(): ClassType<object>;
   publishLastKnownState(oid: Oid): Promise<void>;
   newTransaction(params: {
     isolation: NodeServiceIsolationLevel;

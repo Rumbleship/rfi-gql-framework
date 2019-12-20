@@ -38,6 +38,35 @@ import {
   setAuthorizeContext
 } from './create-auth-where-clause';
 
+export interface SequelizeBaseServiceInterface<
+  TApi extends Node<TApi>,
+  TModel extends Model<TModel>,
+  TConnection extends Connection<TApi>,
+  TFilter,
+  TInput,
+  TUpdate
+> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+  dbModel(): ModelClass<TModel> & typeof Model;
+  gqlFromDbModel(dao: object): TApi;
+}
+export function getSequelizeServiceInterfaceFor<
+  TApi extends Node<TApi>,
+  TModel extends Model<TModel>,
+  TConnection extends Connection<TApi>,
+  TFilter,
+  TInput,
+  TUpdate,
+  V extends NodeService<TApi>
+>(service: V) {
+  return (service as unknown) as SequelizeBaseServiceInterface<
+    TApi,
+    TModel,
+    TConnection,
+    TFilter,
+    TInput,
+    TUpdate
+  >;
+}
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
 export class SequelizeBaseService<
@@ -49,7 +78,7 @@ export class SequelizeBaseService<
   TInput,
   TUpdate,
   TDiscriminatorEnum
-> implements RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+> implements SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate> {
   protected static hooksMap: Set<typeof Model> = new Set();
   private nodeServices: any;
   private permissions: Permissions;
@@ -128,9 +157,9 @@ export class SequelizeBaseService<
           )
         };
         // We must also eager load the association to ensure that it is in scope of the where
-        const assocModel = this.getServiceFor(
+        const assocModel = (this.getServiceFor(
           authEntry.targetClass() as any
-        ).dbModel() as ClassType<Model> & typeof Model;
+        ) as any).dbModel() as ClassType<Model> & typeof Model;
         eagerLoads.push({
           model: assocModel,
           as: authEntry.associationName
@@ -201,7 +230,7 @@ export class SequelizeBaseService<
       return modelToClass(this, this.relayClass, dbModel);
     }
   }
-  dbModel(): ClassType<TModel> {
+  dbModel() {
     return this.model;
   }
 
@@ -565,7 +594,9 @@ export class SequelizeBaseService<
     edges = associated.map(instance => {
       const edge = new assocEdgeClass();
       edge.cursor = toBase64(limits.offset++);
-      edge.node = this.getServiceFor(assocApiClass).gqlFromDbModel(instance);
+      edge.node = getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass)).gqlFromDbModel(
+        instance
+      ) as TAssocApi;
       return edge;
     });
     const connection = new assocConnectionClass();
@@ -603,7 +634,9 @@ export class SequelizeBaseService<
       Reflect.set(
         source,
         assoc_key,
-        this.getServiceFor(assocApiClass).gqlFromDbModel(associatedModel)
+        getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass)).gqlFromDbModel(
+          associatedModel
+        )
       );
       return Reflect.get(source, assoc_key);
     }
