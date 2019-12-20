@@ -48,6 +48,7 @@ export interface SequelizeBaseServiceInterface<
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
   gqlFromDbModel(dao: object): TApi;
+  setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
 }
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -566,13 +567,15 @@ export class SequelizeBaseService<
     let sourceModel: Model<Model<any>>;
     let count = 0;
     let associated: Array<Model<any>>;
+    const assocService = getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass));
     if (modelKey in source) {
       sourceModel = Reflect.get(source, modelKey);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       let findOptions: FindOptions = {
         where: whereClause
       };
-      this.setAuthorizeContext(findOptions, options ?? {});
+
+      assocService.setAuthorizeContext(findOptions, options ?? {});
       count = await sourceModel.$count(assoc_key, findOptions);
       findOptions = {
         ...findOptions,
@@ -594,9 +597,7 @@ export class SequelizeBaseService<
     edges = associated.map(instance => {
       const edge = new assocEdgeClass();
       edge.cursor = toBase64(limits.offset++);
-      edge.node = getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass)).gqlFromDbModel(
-        instance
-      ) as TAssocApi;
+      edge.node = assocService.gqlFromDbModel(instance) as TAssocApi;
       return edge;
     });
     const connection = new assocConnectionClass();
@@ -621,23 +622,18 @@ export class SequelizeBaseService<
     if (!(modelKey in source)) {
       throw new Error(`Invalid ${source.constructor.name}`);
     }
+    const assocService = getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass));
     const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
     const sequelizeOptions: FindOptions =
       this.convertServiceOptionsToSequelizeOptions(options) ?? {};
 
-    this.setAuthorizeContext(sequelizeOptions, options ?? {});
+    assocService.setAuthorizeContext(sequelizeOptions, options ?? {});
 
     const associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model<
       Model<any>
     >;
     if (associatedModel) {
-      Reflect.set(
-        source,
-        assoc_key,
-        getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass)).gqlFromDbModel(
-          associatedModel
-        )
-      );
+      Reflect.set(source, assoc_key, assocService.gqlFromDbModel(associatedModel));
       return Reflect.get(source, assoc_key);
     }
     return null;

@@ -9,6 +9,7 @@ import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 export interface SequelizeBaseServiceInterface<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     dbModel(): ModelClass<TModel> & typeof Model;
     gqlFromDbModel(dao: object): TApi;
+    setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
 }
 export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate>;
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
