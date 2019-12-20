@@ -98,7 +98,9 @@ export class SequelizeBaseService<
   }
   /**
    *
-   * @param findOptions Called by the hook. Dont call directly
+   * Called by the hook. Dont call directly
+   *
+   * @param findOptions
    * @param nodeServiceOptions
    */
   addAuthorizationToWhere(
@@ -277,38 +279,35 @@ export class SequelizeBaseService<
     // However... we only support before OR after.
     //
     const connection = new this.connectionClass();
-    if (
+    /*if (
       this.can({
         action: Actions.QUERY,
         authorizable: filter as any,
         options
       })
-    ) {
-      const limits = calculateLimitAndOffset(after, first, before, last);
-      const whereClause = createWhereClauseWith(filter);
-      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      const { rows, count } = await this.model.findAndCountAll({
-        where: whereClause,
-        offset: limits.offset,
-        limit: limits.limit,
-        ...sequelizeOptions
-      });
-      // prime the cache
-      // this.sequelizeDataloaderCtx.prime(rows);
-      const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
-      const edges: Array<Edge<TApi>> = rows.map(instance =>
-        this.makeEdge(toBase64(limits.offset++), this.gqlFromDbModel(instance as any))
-      );
+    ) {*/
 
-      connection.addEdges(edges, pageAfter, pageBefore);
-    } else {
-      this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-        [this.spyglassKey]: {
-          method: 'getAll'
-        }
-      });
-      connection.addEdges([], false, false);
-    }
+    const limits = calculateLimitAndOffset(after, first, before, last);
+    const whereClause = createWhereClauseWith(filter);
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options) ?? {};
+    const findOptions: FindOptions = {
+      where: whereClause,
+      offset: limits.offset,
+      limit: limits.limit,
+      ...sequelizeOptions
+    };
+    this.setAuthorizeContext(findOptions, options ?? {});
+
+    const { rows, count } = await this.model.findAndCountAll(findOptions);
+    // prime the cache
+    // this.sequelizeDataloaderCtx.prime(rows);
+    const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
+    const edges: Array<Edge<TApi>> = rows.map(instance =>
+      this.makeEdge(toBase64(limits.offset++), this.gqlFromDbModel(instance as any))
+    );
+
+    connection.addEdges(edges, pageAfter, pageBefore);
+
     return connection;
   }
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
@@ -317,24 +316,12 @@ export class SequelizeBaseService<
         findOne: { filterBy }
       }
     });
-    const { ...filter } = filterBy;
-    if (
-      this.can({
-        action: Actions.QUERY,
-        authorizable: filter as any,
-        options
-      })
-    ) {
-      const matched = await this.getAll(filterBy, options);
-      if (matched.edges.length) {
-        return matched.edges[0].node;
-      }
+
+    const matched = await this.getAll(filterBy, options);
+    if (matched.edges.length) {
+      return matched.edges[0].node;
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'findOne'
-      }
-    });
+
     return null;
   }
 
@@ -349,33 +336,20 @@ export class SequelizeBaseService<
       }
     });
     const { after, before, first, last, ...filter } = filterBy as any;
-    if (
-      this.can({
-        action: Actions.QUERY,
-        authorizable: filter as any,
-        options
-      })
-    ) {
-      const whereClause = createWhereClauseWith(filter);
-      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      const modelFindEach = findEach.bind(this.model);
-      return modelFindEach(
-        {
-          where: whereClause,
-          ...sequelizeOptions
-        },
-        (model: TModel) => {
-          const apiModel = this.gqlFromDbModel(model);
-          return apply(apiModel, options);
-        }
-      );
-    }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'findEach'
-      }
+
+    const whereClause = createWhereClauseWith(filter);
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const findOptions: FindOptions = {
+      where: whereClause,
+      ...sequelizeOptions
+    };
+    this.setAuthorizeContext(findOptions, options ?? {});
+
+    const modelFindEach = findEach.bind(this.model);
+    return modelFindEach(findOptions, (model: TModel) => {
+      const apiModel = this.gqlFromDbModel(model);
+      return apply(apiModel, options);
     });
-    throw new RFIAuthError();
   }
 
   async count(filterBy: any, options?: NodeServiceOptions) {
@@ -384,24 +358,13 @@ export class SequelizeBaseService<
         count: { filterBy }
       }
     });
-    const { ...filter } = filterBy;
-    if (
-      this.can({
-        action: Actions.QUERY,
-        authorizable: filter as any,
-        options
-      })
-    ) {
-      return this.model.count({
-        where: filterBy
-      });
-    }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'count'
-      }
-    });
-    throw new RFIAuthError();
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const findOptions: FindOptions = {
+      where: filterBy,
+      ...sequelizeOptions
+    };
+    this.setAuthorizeContext(findOptions, options ?? {});
+    return this.model.count(findOptions);
   }
 
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
@@ -412,25 +375,17 @@ export class SequelizeBaseService<
     });
     const { id } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    const instance = await this.model.findByPk(id, sequelizeOptions);
+    const findOptions: FindOptions = {
+      where: { id },
+      ...sequelizeOptions
+    };
+    this.setAuthorizeContext(findOptions, options ?? {});
+
+    const instance = await this.model.findOne(findOptions);
     if (!instance) {
       throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
-    if (
-      this.can({
-        action: Actions.QUERY,
-        authorizable: instance,
-        options
-      })
-    ) {
-      return this.gqlFromDbModel(instance as any);
-    }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'getOne'
-      }
-    });
-    throw new RFIAuthError();
+    return this.gqlFromDbModel(instance as any);
   }
 
   async publishLastKnownState(oid: Oid): Promise<void> {
@@ -444,24 +399,16 @@ export class SequelizeBaseService<
       }
     });
     const { id } = oid.unwrap();
-    const instance = await this.model.findByPk(id);
+
+    const findOptions: FindOptions = {
+      where: { id }
+    };
+    this.setAuthorizeContext(findOptions, {});
+    const instance = await this.model.findOne(findOptions);
     if (!instance) {
       throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
-    if (
-      this.can({
-        action: Actions.QUERY,
-        authorizable: instance
-      })
-    ) {
-      publishCurrentState(instance);
-    }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'publishLastKnownState'
-      }
-    });
-    throw new RFIAuthError();
+    publishCurrentState(instance);
   }
 
   // Unsure how or where to add the create|update data in a "safe" way here, generically -- so skipping for now.
@@ -491,6 +438,8 @@ export class SequelizeBaseService<
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
   async update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
+    // TODO sort this one through for permissions
+
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     let node;
     let oid;
@@ -512,7 +461,16 @@ export class SequelizeBaseService<
       if ((data as any).id) {
         oid = new Oid((data as any).id.toString());
         const { id } = oid.unwrap();
-        node = await this.model.findByPk(id, sequelizeOptions);
+        const findOptions: FindOptions = {
+          where: { id },
+          ...sequelizeOptions
+        };
+        this.setAuthorizeContext(findOptions, options ?? {});
+
+        node = await this.model.findOne(findOptions);
+        if (!node) {
+          throw new Error(`Invalid ${this.relayClass.name}: No id`);
+        }
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
         throw new Error(`Invalid ${this.relayClass.name}: No id`);
@@ -529,6 +487,8 @@ export class SequelizeBaseService<
     });
     delete (data as any).id;
     // TODO(@isparling) given moving of the throws around, this check should no longer be needed.
+    // TODO @mathenshall this needs to be slightly different, as there may be associated authorizables
+    //
     if (
       this.can({
         action: Actions.UPDATE,
@@ -580,15 +540,18 @@ export class SequelizeBaseService<
     if (modelKey in source) {
       sourceModel = Reflect.get(source, modelKey);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      count = await sourceModel.$count(assoc_key, {
+      let findOptions: FindOptions = {
         where: whereClause
-      });
-      const result = await sourceModel.$get(assoc_key as any, {
+      };
+      this.setAuthorizeContext(findOptions, options ?? {});
+      count = await sourceModel.$count(assoc_key, findOptions);
+      findOptions = {
+        ...findOptions,
         offset: limits.offset,
         limit: limits.limit,
-        where: whereClause,
         ...sequelizeOptions
-      });
+      };
+      const result = await sourceModel.$get(assoc_key as any, findOptions);
       result instanceof Array ? (associated = result) : (associated = [result]);
     } else {
       throw new Error(`Invalid ${source.constructor.name}`);
@@ -628,7 +591,11 @@ export class SequelizeBaseService<
       throw new Error(`Invalid ${source.constructor.name}`);
     }
     const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
-    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    const sequelizeOptions: FindOptions =
+      this.convertServiceOptionsToSequelizeOptions(options) ?? {};
+
+    this.setAuthorizeContext(sequelizeOptions, options ?? {});
+
     const associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model<
       Model<any>
     >;
