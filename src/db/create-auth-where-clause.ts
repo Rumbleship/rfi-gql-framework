@@ -44,9 +44,8 @@ export function addAuthorizeThrough(
   target: object,
   authThroughEntry: AuthThroughEntry
 ): AuthThroughEntry[] {
-  let authorizeThroughEntries = getAuthorizeThroughEntries(target);
-  if (!authorizeThroughEntries) {
-    authorizeThroughEntries = [];
+  const authorizeThroughEntries = getAuthorizeThroughEntries(target);
+  if (!authorizeThroughEntries.length) {
     Reflect.defineMetadata(AUTHORIZE_THROUGH_ENTRIES, authorizeThroughEntries, target);
   }
   authorizeThroughEntries.push(authThroughEntry);
