@@ -112,7 +112,7 @@ export class SequelizeBaseService<
         this.relayClass.prototype
       );
       // any associated objects that must be scanned?
-      const authThroughEntries = getAuthorizeThroughEntries(this.relayClass.prototype);
+      const authThroughEntries = getAuthorizeThroughEntries(this.relayClass);
       const eagerLoads: AuthIncludeEntry[] = [];
       let includedWhereAuthClause = {};
       for (const authEntry of authThroughEntries) {
