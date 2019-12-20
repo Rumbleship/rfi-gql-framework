@@ -109,5 +109,5 @@ export function setAuthorizeContext<T extends NodeService<object>>(
 export function getAuthorizeContext<T extends NodeService<object>>(
   target: object
 ): AuthorizeContext<T> {
-  return Reflect.getMetadata(AuthorizeContextKey, target);
+  return Reflect.get(target, AuthorizeContextKey);
 }
