@@ -1,6 +1,5 @@
 import { hostname } from 'os';
 import { Model } from 'sequelize';
-import { Oid } from '@rumbleship/oid';
 
 import { NodeNotification, } from '../gql/node-notification';
 import { ClassType } from './../helpers/classtype';
