@@ -6,23 +6,6 @@ import {
   ModelDelta
 } from '../gql/node-notification';
 
-//import {
-//  //initGooglePubSub,
-//  publishPayloadToPubSub,
-//} from '../pubsub';
-
-const PubSubKey = Symbol('PubSubEngine');
-
-// TODO - figure out why these have to live here; something to do with symbol maybe
-function attachPubSubEngineToSequelize(pubSub: RfiPubSubEngine, sequelize: Sequelize): void {
-  Reflect.set(sequelize, PubSubKey, pubSub);
-}
-
-export function pubSubFrom(sequelize: Sequelize): RfiPubSubEngine | null {
-  const pubSub = Reflect.get(sequelize, PubSubKey);
-  return pubSub ? pubSub : null;
-}
-
 /**
  *
  */
@@ -30,12 +13,6 @@ export function linkSequelizeToPubSubEngine(pubSub: RfiPubSubEngine, sequelize: 
   // Install hooks on Sequelize that publish GqlNodeNotifications
   // Takes advantage of the RFI frameworks connection of sequelize Model<> class to our
   // GQL classes
-
-  // FIXME - is this the right place for this?
-  // where wants to be aware that we're doing google pub sub?
-  // also libraryize
-  // cant await this fn either
-
   attachPubSubEngineToSequelize(pubSub, sequelize);
 
   sequelize.afterCreate((instance, options) => {
@@ -83,6 +60,17 @@ export function publishCurrentState(instance: Model<any, any>) {
   const pubSub = pubSubFrom(instance.sequelize as Sequelize);
   if (pubSub)
     pubSub.publishPayload(NotificationOf.LAST_KNOWN_STATE, instance, []);
+}
+
+// It would not compile/run if I moved these under pubsub
+const PubSubKey = Symbol('PubSubEngine');
+ function attachPubSubEngineToSequelize(pubSub: RfiPubSubEngine, sequelize: Sequelize): void {
+  Reflect.set(sequelize, PubSubKey, pubSub);
+ }
+
+export function pubSubFrom(sequelize: Sequelize): RfiPubSubEngine | null {
+  const pubSub = Reflect.get(sequelize, PubSubKey);
+  return pubSub ? pubSub : null;
 }
 
 

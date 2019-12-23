@@ -1,18 +1,8 @@
 import { hostname } from 'os';
 import { Model } from 'sequelize';
-//import { Model, CreateOptions, UpdateOptions } from 'sequelize';
-
 import { Oid } from '@rumbleship/oid';
 
-//import { Node } from '../gql';
-
-import {
-  NodeNotification,
-} from '../gql/node-notification';
-
-import { GQLBaseResolver } from '../gql/base.resolver';
-
-
+import { NodeNotification, } from '../gql/node-notification';
 import { ClassType } from './../helpers/classtype';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
@@ -45,11 +35,26 @@ export function uniqueSubscriptionNamePart() {
   return '' + hostname() + '-' + randstr(6);
 }
 
-// Ideally we could use this as a commonMessageHandler but as notificationClsType is defined at (afaik) runtime, we can't use that patttern for this
-export async function nodeNotficationFromPayload(rawPayload: any, resolver: GQLBaseResolver<any, any, any, any, any>, notificationClsType: ClassType<any>): Promise<NodeNotification<any>> {
+interface GetModelFromStrOid {
+  getOne(id: string): Promise<any>;
+
+}
+
+export interface RawPayload {
+  data: {toString(): string};
+}
+
+// Ideally we could use this as a commonMessageHandler for
+// graphql-google-pubsub but as notificationClsType is seemingly defined at
+// runtime, we can't use that patttern here
+export async function nodeNotficationFromPayload(rawPayload: any, resolver:GetModelFromStrOid, notificationClsType: ClassType<any>): Promise<NodeNotification<any>> {
       const recieved = JSON.parse(rawPayload.data.toString())
-      const oid: Oid = new Oid(recieved.oid)
-      const node: Model = await resolver.getOne(oid.toString());
+      const strOid = recieved?.oid;
+      //const oid: Oid = new Oid(strOid);
+      //const node: Model = await resolver.getOne(oid)
+      const node: Model = await resolver.getOne(strOid)
       const gqlNodeNotification: NodeNotification<any> = new notificationClsType(recieved.action, node);
       return gqlNodeNotification;
 }
+
+

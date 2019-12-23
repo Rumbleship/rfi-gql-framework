@@ -8,13 +8,9 @@ import {
   ModelDelta
 } from '../gql/node-notification';
 
-// FIXME - cannot pass in { config } but we want to do that
+// Cannot access app level config for debug logging
 //import { logging } from '@rumbleship/spyglass';
 //const logger = logging.getLogger({});
-
-// go into
-// https://github.com/googleapis/nodejs-pubsub/blob/master/samples/topics.js
-// and add retry logic to the below
 
 interface Payload {
   oid: string;

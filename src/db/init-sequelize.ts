@@ -67,8 +67,6 @@ export async function initSequelize(
       port
     };
   }
-  // @ts-ignore
-  options.logging = false;
 
   if (['test', 'development'].includes(process.env.NODE_ENV as string) && dbSuffix.length) {
     options.database = '';

@@ -1,23 +1,5 @@
-// TODO namespace
-// export * from './setup';
 
-// export namespace PubSub {
-//   export * from './setup';
-//   export * from './helper';
-//   export * from './publishing';
-//   export * from './subscriptions';
-//   export 
-// 
-// 
-//   
-// 
-// }
-
-// future
-//export * from './google-pubsub.ts';
-//export * from './test-pubsub.ts';
-
-//import { Model, CreateOptions, UpdateOptions } from 'sequelize';
+export * from './helper';
 
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize';
@@ -66,8 +48,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     super(config, uniqueSubscriptionNamePart);
   }
 
-  // Couldn't get typescript to be happy with 'extends', so repeat ourselves
-  // here
+  // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
   public publish(triggerName: string, payload: any): Promise<void> {
     return super.publish(triggerName, payload);
   }
@@ -87,9 +68,6 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   public publishPayload(
       notificationType: NotificationOf,
       model: Model, deltas: Array<any>): void {
-
-    //publishPayload(this.pubSubClient, notificationType, model, deltas);
-    // ^ does not work but is able too access it, so need for local var for the google implmenetation
     publishPayload(this, notificationType, model, deltas);
   }
 }

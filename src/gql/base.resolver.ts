@@ -13,13 +13,11 @@ import { Oid } from '@rumbleship/oid';
 import { RelayService, Node, Connection } from './index';
 import { ClassType } from './../helpers/classtype';
 import {
-  //DbModelChangeNotification,
   NodeNotification,
   NODE_CHANGE_NOTIFICATION
 } from './node-notification';
 import { Scopes } from '@rumbleship/acl';
-
-//import { config } from '../config/config';
+import { nodeNotficationFromPayload, RawPayload } from '../pubsub/helper';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -88,22 +86,16 @@ export function createBaseResolver<
       return super.update(input);
     }
 
-    /**
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
-      nullable: true
+      nullable: true,
     })
-    async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
+    async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       // convert to GQL Model
-      const modelId: string = payload.model.get('id') as string;
-      const oid = Oid.Create(objectTypeCls.name, modelId);
-      const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
-      return gqlNodeNotification;
+      return nodeNotficationFromPayload(rawPayload, this, notificationClsType);
     }
-    **/
   }
   return BaseResolver;
 }
@@ -143,32 +135,9 @@ export function createReadOnlyBaseResolver<
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
       nullable: true,
-      //subscribe: 'testSub--BuyerApplicationModel'
-      //subscribe: foo,
-      //subscribe: `NODE_CHANGE_NOTIFICATION-${config.uniq}-BuyerApplicationModel`
-      //subscribe: (_, args) => pubsub.asyncIterator(`asdfasdf`),
     })
-    // 2:export declare type ResolverFn = (rootValue?: any, args?: any, context?: any, info?: any) => AsyncIterator<any>;
-    // TODO - add withFilter to filter against deltas
-    // so the deltas will become needed
-    //existing filters just filter on OID
-    // filters want to get more complex
-
-    //async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
-    //async onChange(@Root() rawPayload: Message): Promise<NodeNotification<TApi>> {
-    // @ts-ignore
-    async onChange(@Root() rawPayload): Promise<NodeNotification<TApi>> {
-      // when I create the payload in publish
-      const recieved = JSON.parse(rawPayload.data.toString())
-      const strOid = recieved.oid
-
-      const oid: Oid = new Oid(strOid)
-      const { id , scope } = oid.unwrap();
-      const classNameString = `${scope}Model`;
-
-      const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new notificationClsType(recieved.action, node);
-      return gqlNodeNotification;
+    async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
+      return nodeNotficationFromPayload(rawPayload, this, notificationClsType);
     }
   }
   return BaseResolver;
