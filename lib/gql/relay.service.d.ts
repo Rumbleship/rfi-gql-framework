@@ -2,6 +2,7 @@ import { Context } from './../server/context.interface';
 import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';
+import { Actions } from '@rumbleship/acl';
 export interface NodeServiceTransaction {
     commit(): Promise<void>;
     rollback(): Promise<void>;
@@ -22,11 +23,19 @@ export declare enum NodeServiceTransactionType {
     IMMEDIATE = "IMMEDIATE",
     EXCLUSIVE = "EXCLUSIVE"
 }
+/**
+ * paranoid?: boolean; Include 'deleted' records
+ * transaction?: NodeServiceTransaction;
+ * lockLevel?: NodeServiceLock;
+ * skipAuthorizationCheck?: boolean; Dont do any authorization checks...
+ * action?: Actions;  // Authorization action to use for authorization queries. Defaults to Actions.Query
+ */
 export interface NodeServiceOptions {
     paranoid?: boolean;
     transaction?: NodeServiceTransaction;
     lockLevel?: NodeServiceLock;
     skipAuthorizationCheck?: boolean;
+    action?: Actions;
 }
 export interface NodeService<T> {
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
@@ -45,11 +54,11 @@ export interface NodeService<T> {
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
-    findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
+    findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
     update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
-    getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | null>;
+    getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
 }

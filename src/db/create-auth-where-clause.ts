@@ -68,6 +68,7 @@ export function AuthorizeThrough(targetClass: () => ClassType<object>, associati
 export function createAuthWhereClause(
   permissions: Permissions,
   authorizer: Authorizer,
+  action: Actions,
   targetClass: object,
   associationName?: string
 ) {
@@ -76,7 +77,7 @@ export function createAuthWhereClause(
 
   for (const [role, keys] of authorizingAttributes) {
     const setOfIds = authorizer.identifiersThatCan({
-      action: Actions.QUERY,
+      action,
       matrix: permissions,
       only: role
     });

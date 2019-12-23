@@ -105,24 +105,51 @@ export class SequelizeBaseService<
     // Force authorizations on retrieve from db
     SequelizeBaseService.addAuthCheckHook(model);
   }
-
+  /**
+   *
+   * If there is a transaction or skipAuthorizationCheck has been set, returns true. It is assumed
+   * that a priror call has been made and the entire 'use-case' is authorized.
+   *
+   * The 'can' method is primarily used to ensure that the Actions.UPDATE and ACTIONS.CREATE operations
+   * are allowed, (and possibly other actions that are not queries).
+   *
+   * This is tricky, as the data that is used to identify whether the Operation is allowed,
+   * may be held on an associated object and could itself be uncommitted or stale. In the case
+   * of the create operation, the associated object that is used to test authorization may not
+   * of been associated at this point.
+   *
+   * One way to solve these issues, is that the 'authorizable' object becomes an instance of the
+   * Relay Input or Update class, and these classes are decorated with @AuthorizerTreatAs()
+   * on the attributes that represent the instance of an authorizable resource.
+   *
+   * For an update, it is also possible to do a query with Action.UPDATE set...
+   *
+   */
   can(params: {
     action: Actions;
     authorizable: object;
     options?: NodeServiceOptions;
     treatAsAuthorizerMap?: AuthorizerTreatAsMap;
   }) {
-    return (
-      (params.options && (params.options.transaction || params.options.skipAuthorizationCheck)) ||
+    const can =
+      params?.options?.transaction ||
+      params?.options?.skipAuthorizationCheck ||
       this.ctx.authorizer.can(
         params.action,
         params.authorizable,
         this.permissions,
         params.treatAsAuthorizerMap
-      )
-    );
+      );
+    return can ? true : false;
   }
 
+  /**
+   * Connects the options passed into the API to the sequelize options used in a query and the
+   * service that is being used.
+   *
+   * @param target Typically the FindOptions sequelize object passed into a query
+   * @param nodeServiceOptions The framework options passed into the API
+   */
   setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions) {
     return setAuthorizeContext(target, { nodeServiceOptions, service: this });
   }
@@ -141,6 +168,7 @@ export class SequelizeBaseService<
       const whereAuthClause = createAuthWhereClause(
         this.permissions,
         this.ctx.authorizer,
+        nodeServiceOptions?.action ?? Actions.QUERY,
         this.relayClass.prototype
       );
       // any associated objects that must be scanned?
@@ -153,6 +181,7 @@ export class SequelizeBaseService<
           ...createAuthWhereClause(
             this.permissions,
             this.ctx.authorizer,
+            nodeServiceOptions?.action ?? Actions.QUERY,
             authEntry.targetClass().prototype,
             authEntry.associationName
           )
@@ -182,6 +211,12 @@ export class SequelizeBaseService<
     return findOptions;
   }
 
+  /**
+   * This should be called ONLY by the service contructor and adds the authorization filter code
+   * to the sequelize Model Class.
+   *
+   * @param modelClass
+   */
   static addAuthCheckHook(modelClass: typeof Model) {
     // We keep a set of models that have already had a hook added.
     // Its kind of ugly but seems the best way. Although I'm inclined to have a global
@@ -229,6 +264,7 @@ export class SequelizeBaseService<
   nodeType(): string {
     return this.relayClass.constructor.name;
   }
+
   gqlFromDbModel(dbModel: TModel): TApi {
     if (this.options.apiClassFactory) {
       return this.options.apiClassFactory.makeFrom(dbModel, this);
@@ -236,6 +272,7 @@ export class SequelizeBaseService<
       return modelToClass(this, this.relayClass, dbModel);
     }
   }
+
   dbModel() {
     return this.model;
   }
@@ -314,13 +351,6 @@ export class SequelizeBaseService<
     // However... we only support before OR after.
     //
     const connection = new this.connectionClass();
-    /*if (
-      this.can({
-        action: Actions.QUERY,
-        authorizable: filter as any,
-        options
-      })
-    ) {*/
 
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
@@ -331,6 +361,7 @@ export class SequelizeBaseService<
       limit: limits.limit,
       ...sequelizeOptions
     };
+
     this.setAuthorizeContext(findOptions, options ?? {});
 
     const { rows, count } = await this.model.findAndCountAll(findOptions);
@@ -345,19 +376,21 @@ export class SequelizeBaseService<
 
     return connection;
   }
-  async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null> {
+
+  async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findOne: { filterBy }
       }
     });
 
-    const matched = await this.getAll(filterBy, options);
+    // Authorization done in getAll
+    const matched = await this.getAll({ ...filterBy, ...{ limit: 1 } }, options);
     if (matched.edges.length) {
       return matched.edges[0].node;
     }
 
-    return null;
+    return undefined;
   }
 
   async findEach(
@@ -446,17 +479,28 @@ export class SequelizeBaseService<
     publishCurrentState(instance);
   }
 
-  // Unsure how or where to add the create|update data in a "safe" way here, generically -- so skipping for now.
-  async create(data: TInput, options?: NodeServiceOptions): Promise<TApi> {
+  /**
+   * Authorization on create is against the createInput object OR via the resolver
+   * implementation that then overides the default check through skipAuthorization set on
+   * nodeServices object
+   *
+   * If a more sophisticated mechanism is needed, then this method should be overridden
+   * in the concreate class
+   *
+   * @param createInput Parameters to use for input
+   * @param options
+   */
+
+  async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
     if (
       this.can({
         action: Actions.CREATE,
-        authorizable: data as any,
+        authorizable: createInput as any,
         options
       })
     ) {
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      const instance = await this.model.create(data as any, sequelizeOptions);
+      const instance = await this.model.create(createInput as any, sequelizeOptions);
       return this.gqlFromDbModel(instance as any);
     }
     this.ctx.logger.info('sequelize_base_service_authorization_denied', {
@@ -467,45 +511,61 @@ export class SequelizeBaseService<
     throw new RFIAuthError();
   }
   /**
+   * NOTE: the @AthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
+   * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
    *
-   * @param data - data to uipdate
+   * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
+   * FOr now if there are specific associated objects that provide permissions, then this methid should be overridden
+   *
+   *
+   * @param updateInput - data to uipdate
    * @param options - may include a transaction
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
-  async update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
-    // TODO sort this one through for permissions
-
+  async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    let node;
+    let modelInstance;
     let oid;
+    const optionsClone: NodeServiceOptions = { ...options, action: Actions.UPDATE };
+    // Check the input for permissions first
+    // if this fails, we check the target later in the process
+    let isAuthorized = optionsClone.skipAuthorizationCheck
+      ? true
+      : typeof updateInput === 'object'
+      ? this.can({ action: Actions.UPDATE, authorizable: updateInput as any, options })
+      : false;
     if (target) {
       // we already have the id and should have the model that was loaded
       // this resolves issues with transactional query for update and stops having to go back and reload
+      //
       if (modelKey in target) {
-        node = Reflect.get(target, modelKey);
-        const gqlModelName = node.constructor.name.slice(
+        modelInstance = Reflect.get(target, modelKey);
+        const gqlModelName = modelInstance.constructor.name.slice(
           0,
-          node.constructor.name.length - 'Model'.length
+          modelInstance.constructor.name.length - 'Model'.length
         );
-        oid = Oid.Create(gqlModelName, node.id);
+        oid = Oid.Create(gqlModelName, modelInstance.id);
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
         throw new Error(`Invalid ${this.relayClass.name}: No id`);
       }
     } else {
-      if ((data as any).id) {
-        oid = new Oid((data as any).id.toString());
+      if ((updateInput as any).id) {
+        oid = new Oid((updateInput as any).id.toString());
         const { id } = oid.unwrap();
         const findOptions: FindOptions = {
           where: { id },
           ...sequelizeOptions
         };
-        this.setAuthorizeContext(findOptions, options ?? {});
+        // Note the action is set to Actions.UPDATE above...
+        this.setAuthorizeContext(findOptions, optionsClone ?? {});
 
-        node = await this.model.findOne(findOptions);
-        if (!node) {
+        modelInstance = await this.model.findOne(findOptions);
+
+        if (!modelInstance) {
           throw new Error(`Invalid ${this.relayClass.name}: No id`);
         }
+        isAuthorized = true; // we know this because it would not be returned unless it was
       } else {
         // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
         throw new Error(`Invalid ${this.relayClass.name}: No id`);
@@ -520,23 +580,24 @@ export class SequelizeBaseService<
         }
       }
     });
-    delete (data as any).id;
-    // TODO(@isparling) given moving of the throws around, this check should no longer be needed.
-    // TODO @mathenshall this needs to be slightly different, as there may be associated authorizables
-    //
+    delete (updateInput as any).id;
+    // do a second check if needed (ie the check on the input object failed)
+    // NOTE: if an authorization is via an associated object, this is not checked, and
+    // a specialized version of this method should be implemented
     if (
+      isAuthorized ||
       this.can({
         action: Actions.UPDATE,
-        authorizable: node as any,
+        authorizable: modelInstance as any,
         options
       })
     ) {
-      await node.update(data as any, sequelizeOptions);
+      await modelInstance.update(updateInput as any, sequelizeOptions);
       if (target) {
         await reloadNodeFromModel(target, false);
         return target;
       } else {
-        return this.gqlFromDbModel(node as any);
+        return this.gqlFromDbModel(modelInstance as any);
       }
     } else {
       this.ctx.logger.info('sequelize_base_service_authorization_denied', {
@@ -615,7 +676,7 @@ export class SequelizeBaseService<
     assoc_key: string,
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
-  ): Promise<TAssocApi | null> {
+  ): Promise<TAssocApi | undefined> {
     if (assoc_key in source) {
       const ret = Reflect.get(source, assoc_key);
       if (ret instanceof assocApiClass) {
@@ -641,7 +702,7 @@ export class SequelizeBaseService<
       Reflect.set(source, assoc_key, assocService.gqlFromDbModel(associatedModel));
       return Reflect.get(source, assoc_key);
     }
-    return null;
+    return undefined;
   }
 
   private makeEdge(cursor: string, node: TApi): TEdge {

@@ -31,12 +31,39 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     });
+    /**
+     *
+     * If there is a transaction or skipAuthorizationCheck has been set, returns true. It is assumed
+     * that a priror call has been made and the entire 'use-case' is authorized.
+     *
+     * The 'can' method is primarily used to ensure that the Actions.UPDATE and ACTIONS.CREATE operations
+     * are allowed, (and possibly other actions that are not queries).
+     *
+     * This is tricky, as the data that is used to identify whether the Operation is allowed,
+     * may be held on an associated object and could itself be uncommitted or stale. In the case
+     * of the create operation, the associated object that is used to test authorization may not
+     * of been associated at this point.
+     *
+     * One way to solve these issues, is that the 'authorizable' object becomes an instance of the
+     * Relay Input or Update class, and these classes are decorated with @AuthorizerTreatAs()
+     * on the attributes that represent the instance of an authorizable resource.
+     *
+     * For an update, it is also possible to do a query with Action.UPDATE set...
+     *
+     */
     can(params: {
         action: Actions;
         authorizable: object;
         options?: NodeServiceOptions;
         treatAsAuthorizerMap?: AuthorizerTreatAsMap;
-    }): boolean | NodeServiceTransaction;
+    }): boolean;
+    /**
+     * Connects the options passed into the API to the sequelize options used in a query and the
+     * service that is being used.
+     *
+     * @param target Typically the FindOptions sequelize object passed into a query
+     * @param nodeServiceOptions The framework options passed into the API
+     */
     setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
     /**
      *
@@ -46,6 +73,12 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param nodeServiceOptions
      */
     addAuthorizationToWhere(findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions): FindOptions;
+    /**
+     * This should be called ONLY by the service contructor and adds the authorization filter code
+     * to the sequelize Model Class.
+     *
+     * @param modelClass
+     */
     static addAuthCheckHook(modelClass: typeof Model): void;
     setServiceRegister(services: any): void;
     nodeType(): string;
@@ -65,21 +98,38 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         lock: any;
     } | undefined;
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
-    findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
+    findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
     count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     publishLastKnownState(oid: Oid): Promise<void>;
-    create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
     /**
+     * Authorization on create is against the createInput object OR via the resolver
+     * implementation that then overides the default check through skipAuthorization set on
+     * nodeServices object
      *
-     * @param data - data to uipdate
+     * If a more sophisticated mechanism is needed, then this method should be overridden
+     * in the concreate class
+     *
+     * @param createInput Parameters to use for input
+     * @param options
+     */
+    create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi>;
+    /**
+     * NOTE: the @AthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
+     * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
+     *
+     * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
+     * FOr now if there are specific associated objects that provide permissions, then this methid should be overridden
+     *
+     *
+     * @param updateInput - data to uipdate
      * @param options - may include a transaction
      * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
      */
-    update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
+    update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
-    getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | null>;
+    getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
     private makeEdge;
 }
 export {};
