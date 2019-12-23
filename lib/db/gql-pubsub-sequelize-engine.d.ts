@@ -1,11 +1,15 @@
-import { PubSubEngine } from 'type-graphql';
+import { RfiPubSubEngine } from '../pubsub';
 import { Sequelize } from 'sequelize-typescript';
 import { Model } from 'sequelize';
-export declare function CreateTopic(topicName: string): Promise<void>;
-export declare function SubscribeToThings(notificationClass: string, callback: any): Promise<void>;
+export declare function pubSubFrom(sequelize: Sequelize): RfiPubSubEngine | null;
+/**
+import {
+  attachPubSubEngineToSequelize,
+//  pub
+} from '../src/pubsub/helper';
+**/
 /**
  *
  */
-export declare function linkSequelizeToPubSubEngine(pubSub: PubSubEngine, sequelize: Sequelize): void;
+export declare function linkSequelizeToPubSubEngine(pubSub: RfiPubSubEngine, sequelize: Sequelize): void;
 export declare function publishCurrentState(instance: Model<any, any>): void;
-export declare function pubSubFrom(sequelize: Sequelize): PubSubEngine | null;

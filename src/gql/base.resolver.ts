@@ -13,11 +13,13 @@ import { Oid } from '@rumbleship/oid';
 import { RelayService, Node, Connection } from './index';
 import { ClassType } from './../helpers/classtype';
 import {
-  DbModelChangeNotification,
+  //DbModelChangeNotification,
   NodeNotification,
   NODE_CHANGE_NOTIFICATION
 } from './node-notification';
 import { Scopes } from '@rumbleship/acl';
+
+//import { config } from '../config/config';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -140,21 +142,29 @@ export function createReadOnlyBaseResolver<
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
-      nullable: true
+      nullable: true,
+      //subscribe: 'testSub--BuyerApplicationModel'
+      //subscribe: foo,
+      //subscribe: `NODE_CHANGE_NOTIFICATION-${config.uniq}-BuyerApplicationModel`
+      //subscribe: (_, args) => pubsub.asyncIterator(`asdfasdf`),
     })
+    // 2:export declare type ResolverFn = (rootValue?: any, args?: any, context?: any, info?: any) => AsyncIterator<any>;
+    // TODO - add withFilter to filter against deltas
+    // so the deltas will become needed
+    //existing filters just filter on OID
+    // filters want to get more complex
+
     //async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
+    //async onChange(@Root() rawPayload: Message): Promise<NodeNotification<TApi>> {
     // @ts-ignore
     async onChange(@Root() rawPayload): Promise<NodeNotification<TApi>> {
+      // when I create the payload in publish
       const recieved = JSON.parse(rawPayload.data.toString())
       const strOid = recieved.oid
-
-      console.log('got', strOid, 'oid');
 
       const oid: Oid = new Oid(strOid)
       const { id , scope } = oid.unwrap();
       const classNameString = `${scope}Model`;
-
-      console.log('which translates to', scope, 'and', id, 'of', classNameString);
 
       const node = await this.getOne(oid.toString());
       const gqlNodeNotification = new notificationClsType(recieved.action, node);

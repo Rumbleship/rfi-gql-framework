@@ -70,30 +70,42 @@ export class NodeResolver implements RelayResolver {
     }
     return true;
   }
-  /**
-  @Subscription(type => ClassGqlNodeNotification, {
-    name: `onNodeChange`,
-    topics: `${NODE_CHANGE_NOTIFICATION}`,
-    nullable: true
-  })
-  async onChange(@Root() payload: DbModelChangeNotification): Promise<ClassGqlNodeNotification> {
-    // convert to GQL Model
-    const modelId: number | string = payload.model.get('id') as number | string;
-    // ASSUME that the db model is suffixed with Model
-    const gqlModelName = payload.model.constructor.name.slice(
-      0,
-      payload.model.constructor.name.length - 'Model'.length
-    );
-    const oid = Oid.Create(gqlModelName, modelId);
-    if (gqlModelName in this.nodeServices) {
-      const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
-      const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
-      return gqlNodeNotification;
-    } else {
-      throw Error('Invalid OID. Scope:' + gqlModelName);
-    }
-  }
-  **/
+
+  // @Subscription(type => ClassGqlNodeNotification, {
+  //   name: `onNodeChange`,
+  //   topics: `${NODE_CHANGE_NOTIFICATION}`,
+  //   nullable: true
+  // })
+  //   // @ts-ignore
+  // //async onChange(@Root() payload: DbModelChangeNotification): Promise<ClassGqlNodeNotification> {
+  // async onChange(@Root() payload): Promise<ClassGqlNodeNotification> {
+
+  //     const recieved = JSON.parse(rawPayload.data.toString())
+  //     const strOid = recieved.oid
+
+  //     console.log('got', strOid, 'oid');
+
+  //     const oid: Oid = new Oid(strOid)
+  //     const { id , scope } = oid.unwrap();
+  //     const classNameString = `${scope}Model`;
+
+  //   // convert to GQL Model
+  //   const modelId: number | string = payload.model.get('id') as number | string;
+  //   // ASSUME that the db model is suffixed with Model
+  //   const gqlModelName = payload.model.constructor.name.slice(
+  //     0,
+  //     payload.model.constructor.name.length - 'Model'.length
+  //   );
+  //   const oid = Oid.Create(gqlModelName, modelId);
+  //   if (gqlModelName in this.nodeServices) {
+  //     const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
+  //     const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
+  //     return gqlNodeNotification;
+  //   } else {
+  //     throw Error('Invalid OID. Scope:' + gqlModelName);
+  //   }
+  // }
+
   // for developers and system support,
   @Query(returns => String)
   async unWrapOid(@Arg('id', type => ID) oidString: string, @Ctx() ctx: any): Promise<string> {

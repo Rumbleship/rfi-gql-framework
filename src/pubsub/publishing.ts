@@ -1,3 +1,21 @@
+//import { PubSubEngine } from 'type-graphql';
+//import { RfiPubSubEngine as PubSubEngine } from './index';
+import { RfiPubSubEngine } from './index';
+import { Sequelize } from 'sequelize-typescript';
+import { Model, CreateOptions, UpdateOptions } from 'sequelize';
+// For creating topics which don't exist
+//import { PubSub as GooglePubSub, Subscription, Topic } from '@google-cloud/pubsub';
+
+//import { hostname } from 'os';
+
+import { Oid } from '@rumbleship/oid';
+
+import {
+  NotificationOf,
+  // DbModelChangeNotification,
+  NODE_CHANGE_NOTIFICATION,
+  ModelDelta
+} from '../gql/node-notification';
 
 // go into
 // https://github.com/googleapis/nodejs-pubsub/blob/master/samples/topics.js
@@ -9,28 +27,19 @@ function payloadFromModel(model: Model): any{
   const idx: number = fullClassName.toString().lastIndexOf('Model')
   const payloadClassName: string = fullClassName.substr(0, idx);
   // @ts-ignore: not sure how to tell it get returns a string
-  const oid = Oid.create(payloadClassName, model.get('id')).toString();
+  const oid: string = Oid.create(payloadClassName, model.get('id')).toString();
   return {oid: oid, payload_class: payloadClassName, id: model.get('id')}
 }
 
-// note last known state changes based on the kind of update
 // @ts-ignore
 // FIXME 'any's
-async function publishPayload(notification: any, rawPayload: Model, deltas: any): Promise<void> {
-  // Get the relevant pubsub from the model to future proof against having more than one pubsub
-  const pubSub = pubSubFrom(rawPayload.sequelize as Sequelize);
-  //const payload: string = makePayload(rawPayload);
-
+async function _publishPayload(pubSub: RfiPubSubEngine, notification: any, rawPayload: Model, deltas: any): Promise<void> {
   var rval = payloadFromModel(rawPayload)
   rval.action = notification;
   rval.deltas = deltas;
   const payload = JSON.stringify(rval);
 
   const topicName: string = `${NODE_CHANGE_NOTIFICATION}_${rawPayload.constructor.name}`;
-  await CreateTopic(topicName);
-  if (!pubSub) {
-    return;
-  }
 
   console.log('Publishing', payload, 'to topic', NODE_CHANGE_NOTIFICATION);
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
@@ -40,15 +49,7 @@ async function publishPayload(notification: any, rawPayload: Model, deltas: any)
   pubSub.publish(topicName, payload);
 }
 
-
-export async function initGooglePubSub() {
-  await listAllTopics();
-  await CreateTopic(NODE_CHANGE_NOTIFICATION);
-  // await SubscribeToThings('BuilderApplicationModel', (data: any) => {
-  //   console.log('got msg', data);
-  // });
-}
-
-export publishPayloadToPubSub(){
-
+// FIXME
+export function publishPayload(pubSub: RfiPubSubEngine, notification: NotificationOf, payload: Model, deltas: Array<any>): Promise<void> {
+  return _publishPayload(pubSub, notification, payload, deltas);
 }
