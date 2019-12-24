@@ -50,7 +50,12 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     return super.publish(triggerName, payload);
   }
 
-  public subscribe(triggerName: string, onMessage: Function, options: Object): Promise<number> {
+  public subscribe(
+    triggerName: string,
+    onMessage: (message: string) => null,
+    // Upstream definition uses Object but tslint does not like that
+    options?: Object, // tslint:disable-line
+  ): Promise<number> {
     return super.subscribe(triggerName, onMessage, options);
   }
 

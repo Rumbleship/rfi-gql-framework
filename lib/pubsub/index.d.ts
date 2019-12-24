@@ -34,7 +34,7 @@ export declare type RfiPubSubEngine = PubEngine & PubSubEngine;
 export declare class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     constructor(config: any);
     publish(triggerName: string, payload: any): Promise<void>;
-    subscribe(triggerName: string, onMessage: Function, options: Object): Promise<number>;
+    subscribe(triggerName: string, onMessage: (message: string) => null, options?: Object): Promise<number>;
     unsubscribe(subId: number): any;
     asyncIterator<T>(triggers: string | string[]): AsyncIterator<T>;
     publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;

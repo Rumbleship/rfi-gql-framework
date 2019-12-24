@@ -31,7 +31,7 @@ async function _publishPayload(
   rawPayload: Model,
   deltas: ModelDelta[]
 ): Promise<void> {
-  let rval = payloadFromModel(rawPayload) as Payload;
+  const rval = payloadFromModel(rawPayload) as Payload;
   rval.action = notification;
   rval.deltas = deltas;
   const payload = JSON.stringify(rval);
