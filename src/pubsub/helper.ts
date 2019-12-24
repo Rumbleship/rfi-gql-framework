@@ -2,10 +2,7 @@ import { hostname } from 'os';
 import { Model } from 'sequelize';
 import { Oid } from '@rumbleship/oid';
 
-import {
-  NODE_CHANGE_NOTIFICATION,
-  NodeNotification,
-} from '../gql/node-notification';
+import { NODE_CHANGE_NOTIFICATION, NodeNotification } from '../gql/node-notification';
 import { ClassType } from './../helpers/classtype';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
@@ -21,12 +18,13 @@ import { ClassType } from './../helpers/classtype';
 //   return pubSub ? pubSub : null;
 // }
 
-function randint(min: number, max: number): number{
+function randint(min: number, max: number): number {
   const diff: number = max - min;
   return Math.floor(Math.random() * Math.floor(diff)) + min;
 }
 
-function randchar(): number { // not technically a char as name implies
+function randchar(): number {
+  // not technically a char as name implies
   return randint(97, 122); // a-z
 }
 
@@ -35,33 +33,45 @@ function randstr(len: number) {
 }
 
 export function uniqueSubscriptionNamePart(topicName: string) {
-  return `${hostname()}-${randstr(6)}-${NODE_CHANGE_NOTIFICATION}_${topicName}`
+  return `${hostname()}-${randstr(6)}-${NODE_CHANGE_NOTIFICATION}_${topicName}`;
 }
 
-interface OIDPayloadCreator{ getOne(id: Oid): Promise<any>; }
+interface OIDPayloadCreator {
+  getOne(id: Oid): Promise<any>;
+}
 
-interface StrPayloadCreator{ getOne(id: string): Promise<any>; }
+interface StrPayloadCreator {
+  getOne(id: string): Promise<any>;
+}
 
 export interface RawPayload {
-  data: {toString(): string};
+  data: { toString(): string };
 }
 
 // Ideally we could use this as a commonMessageHandler for
 // graphql-google-pubsub but as notificationClsType is seemingly defined at
 // runtime, we can't use that patttern here
-export async function createPayloadUsingStr(rawPayload: RawPayload, resolver: StrPayloadCreator, notificationClsType: ClassType<any>): Promise<NodeNotification<any>> {
+export async function createPayloadUsingStr(
+  rawPayload: RawPayload,
+  resolver: StrPayloadCreator,
+  notificationClsType: ClassType<any>
+): Promise<NodeNotification<any>> {
   const recieved = JSON.parse(rawPayload.data.toString());
   const strOid = recieved?.oid;
-  const node: Model = await resolver.getOne(strOid)
+  const node: Model = await resolver.getOne(strOid);
   const gqlNodeNotification: NodeNotification<any> = new notificationClsType(recieved.action, node);
   return gqlNodeNotification;
 }
 
-export async function createPayloadUsingOid(rawPayload: RawPayload, resolver: OIDPayloadCreator, notificationClsType: ClassType<any>): Promise<NodeNotification<any>> {
+export async function createPayloadUsingOid(
+  rawPayload: RawPayload,
+  resolver: OIDPayloadCreator,
+  notificationClsType: ClassType<any>
+): Promise<NodeNotification<any>> {
   const recieved = JSON.parse(rawPayload.data.toString());
   const strOid = recieved?.oid;
   const oid: Oid = new Oid(strOid);
-  const node: Model = await resolver.getOne(oid)
+  const node: Model = await resolver.getOne(oid);
   const gqlNodeNotification: NodeNotification<any> = new notificationClsType(recieved.action, node);
   return gqlNodeNotification;
 }

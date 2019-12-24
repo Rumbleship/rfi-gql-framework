@@ -1,4 +1,3 @@
-
 export * from './helper';
 
 import { PubSubEngine } from 'type-graphql';
@@ -10,40 +9,38 @@ import { publishPayload } from './publishing';
 import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 
-export const googlePubSubOptions = {googlePubSubOptions: {
+export const googlePubSubOptions = {
+  googlePubSubOptions: {
     project: {
       doc: 'Gcloud project name',
       format: 'nonempty-string',
       default: 'the-development-project',
-      env: 'GCLOUD_PUBSUB_PROJECT_NAME',
+      env: 'GCLOUD_PUBSUB_PROJECT_NAME'
     },
     credentials: {
       username: {
         doc: 'Gcloud (service) account name',
         format: 'nonempty-string',
         default: 'the-pubsub-service-account',
-        env: 'GCLOUD_PUBSUB_USERNAME',
+        env: 'GCLOUD_PUBSUB_USERNAME'
       },
       privateKey: {
         doc: 'Gcloud (service) account auth key',
         format: 'nonempty-string',
         default: '-BEGIN-NON-FUNCTIONAL-KEY',
-        env: 'GCLOUD_PUBSUB_KEY',
-      },
-    },
-  },
+        env: 'GCLOUD_PUBSUB_KEY'
+      }
+    }
+  }
 };
 
-export interface PubEngine extends PubSubEngine{
-  publishPayload(
-      notificationType: NotificationOf,
-      model: Model, deltas: Array<any>): void;
+export interface PubEngine extends PubSubEngine {
+  publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
 }
 
 export type RfiPubSubEngine = PubEngine & PubSubEngine;
 
 export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
-
   constructor(config: any) {
     super(config, uniqueSubscriptionNamePart);
   }
@@ -61,14 +58,11 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     return super.unsubscribe(subId);
   }
 
-  public asyncIterator<T>(triggers: string | string[]): AsyncIterator<T>{
+  public asyncIterator<T>(triggers: string | string[]): AsyncIterator<T> {
     return super.asyncIterator(triggers);
   }
 
-  public publishPayload(
-      notificationType: NotificationOf,
-      model: Model, deltas: Array<any>): void {
+  public publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void {
     publishPayload(this, notificationType, model, deltas);
   }
 }
-

@@ -1,10 +1,7 @@
 import { RfiPubSubEngine } from '../pubsub';
 import { Sequelize } from 'sequelize-typescript';
 import { Model, CreateOptions, UpdateOptions } from 'sequelize';
-import {
-  NotificationOf,
-  ModelDelta
-} from '../gql/node-notification';
+import { NotificationOf, ModelDelta } from '../gql/node-notification';
 
 /**
  *
@@ -58,21 +55,21 @@ function getChangedAttributes(instance: Model<any, any>): ModelDelta[] {
 
 export function publishCurrentState(instance: Model<any, any>) {
   const pubSub = pubSubFrom(instance.sequelize as Sequelize);
-  if (pubSub)
+  if (pubSub) {
     pubSub.publishPayload(NotificationOf.LAST_KNOWN_STATE, instance, []);
+  }
 }
 
 // It would not compile/run if I moved these under pubsub
 const PubSubKey = Symbol('PubSubEngine');
- function attachPubSubEngineToSequelize(pubSub: RfiPubSubEngine, sequelize: Sequelize): void {
+function attachPubSubEngineToSequelize(pubSub: RfiPubSubEngine, sequelize: Sequelize): void {
   Reflect.set(sequelize, PubSubKey, pubSub);
- }
+}
 
 export function pubSubFrom(sequelize: Sequelize): RfiPubSubEngine | null {
   const pubSub = Reflect.get(sequelize, PubSubKey);
   return pubSub ? pubSub : null;
 }
-
 
 /*function gqlBulkCreateHook(
   pubSub: PubSubEngine,

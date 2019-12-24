@@ -17,11 +17,7 @@ import {
 import { Oid } from '@rumbleship/oid';
 import { Node, RelayResolver } from './index';
 import { NodeService } from './relay.service';
-import {
-  NodeNotification,
-  NotificationOf,
-  NODE_CHANGE_NOTIFICATION,
-} from './node-notification';
+import { NodeNotification, NotificationOf, NODE_CHANGE_NOTIFICATION } from './node-notification';
 import { createPayloadUsingOid, RawPayload } from '../pubsub/helper';
 
 // we make a specific concreate type here for the concrete general Node notification
@@ -76,15 +72,14 @@ export class NodeResolver implements RelayResolver {
     nullable: true
   })
   async onChange(@Root() rawPayload: RawPayload): Promise<ClassGqlNodeNotification> {
-
     const recieved = JSON.parse(rawPayload.data.toString());
     const strOid = recieved?.oid;
     const oid: Oid = new Oid(strOid);
     const { scope } = oid.unwrap();
 
     if (scope in this.nodeServices) {
-      const resolver = Reflect.get(this.nodeServices, scope)
-      return createPayloadUsingOid(rawPayload, resolver, ClassGqlNodeNotification)
+      const resolver = Reflect.get(this.nodeServices, scope);
+      return createPayloadUsingOid(rawPayload, resolver, ClassGqlNodeNotification);
     }
     throw Error('Invalid OID. Scope: ' + scope);
   }

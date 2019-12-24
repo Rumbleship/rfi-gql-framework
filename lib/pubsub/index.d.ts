@@ -28,7 +28,7 @@ export declare const googlePubSubOptions: {
     };
 };
 export interface PubEngine extends PubSubEngine {
-    publishPayload(notificationType: NotificationOf, model: Model, deltas: Array<any>): void;
+    publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
 }
 export declare type RfiPubSubEngine = PubEngine & PubSubEngine;
 export declare class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
@@ -37,5 +37,5 @@ export declare class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngin
     subscribe(triggerName: string, onMessage: Function, options: Object): Promise<number>;
     unsubscribe(subId: number): any;
     asyncIterator<T>(triggers: string | string[]): AsyncIterator<T>;
-    publishPayload(notificationType: NotificationOf, model: Model, deltas: Array<any>): void;
+    publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
 }

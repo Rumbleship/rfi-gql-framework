@@ -2,15 +2,11 @@ import { Model } from 'sequelize';
 import { Oid } from '@rumbleship/oid';
 import { RfiPubSubEngine } from './index';
 
-import {
-  NODE_CHANGE_NOTIFICATION,
-  NotificationOf,
-  ModelDelta
-} from '../gql/node-notification';
+import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/node-notification';
 
 // Cannot access app level config for debug logging
-//import { logging } from '@rumbleship/spyglass';
-//const logger = logging.getLogger({});
+// import { logging } from '@rumbleship/spyglass';
+// const logger = logging.getLogger({});
 
 interface Payload {
   oid: string;
@@ -20,17 +16,22 @@ interface Payload {
   deltas: ModelDelta[];
 }
 
-function payloadFromModel(model: Model): {oid: string; payload_class: string, id: string} {
+function payloadFromModel(model: Model): { oid: string; payload_class: string; id: string } {
   const fullClassName: string = model.constructor.name;
-  const idx: number = fullClassName.toString().lastIndexOf('Model')
+  const idx: number = fullClassName.toString().lastIndexOf('Model');
   const payloadClassName: string = fullClassName.substr(0, idx);
   const modelId = model?.get('id') as string;
   const oid: string = Oid.create(payloadClassName, modelId).toString();
-  return {oid: oid, payload_class: payloadClassName, id: modelId}
+  return { oid, payload_class: payloadClassName, id: modelId };
 }
 
-async function _publishPayload(pubSub: RfiPubSubEngine, notification: NotificationOf, rawPayload: Model, deltas: ModelDelta[]): Promise<void> {
-  var rval = payloadFromModel(rawPayload) as Payload;
+async function _publishPayload(
+  pubSub: RfiPubSubEngine,
+  notification: NotificationOf,
+  rawPayload: Model,
+  deltas: ModelDelta[]
+): Promise<void> {
+  let rval = payloadFromModel(rawPayload) as Payload;
   rval.action = notification;
   rval.deltas = deltas;
   const payload = JSON.stringify(rval);
@@ -38,14 +39,19 @@ async function _publishPayload(pubSub: RfiPubSubEngine, notification: Notificati
   const topicName: string = `${NODE_CHANGE_NOTIFICATION}_${rawPayload.constructor.name}`;
 
   // FIXME - enable when logger object can be used here
-  //logger.debug('Publishing ' + payload + ' to topic ' + NODE_CHANGE_NOTIFICATION);
+  // logger.debug('Publishing ' + payload + ' to topic ' + NODE_CHANGE_NOTIFICATION);
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
 
   // Also publish the specific Model
-  //logger.debug('Publishing ' + payload + ' to topic ' + topicName);
+  // logger.debug('Publishing ' + payload + ' to topic ' + topicName);
   pubSub.publish(topicName, payload);
 }
 
-export function publishPayload(pubSub: RfiPubSubEngine, notification: NotificationOf, payload: Model, deltas: ModelDelta[]): Promise<void> {
+export function publishPayload(
+  pubSub: RfiPubSubEngine,
+  notification: NotificationOf,
+  payload: Model,
+  deltas: ModelDelta[]
+): Promise<void> {
   return _publishPayload(pubSub, notification, payload, deltas);
 }

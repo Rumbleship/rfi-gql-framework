@@ -12,10 +12,7 @@ import {
 import { Oid } from '@rumbleship/oid';
 import { RelayService, Node, Connection } from './index';
 import { ClassType } from './../helpers/classtype';
-import {
-  NodeNotification,
-  NODE_CHANGE_NOTIFICATION
-} from './node-notification';
+import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
 import { Scopes } from '@rumbleship/acl';
 import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
 
@@ -90,7 +87,7 @@ export function createBaseResolver<
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
-      nullable: true,
+      nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       return createPayloadUsingStr(rawPayload, this, notificationClsType);
@@ -133,7 +130,7 @@ export function createReadOnlyBaseResolver<
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
-      nullable: true,
+      nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       return createPayloadUsingStr(rawPayload, this, notificationClsType);
