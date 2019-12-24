@@ -21,7 +21,6 @@ import {
   NodeNotification,
   NotificationOf,
   NODE_CHANGE_NOTIFICATION,
-  DbModelChangeNotification
 } from './node-notification';
 import { createPayloadUsingOid, RawPayload } from '../pubsub/helper';
 
@@ -76,7 +75,7 @@ export class NodeResolver implements RelayResolver {
     topics: `${NODE_CHANGE_NOTIFICATION}`,
     nullable: true
   })
-  async onChange(@Root() payload: RawPayload): Promise<ClassGqlNodeNotification> {
+  async onChange(@Root() rawPayload: RawPayload): Promise<ClassGqlNodeNotification> {
 
     const recieved = JSON.parse(rawPayload.data.toString());
     const strOid = recieved?.oid;
@@ -84,10 +83,10 @@ export class NodeResolver implements RelayResolver {
     const { scope } = oid.unwrap();
 
     if (scope in this.nodeServices) {
-      resolver = Reflect.get(this.nodeServices, gqlModelName)
-      return createPayloadUsingOid(RawPayload, resolver, ClassGqlNodeNotification)
+      const resolver = Reflect.get(this.nodeServices, scope)
+      return createPayloadUsingOid(rawPayload, resolver, ClassGqlNodeNotification)
     }
-    throw Error('Invalid OID. Scope:' + gqlModelName);
+    throw Error('Invalid OID. Scope: ' + scope);
   }
   // for developers and system support,
   @Query(returns => String)
