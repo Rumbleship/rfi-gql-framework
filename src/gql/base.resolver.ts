@@ -17,7 +17,7 @@ import {
   NODE_CHANGE_NOTIFICATION
 } from './node-notification';
 import { Scopes } from '@rumbleship/acl';
-import { nodeNotficationFromPayload, RawPayload } from '../pubsub/helper';
+import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -93,8 +93,7 @@ export function createBaseResolver<
       nullable: true,
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      // convert to GQL Model
-      return nodeNotficationFromPayload(rawPayload, this, notificationClsType);
+      return createPayloadUsingStr(rawPayload, this, notificationClsType);
     }
   }
   return BaseResolver;
@@ -137,7 +136,7 @@ export function createReadOnlyBaseResolver<
       nullable: true,
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      return nodeNotficationFromPayload(rawPayload, this, notificationClsType);
+      return createPayloadUsingStr(rawPayload, this, notificationClsType);
     }
   }
   return BaseResolver;
