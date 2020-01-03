@@ -155,7 +155,8 @@ export class SequelizeBaseService<
   }
   /**
    *
-   * Called by the hook. Dont call directly
+   * Called by the hook. Dont call directly unless you have totally overridden
+   * the auth and want to do some special processing...
    *
    * @param findOptions
    * @param nodeServiceOptions
@@ -240,19 +241,18 @@ export class SequelizeBaseService<
               'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
             );
           }
-          if (!authorizeContext.nodeServiceOptions?.skipAuthorizationCheck) {
-            if (!authorizeContext.authApplied) {
-              // only do once
-              if (!authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)) {
-                // This is ugly... but not sure how best to accomplish with typesafety
-                (authorizeContext.service as any).addAuthorizationToWhere(
-                  findOptions,
-                  authorizeContext.nodeServiceOptions
-                );
-                authorizeContext.authApplied = true;
-              }
-            }
+          if (
+            authorizeContext.authApplied ||
+            authorizeContext.nodeServiceOptions?.skipAuthorizationCheck ||
+            authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)
+          ) {
+            return;
           }
+          (authorizeContext.service as any).addAuthorizationToWhere(
+            findOptions,
+            authorizeContext.nodeServiceOptions
+          );
+          authorizeContext.authApplied = true;
         });
       }
     }
@@ -511,7 +511,7 @@ export class SequelizeBaseService<
     throw new RFIAuthError();
   }
   /**
-   * NOTE: the @AthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
+   * NOTE: the @AuthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
    * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
    *
    * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
@@ -537,6 +537,8 @@ export class SequelizeBaseService<
     if (target) {
       // we already have the id and should have the model that was loaded
       // this resolves issues with transactional query for update and stops having to go back and reload
+      //
+      // TODO --- Get the object again with Actions.UPDATE in the query
       //
       if (modelKey in target) {
         modelInstance = Reflect.get(target, modelKey);

@@ -67,7 +67,8 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
     /**
      *
-     * Called by the hook. Dont call directly
+     * Called by the hook. Dont call directly unless you have totally overridden
+     * the auth and want to do some special processing...
      *
      * @param findOptions
      * @param nodeServiceOptions
@@ -116,7 +117,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      */
     create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi>;
     /**
-     * NOTE: the @AthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
+     * NOTE: the @AuthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
      * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
      *
      * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
