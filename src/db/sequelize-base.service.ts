@@ -511,11 +511,50 @@ export class SequelizeBaseService<
     throw new RFIAuthError();
   }
   /**
-   * NOTE: the @AuthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
-   * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
+   * Runs an autyhroization query to see if the requested action  is allowed based
+   * on the users permissions
+   * @param oid
+   * @param action
+   * @param options
+   */
+  async checkDbIsAuthorized(
+    id: string | number,
+    action: Actions,
+    sequelizeOptions: FindOptions,
+    options?: NodeServiceOptions
+  ) {
+    if (options?.skipAuthorizationCheck) {
+      return true;
+    }
+    const optionsForTest: NodeServiceOptions = { ...options, action };
+    const findOptions: FindOptions = {
+      where: { id },
+      attributes: ['id'],
+      ...sequelizeOptions
+    };
+    this.setAuthorizeContext(findOptions, optionsForTest);
+    const instance = await this.model.findOne(findOptions);
+    if (!instance) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
    *
-   * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
-   * FOr now if there are specific associated objects that provide permissions, then this methid should be overridden
+   * Updates with data dependant authorizations require a check on the before data and a
+   * check on the after data. For the update to be successful, both checks must suceed.
+   *
+   * Authorization check for updates:
+   *   Check option to skip authorization
+   *      else
+   *   If not skipped, the update start a (nested) transaction
+   *    re-read with Action.UPDATE permission matrix to see if you can update the version in the db.
+   *    make the update
+   *    re-read again with the permissions for Actions.update.
+   *      if the object is not retrievable, it means that the update is not allowed, and the
+   *         transaction is rolled back and an exception thrown.
+   *
    *
    *
    * @param updateInput - data to uipdate
@@ -523,91 +562,65 @@ export class SequelizeBaseService<
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
   async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
-    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    let modelInstance;
-    let oid;
-    const optionsClone: NodeServiceOptions = { ...options, action: Actions.UPDATE };
-    // Check the input for permissions first
-    // if this fails, we check the target later in the process
-    let isAuthorized = optionsClone.skipAuthorizationCheck
-      ? true
-      : typeof updateInput === 'object'
-      ? this.can({ action: Actions.UPDATE, authorizable: updateInput as any, options })
-      : false;
-    if (target) {
-      // we already have the id and should have the model that was loaded
-      // this resolves issues with transactional query for update and stops having to go back and reload
-      //
-      // TODO --- Get the object again with Actions.UPDATE in the query
-      //
-      if (modelKey in target) {
-        modelInstance = Reflect.get(target, modelKey);
-        const gqlModelName = modelInstance.constructor.name.slice(
-          0,
-          modelInstance.constructor.name.length - 'Model'.length
-        );
-        oid = Oid.Create(gqlModelName, modelInstance.id);
-      } else {
-        // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
-        throw new Error(`Invalid ${this.relayClass.name}: No id`);
-      }
-    } else {
-      if ((updateInput as any).id) {
-        oid = new Oid((updateInput as any).id.toString());
-        const { id } = oid.unwrap();
-        const findOptions: FindOptions = {
-          where: { id },
-          ...sequelizeOptions
-        };
-        // Note the action is set to Actions.UPDATE above...
-        this.setAuthorizeContext(findOptions, optionsClone ?? {});
-
-        modelInstance = await this.model.findOne(findOptions);
-
-        if (!modelInstance) {
-          throw new Error(`Invalid ${this.relayClass.name}: No id`);
-        }
-        isAuthorized = true; // we know this because it would not be returned unless it was
-      } else {
-        // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
-        throw new Error(`Invalid ${this.relayClass.name}: No id`);
-      }
+    if (target && !(modelKey in target)) {
+      throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        update: {
-          ...oid,
-          id: oid.unwrap().id,
-          scope: oid.unwrap().scope
-        }
-      }
-    });
+    let isAuthorized = options?.skipAuthorizationCheck ? true : false;
+
+    const oid = target
+      ? target.id
+      : (updateInput as any).id
+      ? new Oid((updateInput as any).id.toString())
+      : undefined;
+    if (!oid) {
+      throw new Error(`Invalid ${this.relayClass.name}: No id`);
+    }
     delete (updateInput as any).id;
-    // do a second check if needed (ie the check on the input object failed)
-    // NOTE: if an authorization is via an associated object, this is not checked, and
-    // a specialized version of this method should be implemented
-    if (
-      isAuthorized ||
-      this.can({
-        action: Actions.UPDATE,
-        authorizable: modelInstance as any,
+    const { id: dbId } = oid.unwrap();
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    isAuthorized = isAuthorized
+      ? isAuthorized
+      : await this.checkDbIsAuthorized(dbId, Actions.UPDATE, sequelizeOptions ?? {}, options);
+    if (!isAuthorized) {
+      throw new RFIAuthError();
+    }
+    // start a (nested) transaction
+    const updateTransaction = await this.model.sequelize!.transaction({
+      transaction: sequelizeOptions?.transaction,
+      autocommit: false
+    });
+    try {
+      const modelInstance = target
+        ? (Reflect.get(target, modelKey) as Model)
+        : await this.model.findByPk(dbId, { ...sequelizeOptions, transaction: updateTransaction });
+
+      if (!modelInstance) {
+        throw new Error('invalid model in db');
+      }
+      modelInstance.update(updateInput as any, {
+        ...sequelizeOptions,
+        transaction: updateTransaction
+      });
+      isAuthorized = await this.checkDbIsAuthorized(
+        dbId,
+        Actions.UPDATE,
+        { ...sequelizeOptions, transaction: updateTransaction },
         options
-      })
-    ) {
-      await modelInstance.update(updateInput as any, sequelizeOptions);
+      );
+      if (!isAuthorized) {
+        throw new RFIAuthError();
+      } else {
+        await updateTransaction.commit();
+      }
       if (target) {
         await reloadNodeFromModel(target, false);
         return target;
       } else {
         return this.gqlFromDbModel(modelInstance as any);
       }
-    } else {
-      this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-        [this.spyglassKey]: {
-          method: 'update'
-        }
-      });
-      throw new RFIAuthError();
+    } catch (e) {
+      await updateTransaction.rollback();
+      throw e;
     }
   }
 

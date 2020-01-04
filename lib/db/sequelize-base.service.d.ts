@@ -117,11 +117,28 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      */
     create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi>;
     /**
-     * NOTE: the @AuthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
-     * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
+     * Runs an autyhroization query to see if the requested action  is allowed based
+     * on the users permissions
+     * @param oid
+     * @param action
+     * @param options
+     */
+    checkDbIsAuthorized(id: string | number, action: Actions, sequelizeOptions: FindOptions, options?: NodeServiceOptions): Promise<boolean>;
+    /**
      *
-     * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
-     * FOr now if there are specific associated objects that provide permissions, then this methid should be overridden
+     * Updates with data dependant authorizations require a check on the before data and a
+     * check on the after data. For the update to be successful, both checks must suceed.
+     *
+     * Authorization check for updates:
+     *   Check option to skip authorization
+     *      else
+     *   If not skipped, the update start a (nested) transaction
+     *    re-read with Action.UPDATE permission matrix to see if you can update the version in the db.
+     *    make the update
+     *    re-read again with the permissions for Actions.update.
+     *      if the object is not retrievable, it means that the update is not allowed, and the
+     *         transaction is rolled back and an exception thrown.
+     *
      *
      *
      * @param updateInput - data to uipdate
