@@ -266,8 +266,7 @@ export class SequelizeBaseService<
   }
   /**
    * Creates the appropriate gql Relay object from the sequelize
-   * Model instance. It will also connect any eager loaded SINGLE instance
-   * associated objects... However, 'many' associations are not managed here.
+   * Model instance. Note that eager loaded associated Models are NOT converted.
    * @param dbModel
    */
   gqlFromDbModel(dbModel: TModel): TApi {
@@ -280,14 +279,14 @@ export class SequelizeBaseService<
     // However 'Many' associtions are not managed here. As they are complex and require
     // Connection paging logic.
     //
-    for (const key in gqlObject) {
-      if (gqlObject.hasOwnProperty(key)) {
-        if (gqlObject[key] instanceof Model) {
-          const service = this.getServiceForDbModel((gqlObject[key] as unknown) as Model);
-          gqlObject[key] = service.gqlFromDbModel((gqlObject[key] as unknown) as Model);
-        }
-      }
-    }
+    // for (const key in gqlObject) {
+    //   if (gqlObject.hasOwnProperty(key)) {
+    //     if (gqlObject[key] instanceof Model) {
+    //       const service = this.getServiceForDbModel((gqlObject[key] as unknown) as Model);
+    //       gqlObject[key] = service.gqlFromDbModel((gqlObject[key] as unknown) as Model);
+    //     }
+    //   }
+    // }
     return gqlObject;
   }
 

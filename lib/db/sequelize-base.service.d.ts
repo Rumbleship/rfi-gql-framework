@@ -85,8 +85,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     nodeType(): string;
     /**
      * Creates the appropriate gql Relay object from the sequelize
-     * Model instance. It will also connect any eager loaded SINGLE instance
-     * associated objects... However, 'many' associations are not managed here.
+     * Model instance. Note that eager loaded associated Models are NOT converted.
      * @param dbModel
      */
     gqlFromDbModel(dbModel: TModel): TApi;
