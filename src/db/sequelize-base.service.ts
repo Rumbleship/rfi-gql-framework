@@ -18,7 +18,12 @@ import { Model } from 'sequelize-typescript';
 
 import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
-import { GqlSingleTableInheritanceFactory, modelKey, reloadNodeFromModel, dbToGql } from './db-to-gql';
+import {
+  GqlSingleTableInheritanceFactory,
+  modelKey,
+  reloadNodeFromModel,
+  dbToGql
+} from './db-to-gql';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction, FindOptions, Op } from 'sequelize';
@@ -259,13 +264,31 @@ export class SequelizeBaseService<
   nodeType(): string {
     return this.relayClass.constructor.name;
   }
-
+  /**
+   * Creates the appropriate gql Relay object from the sequelize
+   * Model instance. It will also connect any eager loaded SINGLE instance
+   * associated objects... However, 'many' associations are not managed here.
+   * @param dbModel
+   */
   gqlFromDbModel(dbModel: TModel): TApi {
-    if (this.options.apiClassFactory) {
-      return this.options.apiClassFactory.makeFrom(dbModel, this);
-    } else {
-      return dbToGql(this, this.relayClass, dbModel);
+    const gqlObject = this.options.apiClassFactory
+      ? this.options.apiClassFactory.makeFrom(dbModel, this)
+      : dbToGql(this, this.relayClass, dbModel);
+    // Singular associated objects are also converted to gqlRelayObjects
+    // Note that this will only happen in eager loading.
+    //
+    // However 'Many' associtions are not managed here. As they are complex and require
+    // Connection paging logic.
+    //
+    for (const key in gqlObject) {
+      if (gqlObject.hasOwnProperty(key)) {
+        if (gqlObject[key] instanceof Model) {
+          const service = this.getServiceForDbModel((gqlObject[key] as unknown) as Model);
+          gqlObject[key] = service.gqlFromDbModel((gqlObject[key] as unknown) as Model);
+        }
+      }
     }
+    return gqlObject;
   }
 
   dbModel() {
@@ -282,6 +305,20 @@ export class SequelizeBaseService<
       return Reflect.get(this.nodeServices, name);
     }
     throw Error(`Service not defined for Class: ${name}`);
+  }
+
+  getServiceForDbModel(
+    dbClass: Model
+  ): SequelizeBaseServiceInterface<any, any, any, any, any, any> {
+    for (const key in this.nodeServices) {
+      if (this.nodeServices.hasOwnProperty(key)) {
+        const service = this.nodeServices[key];
+        if (service.dbModel === dbClass) {
+          return service;
+        }
+      }
+    }
+    throw Error(`Service not defined for Model`);
   }
 
   async newTransaction(params: {

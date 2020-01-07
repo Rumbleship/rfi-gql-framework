@@ -83,10 +83,17 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     static addAuthCheckHook(modelClass: typeof Model): void;
     setServiceRegister(services: any): void;
     nodeType(): string;
+    /**
+     * Creates the appropriate gql Relay object from the sequelize
+     * Model instance. It will also connect any eager loaded SINGLE instance
+     * associated objects... However, 'many' associations are not managed here.
+     * @param dbModel
+     */
     gqlFromDbModel(dbModel: TModel): TApi;
     dbModel(): ModelClass<TModel> & typeof Model;
     getContext(): Context;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
+    getServiceForDbModel(dbClass: Model): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
     newTransaction(params: {
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
