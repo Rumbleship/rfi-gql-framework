@@ -18,12 +18,7 @@ import { Model } from 'sequelize-typescript';
 
 import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
-import {
-  GqlSingleTableInheritanceFactory,
-  modelToClass,
-  modelKey,
-  reloadNodeFromModel
-} from './model-to-class';
+import { GqlSingleTableInheritanceFactory, modelKey, reloadNodeFromModel, dbToGql } from './db-to-gql';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction, FindOptions, Op } from 'sequelize';
@@ -269,7 +264,7 @@ export class SequelizeBaseService<
     if (this.options.apiClassFactory) {
       return this.options.apiClassFactory.makeFrom(dbModel, this);
     } else {
-      return modelToClass(this, this.relayClass, dbModel);
+      return dbToGql(this, this.relayClass, dbModel);
     }
   }
 

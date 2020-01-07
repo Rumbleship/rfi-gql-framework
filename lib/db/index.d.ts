@@ -6,5 +6,5 @@ export * from './validate-from-exemplar';
 export * from './date-range-filter';
 export * from './add-node-services-to-container';
 export * from './gql-pubsub-sequelize-engine';
-export * from './model-to-class';
+export * from './db-to-gql';
 export * from './create-auth-where-clause';

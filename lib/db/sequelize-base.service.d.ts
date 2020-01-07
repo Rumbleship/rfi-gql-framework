@@ -2,7 +2,7 @@ import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
-import { GqlSingleTableInheritanceFactory } from './model-to-class';
+import { GqlSingleTableInheritanceFactory } from './db-to-gql';
 import { Context } from '../server/index';
 import { Transaction, FindOptions } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';

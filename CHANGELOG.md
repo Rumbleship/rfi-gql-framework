@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Changed extended ACL logic to queries, updates and created by default.
+
 ### Fixed
 ### Deprecated
+ * Deprecated modelToClass in favor of SequelizeBaseServiceInterface.gqlFromDbModel()
+
 ### Security
 
 
