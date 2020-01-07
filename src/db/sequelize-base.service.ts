@@ -727,8 +727,6 @@ export class SequelizeBaseService<
       const ret = Reflect.get(source, assoc_key);
       if (ret instanceof assocApiClass) {
         return ret;
-      } else {
-        throw new Error(`Invalid associated type for ${assoc_key}`);
       }
     }
     if (!(modelKey in source)) {
