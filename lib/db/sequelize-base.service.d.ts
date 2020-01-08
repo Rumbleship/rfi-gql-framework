@@ -6,7 +6,7 @@ import { GqlSingleTableInheritanceFactory } from './db-to-gql';
 import { Context } from '../server/index';
 import { Transaction, FindOptions } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
-export interface SequelizeBaseServiceInterface<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+export interface SequelizeBaseServiceInterface<TApi extends Node<TApi> = any, TModel extends Model<TModel> = any, TConnection extends Connection<TApi> = any, TFilter = any, TInput = any, TUpdate = any> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     dbModel(): ModelClass<TModel> & typeof Model;
     gqlFromDbModel(dao: object): TApi;
     setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
