@@ -19,6 +19,7 @@ export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<T
     discriminatorKey: string, concreteClassMap: Map<keyof TEnum, ClassType<TGql>>);
     makeFrom(from: TDb, nodeService: NodeService<TGql>): TGql;
     getClassFor(discriminator: keyof TEnum): ClassType<TGql> | undefined;
+    getClasses(): ClassType<TGql>[];
 }
 /**
  * @deprecated for direct use. Use SequelizeBaseServiceInterface.gqlFromDbModel

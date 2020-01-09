@@ -9,8 +9,6 @@ import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers';
 import { Op } from 'sequelize';
 
-import { NodeService, NodeServiceOptions } from '../gql';
-
 export interface AuthIncludeEntry {
   model: typeof Model;
   as: string;
@@ -93,29 +91,21 @@ export function createAuthWhereClause(
 
   return whereAuthClause;
 }
-type NodeSeviceGeneric<T> = T extends NodeService<object> ? NodeService<T> : any;
+
 /**
  * Holds the information needed to calculate the
  * additional where clause to ensure that the current authorized user
  * only retrieves rows they are allowed to
  */
-export interface AuthorizeContext<T extends NodeSeviceGeneric<object>> {
-  service: T;
-  authorizableClass: ClassType<any>;
-  nodeServiceOptions?: NodeServiceOptions;
+export interface AuthorizeContext {
   authApplied?: boolean;
 }
 
 export const AuthorizeContextKey = Symbol('AuthorizeContextKey');
-export function setAuthorizeContext<T extends NodeService<object>>(
-  findOptions: object,
-  authorizeContext: AuthorizeContext<T>
-) {
+export function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext) {
   Reflect.set(findOptions, AuthorizeContextKey, authorizeContext);
   return findOptions;
 }
-export function getAuthorizeContext<T extends NodeService<object>>(
-  target: object
-): AuthorizeContext<T> {
+export function getAuthorizeContext(target: object): AuthorizeContext {
   return Reflect.get(target, AuthorizeContextKey);
 }

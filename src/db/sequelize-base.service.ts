@@ -148,13 +148,9 @@ export class SequelizeBaseService<
   addAuthorizationFilters(
     findOptions: object,
     nodeServiceOptions: NodeServiceOptions,
-    authorizableClass: ClassType<any> = this.relayClass
+    authorizableClass?: ClassType<any>
   ) {
-    const authorizeContext: AuthorizeContext<any> = getAuthorizeContext(findOptions) ?? {
-      nodeServiceOptions,
-      service: this,
-      authorizableClass
-    };
+    const authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions) ?? {};
     if (
       authorizeContext.authApplied ||
       nodeServiceOptions?.skipAuthorizationCheck ||
@@ -162,11 +158,16 @@ export class SequelizeBaseService<
     ) {
       return findOptions;
     }
+    const authorizableClasses = authorizableClass
+      ? [authorizableClass]
+      : this.options.apiClassFactory
+      ? this.options.apiClassFactory.getClasses()
+      : [this.relayClass];
     setAuthorizeContext(findOptions, authorizeContext);
     findOptions = this.addAuthorizationToWhere(
-      authorizableClass,
+      authorizableClasses,
       findOptions,
-      authorizeContext.nodeServiceOptions
+      nodeServiceOptions
     );
     authorizeContext.authApplied = true;
 
@@ -181,19 +182,30 @@ export class SequelizeBaseService<
    * @param nodeServiceOptions
    */
   protected addAuthorizationToWhere(
-    authorizableClass: ClassType<any>,
+    authorizableClasses: Array<ClassType<any>>,
     findOptions: FindOptions,
     nodeServiceOptions?: NodeServiceOptions
   ): FindOptions {
-    if (!nodeServiceOptions?.skipAuthorizationCheck) {
-      const whereAuthClause = createAuthWhereClause(
-        this.permissions,
-        this.ctx.authorizer,
-        nodeServiceOptions?.action ?? Actions.QUERY,
-        authorizableClass.prototype
-      );
+    if (nodeServiceOptions?.skipAuthorizationCheck) {
+      return findOptions;
+    }
+    // because they are classes not instances...
+    const protypesForClasses = authorizableClasses.map(clazz => clazz.prototype);
+    let whereAuthClause: FindOptions = {};
+    for (const authProtos of protypesForClasses) {
+      whereAuthClause = {
+        ...whereAuthClause,
+        ...createAuthWhereClause(
+          this.permissions,
+          this.ctx.authorizer,
+          nodeServiceOptions?.action ?? Actions.QUERY,
+          authProtos
+        )
+      };
       // any associated objects that must be scanned?
-      const authThroughEntries = getAuthorizeThroughEntries(authorizableClass.prototype);
+      const authThroughEntries = protypesForClasses
+        .map(proto => getAuthorizeThroughEntries(proto))
+        .reduce((pre, val) => pre.concat(val));
       const eagerLoads: AuthIncludeEntry[] = [];
       let includedWhereAuthClause = {};
       for (const authEntry of authThroughEntries) {
@@ -227,6 +239,7 @@ export class SequelizeBaseService<
         findOptions.include.push(...eagerLoads);
       }
     }
+
     return findOptions;
   }
 

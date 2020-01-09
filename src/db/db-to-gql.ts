@@ -37,6 +37,9 @@ export class GqlSingleTableInheritanceFactory<
   getClassFor(discriminator: keyof TEnum) {
     return this.concreteClassMap.get(discriminator);
   }
+  getClasses() {
+    return [...this.concreteClassMap.values()];
+  }
 }
 
 /**
