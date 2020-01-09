@@ -35,7 +35,8 @@ import {
   getAuthorizeThroughEntries,
   AuthIncludeEntry,
   getAuthorizeContext,
-  setAuthorizeContext
+  setAuthorizeContext,
+  AuthorizeContext
 } from './create-auth-where-clause';
 
 export interface SequelizeBaseServiceInterface<
@@ -48,7 +49,7 @@ export interface SequelizeBaseServiceInterface<
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
   gqlFromDbModel(dao: object): TApi;
-  setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
+  addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions): object;
 }
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -59,14 +60,7 @@ export function getSequelizeServiceInterfaceFor<
   TUpdate,
   V extends NodeService<TApi>
 >(service: V) {
-  return (service as unknown) as SequelizeBaseServiceInterface<
-    TApi,
-    TModel,
-    TConnection,
-    TFilter,
-    TInput,
-    TUpdate
-  >;
+  return (service as unknown) as SequelizeBaseServiceInterface;
 }
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -147,21 +141,47 @@ export class SequelizeBaseService<
    * Connects the options passed into the API to the sequelize options used in a query and the
    * service that is being used.
    *
-   * @param target Typically the FindOptions sequelize object passed into a query
+   * @param findOptions Typically the FindOptions sequelize object passed into a query
    * @param nodeServiceOptions The framework options passed into the API
+   * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
    */
-  setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions) {
-    return setAuthorizeContext(target, { nodeServiceOptions, service: this });
+  addAuthorizationFilters(
+    findOptions: object,
+    nodeServiceOptions: NodeServiceOptions,
+    authorizableClass: ClassType<any> = this.relayClass
+  ) {
+    const authorizeContext: AuthorizeContext<any> = getAuthorizeContext(findOptions) ?? {
+      nodeServiceOptions,
+      service: this,
+      authorizableClass
+    };
+    if (
+      authorizeContext.authApplied ||
+      nodeServiceOptions?.skipAuthorizationCheck ||
+      this.getContext().authorizer.inScope(Scopes.SYSADMIN)
+    ) {
+      return findOptions;
+    }
+    setAuthorizeContext(findOptions, authorizeContext);
+    findOptions = this.addAuthorizationToWhere(
+      authorizableClass,
+      findOptions,
+      authorizeContext.nodeServiceOptions
+    );
+    authorizeContext.authApplied = true;
+
+    return findOptions;
   }
   /**
    *
-   * Called by the hook. Dont call directly unless you have totally overridden
+   * Called by the setAuthorizeContext. Dont call directly unless you have totally overridden
    * the auth and want to do some special processing...
    *
    * @param findOptions
    * @param nodeServiceOptions
    */
-  addAuthorizationToWhere(
+  protected addAuthorizationToWhere(
+    authorizableClass: ClassType<any>,
     findOptions: FindOptions,
     nodeServiceOptions?: NodeServiceOptions
   ): FindOptions {
@@ -170,10 +190,10 @@ export class SequelizeBaseService<
         this.permissions,
         this.ctx.authorizer,
         nodeServiceOptions?.action ?? Actions.QUERY,
-        this.relayClass.prototype
+        authorizableClass.prototype
       );
       // any associated objects that must be scanned?
-      const authThroughEntries = getAuthorizeThroughEntries(this.relayClass.prototype);
+      const authThroughEntries = getAuthorizeThroughEntries(authorizableClass.prototype);
       const eagerLoads: AuthIncludeEntry[] = [];
       let includedWhereAuthClause = {};
       for (const authEntry of authThroughEntries) {
@@ -196,8 +216,6 @@ export class SequelizeBaseService<
           as: authEntry.associationName
         });
       }
-
-      // [sequelize.literal('`TheAlias->RecipeIngredient`.amount'), 'amount']
       findOptions.where = {
         ...findOptions.where,
         ...{ [Op.or]: [includedWhereAuthClause, whereAuthClause] }
@@ -225,7 +243,7 @@ export class SequelizeBaseService<
     //
     // In the meantime... Watch for closures, this gets added once, so dont add anything but static/globals
     // to the members
-    // so all of the conext MUST be got form the options object passsed into the find.
+    // so all of the context MUST be got form the options object passsed into the find.
     //
     //
     // there are times (eg unit testing), when we dont want to actually add the hook and the Model is not
@@ -241,18 +259,6 @@ export class SequelizeBaseService<
               'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
             );
           }
-          if (
-            authorizeContext.authApplied ||
-            authorizeContext.nodeServiceOptions?.skipAuthorizationCheck ||
-            authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)
-          ) {
-            return;
-          }
-          (authorizeContext.service as any).addAuthorizationToWhere(
-            findOptions,
-            authorizeContext.nodeServiceOptions
-          );
-          authorizeContext.authApplied = true;
         });
       }
     }
@@ -393,7 +399,7 @@ export class SequelizeBaseService<
       ...sequelizeOptions
     };
 
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
 
     const { rows, count } = await this.model.findAndCountAll(findOptions);
     // prime the cache
@@ -442,7 +448,7 @@ export class SequelizeBaseService<
       where: whereClause,
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
 
     const modelFindEach = findEach.bind(this.model);
     return modelFindEach(findOptions, (model: TModel) => {
@@ -462,7 +468,7 @@ export class SequelizeBaseService<
       where: filterBy,
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
     return this.model.count(findOptions);
   }
 
@@ -478,7 +484,7 @@ export class SequelizeBaseService<
       where: { id },
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
 
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
@@ -502,7 +508,7 @@ export class SequelizeBaseService<
     const findOptions: FindOptions = {
       where: { id }
     };
-    this.setAuthorizeContext(findOptions, {});
+    this.addAuthorizationFilters(findOptions, {});
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
       throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
@@ -563,7 +569,7 @@ export class SequelizeBaseService<
       attributes: ['id'],
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, optionsForTest);
+    this.addAuthorizationFilters(findOptions, optionsForTest);
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
       return false;
@@ -687,7 +693,7 @@ export class SequelizeBaseService<
         where: whereClause
       };
 
-      assocService.setAuthorizeContext(findOptions, options ?? {});
+      assocService.addAuthorizationFilters(findOptions, options ?? {});
       count = await sourceModel.$count(assoc_key, findOptions);
       findOptions = {
         ...findOptions,
@@ -737,7 +743,7 @@ export class SequelizeBaseService<
     const sequelizeOptions: FindOptions =
       this.convertServiceOptionsToSequelizeOptions(options) ?? {};
 
-    assocService.setAuthorizeContext(sequelizeOptions, options ?? {});
+    assocService.addAuthorizationFilters(sequelizeOptions, options ?? {});
 
     const associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model<
       Model<any>

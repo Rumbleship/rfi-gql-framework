@@ -93,20 +93,26 @@ export function createAuthWhereClause(
 
   return whereAuthClause;
 }
-
-export interface AuthorizeContext<T extends NodeService<object>> {
+type NodeSeviceGeneric<T> = T extends NodeService<object> ? NodeService<T> : any;
+/**
+ * Holds the information needed to calculate the
+ * additional where clause to ensure that the current authorized user
+ * only retrieves rows they are allowed to
+ */
+export interface AuthorizeContext<T extends NodeSeviceGeneric<object>> {
   service: T;
+  authorizableClass: ClassType<any>;
   nodeServiceOptions?: NodeServiceOptions;
   authApplied?: boolean;
 }
 
 export const AuthorizeContextKey = Symbol('AuthorizeContextKey');
 export function setAuthorizeContext<T extends NodeService<object>>(
-  target: object,
-  service: AuthorizeContext<T>
+  findOptions: object,
+  authorizeContext: AuthorizeContext<T>
 ) {
-  Reflect.set(target, AuthorizeContextKey, service);
-  return target;
+  Reflect.set(findOptions, AuthorizeContextKey, authorizeContext);
+  return findOptions;
 }
 export function getAuthorizeContext<T extends NodeService<object>>(
   target: object

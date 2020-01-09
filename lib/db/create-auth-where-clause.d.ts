@@ -24,12 +24,19 @@ export declare function addAuthorizeThrough(target: object, authThroughEntry: Au
  */
 export declare function AuthorizeThrough(targetClass: () => ClassType<object>, associationName?: string): (target: object, propertyKey: string) => void;
 export declare function createAuthWhereClause(permissions: Permissions, authorizer: Authorizer, action: Actions, targetClass: object, associationName?: string): {};
-export interface AuthorizeContext<T extends NodeService<object>> {
+declare type NodeSeviceGeneric<T> = T extends NodeService<object> ? NodeService<T> : any;
+/**
+ * Holds the information needed to calculate the
+ * additional where clause to ensure that the current authorized user
+ * only retrieves rows they are allowed to
+ */
+export interface AuthorizeContext<T extends NodeSeviceGeneric<object>> {
     service: T;
+    authorizableClass: ClassType<any>;
     nodeServiceOptions?: NodeServiceOptions;
     authApplied?: boolean;
 }
 export declare const AuthorizeContextKey: unique symbol;
-export declare function setAuthorizeContext<T extends NodeService<object>>(target: object, service: AuthorizeContext<T>): object;
+export declare function setAuthorizeContext<T extends NodeService<object>>(findOptions: object, authorizeContext: AuthorizeContext<T>): object;
 export declare function getAuthorizeContext<T extends NodeService<object>>(target: object): AuthorizeContext<T>;
 export {};
