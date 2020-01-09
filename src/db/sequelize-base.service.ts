@@ -150,7 +150,11 @@ export class SequelizeBaseService<
     nodeServiceOptions: NodeServiceOptions,
     authorizableClass?: ClassType<any>
   ) {
-    const authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions) ?? {};
+    let authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions);
+    if (!authorizeContext) {
+      authorizeContext = {};
+      setAuthorizeContext(findOptions, authorizeContext);
+    }
     if (
       authorizeContext.authApplied ||
       nodeServiceOptions?.skipAuthorizationCheck ||
