@@ -76,7 +76,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      */
     protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<any>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions): FindOptions;
     /**
-     * This should be called ONLY by the service contructor and adds the authorization filter code
+     * This should be called ONLY by the service contructor and adds the authorization check
      * to the sequelize Model Class.
      *
      * @param modelClass

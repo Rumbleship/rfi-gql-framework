@@ -248,7 +248,7 @@ export class SequelizeBaseService<
   }
 
   /**
-   * This should be called ONLY by the service contructor and adds the authorization filter code
+   * This should be called ONLY by the service contructor and adds the authorization check
    * to the sequelize Model Class.
    *
    * @param modelClass
@@ -481,6 +481,7 @@ export class SequelizeBaseService<
       }
     });
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    filterBy = createWhereClauseWith(filterBy);
     const findOptions: FindOptions = {
       where: filterBy,
       ...sequelizeOptions

@@ -7,7 +7,7 @@ export function create_date_filter(
   between?: DateRange,
   test_for_any?: boolean
 ) {
-  if (between) {
+  if (between && between instanceof DateRange) {
     if (between.from && between.to) {
       Reflect.set(filterBy, date_key, {
         [Op.between]: [between.from, between.to]
@@ -22,8 +22,16 @@ export function create_date_filter(
       }
     }
   } else {
+    /**
+     * logic for for testing if a date is set at all.
+     *
+     * This is because a lot of our code uses a date as a flag as well as a date.
+     *
+     * For example, if the BankAccount.verified_at date is Null, then it hasnt been verified.
+     *
+     * Its not great modelling and can be confusing, but its very embedded in our code base
+     */
     if (test_for_any !== undefined) {
-      delete filterBy.verified;
       if (test_for_any) {
         Reflect.set(filterBy, date_key, { [Op.ne]: null });
       } else {
