@@ -29,7 +29,6 @@ export function create_date_filter(
      *
      * For example, if the BankAccount.verified_at date is Null, then it hasnt been verified.
      *
-     * Its not great modelling and can be confusing, but its very embedded in our code base
      */
     if (test_for_any !== undefined) {
       if (test_for_any) {

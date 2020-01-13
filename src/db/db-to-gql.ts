@@ -50,6 +50,10 @@ export class GqlSingleTableInheritanceFactory<
  * THis does not take into account any polymorthic discriminators
  * and so should not be used directly.
  *
+ * Note that if any models are eager loaded, they ARE not converted, so the Relay/gql object
+ * references the sequelize model of that name... higher level functions should deal with that
+ * by checkingthe instanceOf the associated model and converting at that time as required.
+ *
  * @param nodeService
  * @param to
  * @param from
@@ -63,8 +67,6 @@ export function dbToGql<T extends Node<T>, V extends Model<V>>(
 ): T {
   const modelAsPlain: any = from.get(/*{ plain: true }*/);
 
-  // DEAL WITH associated Models....
-  //
   // Have we already done this transforation?
   if (apiKey in from) {
     return Reflect.get(from, apiKey);
