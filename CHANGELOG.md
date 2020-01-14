@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [3.0.0] -- 2020-01-14
 
 ### Added
   * added convertToSequelizeDateFilters utility class to convert DateRange objects to sequelize
@@ -21,9 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * createWhereClauseFilter(filter) now calls convertToSequelizeDateFilters(filter) so both oids and DateRanges are converted to sequelize filters
 ### Fixed
   * createWhereClause correctly checks the type of an id before trying to coerce to a database id
-### Deprecated
-### Security
-
 
 ## [2.0.0] -- 2019-12-15
 
