@@ -62,8 +62,12 @@ export function publishCurrentState(instance: Model<any, any>) {
   const pubSub = pubSubFrom(instance.sequelize as Sequelize);
   if (pubSub) {
     const payload = new DbModelChangeNotification(NotificationOf.LAST_KNOWN_STATE, instance, []);
+    // This should be its own promise chain
+    // tslint:disable-next-line: no-floating-promises
     pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
     // Also publish the specific Model
+    // This should be its own promise chain
+    // tslint:disable-next-line: no-floating-promises
     pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
   }
 }
@@ -91,8 +95,12 @@ function gqlCreateHook(
   options: CreateOptions
 ) {
   const payload = new DbModelChangeNotification(NotificationOf.CREATED, instance, deltas);
+  // This should be its own promise chain
+  // tslint:disable-next-line: no-floating-promises
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   // Also publish the specific Model
+  // This should be its own promise chain
+  // tslint:disable-next-line: no-floating-promises
   pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
 }
 function gqlUpdateHook(
@@ -102,7 +110,11 @@ function gqlUpdateHook(
   options: UpdateOptions
 ) {
   const payload = new DbModelChangeNotification(NotificationOf.UPDATED, instance, deltas);
+  // This should be its own promise chain
+  // tslint:disable-next-line: no-floating-promises
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
   // Also publish the specific Model
+  // This should be its own promise chain
+  // tslint:disable-next-line: no-floating-promises
   pubSub.publish(`${NODE_CHANGE_NOTIFICATION}_${instance.constructor.name}`, payload);
 }
