@@ -1,2 +1,1 @@
-import { Model } from 'sequelize-typescript';
-export declare function createWhereClauseWith<T extends Model<T>>(filter: any): any;
+export declare function createWhereClauseWith(filter: any): any;

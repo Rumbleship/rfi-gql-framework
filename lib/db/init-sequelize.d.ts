@@ -1,4 +1,4 @@
-import { Sequelize, Model } from 'sequelize-typescript';
+import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 /**
  * Returns the global instance of sequelize used by this application
  */
@@ -19,7 +19,7 @@ export declare function nullSequelizeInstance(): void;
  * create isolated test databases in test suites
  * pubSub is the PubSubEngine to use to publish model changes
  */
-export declare function initSequelize(config: any, loggingFun: (msg: string) => any, dbModels: Array<typeof Model>, opt?: {
+export declare function initSequelize(config: any, loggingFun: (msg: string) => any, dbModels: Array<ModelCtor & typeof Model>, opt?: {
     force: boolean;
     dbSuffix?: string;
 }): Promise<Sequelize>;

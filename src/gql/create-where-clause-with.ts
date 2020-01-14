@@ -1,12 +1,21 @@
 import { Oid } from '@rumbleship/oid';
-import { Model } from 'sequelize-typescript';
+import { convertToSequelizeDateFilters } from '../db';
 
-export function createWhereClauseWith<T extends Model<T>>(filter: any): any {
+export function createWhereClauseWith(filter: any): any {
   if (filter.id) {
-    const oid = new Oid(filter.id);
-    const { id: databaseId } = oid.unwrap();
-    delete filter.id;
-    Reflect.set(filter, 'id', databaseId);
+    if (typeof filter.id === 'string') {
+      filter.id = new Oid(filter.id);
+    }
+    if (filter.id instanceof Oid) {
+      const { id: databaseId } = filter.id.unwrap();
+      delete filter.id;
+      Reflect.set(filter, 'id', databaseId);
+    }
   }
+  /***
+   * Look for any DateRange attributes and convert to sequelize operations
+   *
+   */
+  filter = convertToSequelizeDateFilters(filter, '_at', '_between');
   return filter;
 }

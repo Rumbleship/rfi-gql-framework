@@ -19,6 +19,7 @@ export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<T
     discriminatorKey: string, concreteClassMap: Map<keyof TEnum, ClassType<TGql>>);
     makeFrom(from: TDb, nodeService: NodeService<TGql>): TGql;
     getClassFor(discriminator: keyof TEnum): ClassType<TGql> | undefined;
+    getClasses(): ClassType<TGql>[];
 }
 /**
  * @deprecated for direct use. Use SequelizeBaseServiceInterface.gqlFromDbModel
@@ -27,6 +28,10 @@ export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<T
  * Transforms from a sequelize model to a gql object
  * THis does not take into account any polymorthic discriminators
  * and so should not be used directly.
+ *
+ * Note that if any models are eager loaded, they ARE not converted, so the Relay/gql object
+ * references the sequelize model of that name... higher level functions should deal with that
+ * by checkingthe instanceOf the associated model and converting at that time as required.
  *
  * @param nodeService
  * @param to
