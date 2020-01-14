@@ -1,4 +1,4 @@
-import { Sequelize, Model } from 'sequelize-typescript';
+import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 
 let theSequelizeInstance: Sequelize | null;
 /**
@@ -30,7 +30,7 @@ export function nullSequelizeInstance() {
 export async function initSequelize(
   config: any,
   loggingFun: (msg: string) => any,
-  dbModels: Array<typeof Model>,
+  dbModels: Array<ModelCtor & typeof Model>,
   opt?: {
     force: boolean;
     dbSuffix?: string;

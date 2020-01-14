@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * added convertToSequelizeDateFilters utility class to convert DateRange objects to sequelize
+    where clauses
+  * Added @AuthorizeThrough decorator as a companion to @AuthorizerTreatAs to enable authorization filtering via associated classes
+    * added helpers to enable implmentation in SequelizeBaseService
+### Removed
+  * BREAKING CHANGE  * removed modelToClass in favor of SequelizeBaseServiceInterface.gqlFromDbModel()
+
+### Changed
+  * BREAKING CHANGE: Changed extended ACL logic to queries, updates. 
+    * REQUIRES the method SequelizeBaseService.addAuthorizationFilters to be called on a sequelize FindOptions object before any sequelize 'find' operation is called
+  * createWhereClauseFilter(filter) now calls convertToSequelizeDateFilters(filter) so both oids and DateRanges are converted to sequelize filters
+### Fixed
+  * createWhereClause correctly checks the type of an id before trying to coerce to a database id
+### Deprecated
+### Security
+
+
 ## [2.0.0] -- 2019-12-15
 
 ### Changed

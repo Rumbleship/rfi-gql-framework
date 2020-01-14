@@ -2,6 +2,7 @@ import { Context } from './../server/context.interface';
 import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';
+import { Actions } from '@rumbleship/acl';
 
 export interface NodeServiceTransaction {
   commit(): Promise<void>;
@@ -24,11 +25,19 @@ export enum NodeServiceTransactionType {
   EXCLUSIVE = 'EXCLUSIVE'
 }
 
+/**
+ * paranoid?: boolean; Include 'deleted' records
+ * transaction?: NodeServiceTransaction;
+ * lockLevel?: NodeServiceLock;
+ * skipAuthorizationCheck?: boolean; Dont do any authorization checks...
+ * action?: Actions;  // Authorization action to use for authorization queries. Defaults to Actions.Query
+ */
 export interface NodeServiceOptions {
   paranoid?: boolean;
   transaction?: NodeServiceTransaction;
   lockLevel?: NodeServiceLock;
   skipAuthorizationCheck?: boolean;
+  action?: Actions;
 }
 
 export interface NodeService<T> {
@@ -37,7 +46,6 @@ export interface NodeService<T> {
   getContext(): Context;
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
   setServiceRegister(services: any): void;
-  gqlFromDbModel(dao: object): T;
   publishLastKnownState(oid: Oid): Promise<void>;
   newTransaction(params: {
     isolation: NodeServiceIsolationLevel;
@@ -56,7 +64,7 @@ export interface RelayService<
 > extends NodeService<TApi> {
   getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
   count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
-  findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | null>;
+  findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined>;
   findEach(
     filterBy: TFilter,
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
@@ -83,5 +91,5 @@ export interface RelayService<
     assoc_key: string,
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
-  ): Promise<TAssocApi | null>;
+  ): Promise<TAssocApi | undefined>;
 }

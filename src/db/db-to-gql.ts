@@ -29,7 +29,7 @@ export class GqlSingleTableInheritanceFactory<
     if (discriminator) {
       const concreteClass = this.concreteClassMap.get(discriminator);
       if (concreteClass) {
-        return modelToClass(nodeService, concreteClass, from, this.oidScope);
+        return dbToGql(nodeService, concreteClass, from, this.oidScope);
       }
     }
     throw Error(`couldnt find concrete class for: ${discriminator}`);
@@ -37,18 +37,36 @@ export class GqlSingleTableInheritanceFactory<
   getClassFor(discriminator: keyof TEnum) {
     return this.concreteClassMap.get(discriminator);
   }
+  getClasses() {
+    return [...this.concreteClassMap.values()];
+  }
 }
 
-// Creates a new Object of type T and fills it with the plain proerties of the Sequelize Model
-// It is a SHALLOW copy...
-
-export function modelToClass<T extends Node<T>, V extends Model<V>>(
+/**
+ * @deprecated for direct use. Use SequelizeBaseServiceInterface.gqlFromDbModel
+ * instead.
+ *
+ * Transforms from a sequelize model to a gql object
+ * THis does not take into account any polymorthic discriminators
+ * and so should not be used directly.
+ *
+ * Note that if any models are eager loaded, they ARE not converted, so the Relay/gql object
+ * references the sequelize model of that name... higher level functions should deal with that
+ * by checkingthe instanceOf the associated model and converting at that time as required.
+ *
+ * @param nodeService
+ * @param to
+ * @param from
+ * @param oidScope
+ */
+export function dbToGql<T extends Node<T>, V extends Model<V>>(
   nodeService: NodeService<T>,
   to: ClassType<T>,
   from: V,
   oidScope?: string
 ): T {
-  const modelAsPlain: any = from.get({ plain: true });
+  const modelAsPlain: any = from.get(/*{ plain: true }*/);
+
   // Have we already done this transforation?
   if (apiKey in from) {
     return Reflect.get(from, apiKey);
