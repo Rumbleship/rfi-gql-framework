@@ -652,7 +652,7 @@ export class SequelizeBaseService<
       if (!modelInstance) {
         throw new Error('invalid model in db');
       }
-      modelInstance.update(updateInput as any, {
+      await modelInstance.update(updateInput as any, {
         ...sequelizeOptions,
         transaction: updateTransaction
       });
