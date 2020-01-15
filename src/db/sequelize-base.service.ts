@@ -747,25 +747,30 @@ export class SequelizeBaseService<
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
   ): Promise<TAssocApi | undefined> {
+    let associatedModel;
     if (assoc_key in source) {
-      const ret = Reflect.get(source, assoc_key);
-      if (ret instanceof assocApiClass) {
-        return ret;
+      associatedModel = Reflect.get(source, assoc_key);
+      if (associatedModel instanceof assocApiClass) {
+        return associatedModel;
       }
     }
     if (!(modelKey in source)) {
       throw new Error(`Invalid ${source.constructor.name}`);
     }
     const assocService = getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass));
-    const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
-    const sequelizeOptions: FindOptions =
-      this.convertServiceOptionsToSequelizeOptions(options) ?? {};
+    /*
+     * With eager loading, the model may already be in place but of the wrong type :-)
+     * If it isnt a relay class, and it isnt a sequelize model then reload
+     */
+    if (!(associatedModel instanceof Model)) {
+      const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
+      const sequelizeOptions: FindOptions =
+        this.convertServiceOptionsToSequelizeOptions(options) ?? {};
 
-    assocService.addAuthorizationFilters(sequelizeOptions, options ?? {});
+      assocService.addAuthorizationFilters(sequelizeOptions, options ?? {});
 
-    const associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model<
-      Model<any>
-    >;
+      associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model;
+    }
     if (associatedModel) {
       Reflect.set(source, assoc_key, assocService.gqlFromDbModel(associatedModel));
       return Reflect.get(source, assoc_key);
