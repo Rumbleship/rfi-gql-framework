@@ -8,15 +8,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-  * Add lint "no-floating-promises": true,
-  * Update code to explictly state when floating promise wanted
 ### Removed
 ### Changed
 ### Fixed
-  * Update code missing an await
 ### Deprecated
 ### Security
 
+
+## [3.0.1] -- 2020-01-14
+
+### Added
+  * Add lint "no-floating-promises": true,
+  * Update code to explictly state when floating promise wanted
+### Fixed
+  * Update code missing an await
 
 ## [3.0.0] -- 2020-01-14
 
