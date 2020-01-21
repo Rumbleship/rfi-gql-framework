@@ -1,3 +1,8 @@
+const { version: packageVersion, name: packageName } = require('package.json');
+const defaultSpanData = {
+  'origin.package.name': packageName,
+  'origin.package.version': packageVersion
+};
 import { Service } from 'typedi';
 import { Oid } from '@rumbleship/oid';
 import {
@@ -38,6 +43,7 @@ import {
   setAuthorizeContext,
   AuthorizeContext
 } from './create-auth-where-clause';
+import { WithSpan } from '@rumbleship/o11y';
 
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,
@@ -75,6 +81,7 @@ export class SequelizeBaseService<
   TDiscriminatorEnum
 > implements SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate> {
   protected static hooksMap: Set<typeof Model> = new Set();
+  private transactionSpansMap = new Map<string, any>();
   private nodeServices: any;
   private permissions: Permissions;
   private spyglassKey: string;
@@ -119,6 +126,7 @@ export class SequelizeBaseService<
    * For an update, it is also possible to do a query with Action.UPDATE set...
    *
    */
+  @WithSpan({ ...defaultSpanData })
   can(params: {
     action: Actions;
     authorizable: object;
@@ -145,6 +153,7 @@ export class SequelizeBaseService<
    * @param nodeServiceOptions The framework options passed into the API
    * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
    */
+  @WithSpan({ ...defaultSpanData })
   addAuthorizationFilters(
     findOptions: object,
     nodeServiceOptions: NodeServiceOptions,
@@ -185,6 +194,7 @@ export class SequelizeBaseService<
    * @param findOptions
    * @param nodeServiceOptions
    */
+  @WithSpan({ ...defaultSpanData })
   protected addAuthorizationToWhere(
     authorizableClasses: Array<ClassType<any>>,
     findOptions: FindOptions,
@@ -292,6 +302,7 @@ export class SequelizeBaseService<
    * Model instance. Note that eager loaded associated Models are NOT converted.
    * @param dbModel
    */
+  @WithSpan({ ...defaultSpanData })
   gqlFromDbModel(dbModel: TModel): TApi {
     const gqlObject = this.options.apiClassFactory
       ? this.options.apiClassFactory.makeFrom(dbModel, this)
@@ -321,6 +332,7 @@ export class SequelizeBaseService<
     return this.ctx;
   }
 
+  @WithSpan({ ...defaultSpanData })
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V {
     const name = typeof cls === 'string' ? cls : cls.name;
     if (name in this.nodeServices) {
@@ -328,7 +340,7 @@ export class SequelizeBaseService<
     }
     throw Error(`Service not defined for Class: ${name}`);
   }
-
+  @WithSpan({ ...defaultSpanData })
   getServiceForDbModel(
     dbClass: Model
   ): SequelizeBaseServiceInterface<any, any, any, any, any, any> {
@@ -353,6 +365,11 @@ export class SequelizeBaseService<
       autocommit: params.autocommit,
       type: params.type as any
     });
+    const span = this.ctx.rfiBeeline.startSpan({
+      name: 'newTransaction',
+      ...defaultSpanData
+    });
+    this.transactionSpansMap.set((txn as any).id, span);
     this.ctx.logger.addMetadata({
       txn: { id: (txn as any).id, options: (txn as any).options }
     });
@@ -364,6 +381,7 @@ export class SequelizeBaseService<
     transaction: NodeServiceTransaction,
     action: 'commit' | 'rollback'
   ): Promise<void> {
+    this.ctx.rfiBeeline.finishSpan(this.transactionSpansMap.get((transaction as any).id));
     switch (action) {
       case 'commit':
         this.ctx.logger.info('transaction_commit');
@@ -374,6 +392,7 @@ export class SequelizeBaseService<
     }
   }
 
+  @WithSpan({ ...defaultSpanData })
   convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions) {
     if (options) {
       const transaction: Transaction | undefined = options
@@ -392,6 +411,7 @@ export class SequelizeBaseService<
       return undefined;
     }
   }
+  @WithSpan({ ...defaultSpanData })
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
     this.ctx.logger.addMetadata({
@@ -431,6 +451,7 @@ export class SequelizeBaseService<
     return connection;
   }
 
+  @WithSpan({ ...defaultSpanData })
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -447,6 +468,7 @@ export class SequelizeBaseService<
     return undefined;
   }
 
+  @WithSpan({ ...defaultSpanData })
   async findEach(
     filterBy: TFilter,
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
@@ -474,6 +496,7 @@ export class SequelizeBaseService<
     });
   }
 
+  @WithSpan({ ...defaultSpanData })
   async count(filterBy: any, options?: NodeServiceOptions) {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -490,6 +513,7 @@ export class SequelizeBaseService<
     return this.model.count(findOptions);
   }
 
+  @WithSpan({ ...defaultSpanData })
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -511,6 +535,7 @@ export class SequelizeBaseService<
     return this.gqlFromDbModel(instance as any);
   }
 
+  @WithSpan({ ...defaultSpanData })
   async publishLastKnownState(oid: Oid): Promise<void> {
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -545,7 +570,7 @@ export class SequelizeBaseService<
    * @param createInput Parameters to use for input
    * @param options
    */
-
+  @WithSpan({ ...defaultSpanData })
   async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
     if (
       this.can({
@@ -572,6 +597,7 @@ export class SequelizeBaseService<
    * @param action
    * @param options
    */
+  @WithSpan({ ...defaultSpanData })
   async checkDbIsAuthorized(
     id: string | number,
     action: Actions,
@@ -616,6 +642,7 @@ export class SequelizeBaseService<
    * @param options - may include a transaction
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
+  @WithSpan({ ...defaultSpanData })
   async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
@@ -647,7 +674,10 @@ export class SequelizeBaseService<
     try {
       const modelInstance = target
         ? (Reflect.get(target, modelKey) as Model)
-        : await this.model.findByPk(dbId, { ...sequelizeOptions, transaction: updateTransaction });
+        : await this.model.findByPk(dbId, {
+            ...sequelizeOptions,
+            transaction: updateTransaction
+          });
 
       if (!modelInstance) {
         throw new Error('invalid model in db');
@@ -684,6 +714,7 @@ export class SequelizeBaseService<
     TAssocEdge extends Edge<TAssocApi>,
     TAssocModel
     > */
+  @WithSpan({ ...defaultSpanData })
   async getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
@@ -741,6 +772,7 @@ export class SequelizeBaseService<
     return connection;
   }
 
+  @WithSpan({ ...defaultSpanData })
   async getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
     assoc_key: string,

@@ -24,6 +24,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     };
     protected static hooksMap: Set<typeof Model>;
+    private transactionSpansMap;
     private nodeServices;
     private permissions;
     private spyglassKey;
