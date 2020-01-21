@@ -7,7 +7,8 @@ export function WithSpan(context: object = {}): MethodDecorator {
     // But better than making `@rumbleship/o11y` depend on the framework to get Context type?
     descriptor.value = function(...args: any[]) {
       // tslint:disable-next-line: no-console
-      return this.ctx.rfiBeeline.withAsyncSpan(
+      // inflect on the designtype metadata to do asyncspan vs span
+      return this.ctx.rfiBeeline.withSpan(
         {
           ...context,
           'origin.type': 'decorator',
