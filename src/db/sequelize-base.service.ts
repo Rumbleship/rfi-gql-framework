@@ -43,7 +43,7 @@ import {
   setAuthorizeContext,
   AuthorizeContext
 } from './create-auth-where-clause';
-import { WithSpan } from '@rumbleship/o11y';
+import { WithSpan } from './with-span.decorator';
 
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,
