@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * Request context now requires a beeline and a trace
     * **TODO** does this mean minor or major version bump?
 ### Fixed
+  * findOne uses `first` not `limit`
 ### Deprecated
 ### Security
 

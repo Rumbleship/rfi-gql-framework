@@ -460,7 +460,7 @@ export class SequelizeBaseService<
     });
 
     // Authorization done in getAll
-    const matched = await this.getAll({ ...filterBy, ...{ limit: 1 } }, options);
+    const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
     if (matched.edges.length) {
       return matched.edges[0].node;
     }
