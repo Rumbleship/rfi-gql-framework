@@ -25,6 +25,7 @@
     "@hapi/good": "^8.1.1",
     "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.2",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#3.0.0",
+    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#0.0.5",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
@@ -63,6 +64,7 @@
   },
   "peerDependencies": {
     "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.2",
+    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#0.0.5",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#3.0.0",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
     "class-transformer": "^0.2.0",
