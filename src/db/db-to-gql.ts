@@ -3,6 +3,7 @@ import { Oid } from '@rumbleship/oid';
 import { NodeService } from '../gql/relay.service';
 import { Node } from '../gql/index';
 import { ClassType } from '../helpers/classtype';
+import { setAuthorizeContext } from './create-auth-where-clause';
 
 export const modelKey = Symbol.for('model');
 export const apiKey = Symbol.for('api');
@@ -88,7 +89,10 @@ export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = t
   if (modelKey in node) {
     const model = Reflect.get(node, modelKey) as Model<any>;
     if (fromDb) {
-      await model.reload();
+      // We know we are auth'd at this point, so simply add an blank auth context so the sequelize Find methods will
+      // know that we have explicitly considered authorization
+      const findOpts = setAuthorizeContext({}, {});
+      await model.reload(findOpts);
     }
     const modelAsPlain: any = model.get({ plain: true, clone: true });
     delete modelAsPlain.id;
