@@ -31,7 +31,7 @@ export declare function createAuthWhereClause(permissions: Permissions, authoriz
 export interface AuthorizeContext {
     authApplied?: boolean;
 }
-export declare const AuthorizeContextKey: unique symbol;
+export declare const AuthorizeContextKey = "_@RumbleshipAuthorizeContextKey";
 export declare function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext): object;
 export declare function getAuthorizeContext(target: object): AuthorizeContext;
 export {};

@@ -101,7 +101,7 @@ export interface AuthorizeContext {
   authApplied?: boolean;
 }
 
-export const AuthorizeContextKey = Symbol('AuthorizeContextKey');
+export const AuthorizeContextKey = '_@RumbleshipAuthorizeContextKey';
 export function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext) {
   Reflect.set(findOptions, AuthorizeContextKey, authorizeContext);
   return findOptions;
