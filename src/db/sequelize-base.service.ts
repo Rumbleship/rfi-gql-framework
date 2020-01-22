@@ -665,6 +665,10 @@ export class SequelizeBaseService<
       : await this.checkDbIsAuthorized(dbId, Actions.UPDATE, sequelizeOptions ?? {}, options);
     if (!isAuthorized) {
       throw new RFIAuthError();
+    } else {
+      // we are definately authed, set the context so we can do sequelize finds
+      // within the rest of this function
+      setAuthorizeContext({ ...sequelizeOptions }, {});
     }
     // start a (nested) transaction
     const updateTransaction = await this.model.sequelize!.transaction({
