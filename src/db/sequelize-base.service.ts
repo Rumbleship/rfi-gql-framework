@@ -756,9 +756,14 @@ export class SequelizeBaseService<
         where: whereClause
       };
 
-      setAuthorizeContext(findOptions, {});
+      const countOptions: FindOptions = {
+        where: whereClause,
+        attributes: []
+      };
       // assocService.addAuthorizationFilters(findOptions, options ?? {});
-      count = await sourceModel.$count(assoc_key, findOptions);
+      assocService.addAuthorizationFilters(findOptions, options ?? {});
+      assocService.addAuthorizationFilters(countOptions, options ?? {});
+      count = await sourceModel.$count(assoc_key, countOptions);
       findOptions = {
         ...findOptions,
         offset: limits.offset,
