@@ -91,7 +91,7 @@ export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = t
     if (fromDb) {
       // We know we are auth'd at this point, so simply add an blank auth context so the sequelize Find methods will
       // know that we have explicitly considered authorization
-      const findOpts = setAuthorizeContext({}, {});
+      const findOpts = setAuthorizeContext({}, { authApplied: true});
       await model.reload(findOpts);
     }
     const modelAsPlain: any = model.get({ plain: true, clone: true });
