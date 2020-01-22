@@ -282,6 +282,11 @@ export class SequelizeBaseService<
         modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
           const authorizeContext = getAuthorizeContext(findOptions);
           if (!authorizeContext) {
+            // Sequelize loses our auth context tracker on reload, so we add an (UGLY)
+            // explicit override for that case
+            if (Reflect.get(findOptions, 'reloadAuthSkip')) {
+              return;
+            }
             throw new Error(
               'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
             );
