@@ -648,7 +648,11 @@ export class SequelizeBaseService<
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
   // @WithSpan({ ...defaultSpanData })
-  async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
+  async update(
+    updateInput: TUpdate,
+    options: NodeServiceOptions = {},
+    target?: TApi
+  ): Promise<TApi> {
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
@@ -677,12 +681,17 @@ export class SequelizeBaseService<
       autocommit: false
     });
     try {
+      // we are definately authed to go find the model,
+      //  set the context so we can do sequelize finds
+      // within the rest of this function
+      const findOptions = setAuthorizeContext(
+        { ...sequelizeOptions, transaction: updateTransaction },
+        { authApplied: true }
+      );
+
       const modelInstance = target
         ? (Reflect.get(target, modelKey) as Model)
-        : await this.model.findByPk(dbId, {
-            ...sequelizeOptions,
-            transaction: updateTransaction
-          });
+        : await this.model.findByPk(dbId, findOptions);
 
       if (!modelInstance) {
         throw new Error('invalid model in db');
