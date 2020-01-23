@@ -404,7 +404,7 @@ export class SequelizeBaseService<
       });
     }
     this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters.join(', ')
+      [`framework.db.service.filters`]: filters
     });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -453,7 +453,7 @@ export class SequelizeBaseService<
       });
     }
     this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters.join(', ')
+      [`framework.db.service.filters`]: filters
     });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -484,7 +484,7 @@ export class SequelizeBaseService<
       });
     }
     this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters.join(', ')
+      [`framework.db.service.filters`]: filters
     });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
@@ -518,7 +518,7 @@ export class SequelizeBaseService<
       });
     }
     this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters.join(', ')
+      [`framework.db.service.filters`]: filters
     });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
