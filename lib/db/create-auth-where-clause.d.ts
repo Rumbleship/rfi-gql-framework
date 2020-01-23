@@ -4,6 +4,7 @@ import { ClassType } from '../helpers';
 export interface AuthIncludeEntry {
     model: typeof Model;
     as: string;
+    attributes?: string[];
 }
 export declare function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap;
 export declare const AUTHORIZE_THROUGH_ENTRIES: unique symbol;
@@ -31,7 +32,7 @@ export declare function createAuthWhereClause(permissions: Permissions, authoriz
 export interface AuthorizeContext {
     authApplied?: boolean;
 }
-export declare const AuthorizeContextKey: unique symbol;
+export declare const AuthorizeContextKey = "_@RumbleshipAuthorizeContextKey";
 export declare function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext): object;
 export declare function getAuthorizeContext(target: object): AuthorizeContext;
 export {};
