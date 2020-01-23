@@ -4,6 +4,7 @@ import { ClassType } from '../helpers';
 export interface AuthIncludeEntry {
     model: typeof Model;
     as: string;
+    attributes?: string[];
 }
 export declare function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap;
 export declare const AUTHORIZE_THROUGH_ENTRIES: unique symbol;

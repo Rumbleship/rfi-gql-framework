@@ -12,6 +12,7 @@ import { Op } from 'sequelize';
 export interface AuthIncludeEntry {
   model: typeof Model;
   as: string;
+  attributes?: string[];
 }
 
 export function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap {

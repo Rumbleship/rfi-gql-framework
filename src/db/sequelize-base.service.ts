@@ -55,7 +55,12 @@ export interface SequelizeBaseServiceInterface<
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
   gqlFromDbModel(dao: object): TApi;
-  addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions): object;
+  addAuthorizationFilters(
+    findOptions: object,
+    nodeServiceOptions: NodeServiceOptions,
+    authorizableClass?: ClassType<any>,
+    forCountQuery?: boolean
+  ): object;
 }
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -157,7 +162,8 @@ export class SequelizeBaseService<
   addAuthorizationFilters(
     findOptions: object,
     nodeServiceOptions: NodeServiceOptions,
-    authorizableClass?: ClassType<any>
+    authorizableClass?: ClassType<any>,
+    forCountQuery: boolean = false
   ) {
     let authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions);
     if (!authorizeContext) {
@@ -198,7 +204,8 @@ export class SequelizeBaseService<
   protected addAuthorizationToWhere(
     authorizableClasses: Array<ClassType<any>>,
     findOptions: FindOptions,
-    nodeServiceOptions?: NodeServiceOptions
+    nodeServiceOptions: NodeServiceOptions = {},
+    forCountQuery: boolean = false
   ): FindOptions {
     if (nodeServiceOptions?.skipAuthorizationCheck) {
       return findOptions;
@@ -239,7 +246,10 @@ export class SequelizeBaseService<
         ) as any).dbModel() as ClassType<Model> & typeof Model;
         eagerLoads.push({
           model: assocModel,
-          as: authEntry.associationName
+          as: authEntry.associationName,
+          // If we're counting, force the omission of all attributes on eager includes.
+          // Otherwise, let Sequelize inflect its defaults and load whatever it wants
+          attributes: forCountQuery ? [] : undefined
         });
       }
       findOptions.where = {
@@ -760,9 +770,9 @@ export class SequelizeBaseService<
         where: whereClause,
         attributes: []
       };
-      // assocService.addAuthorizationFilters(findOptions, options ?? {});
+    
       assocService.addAuthorizationFilters(findOptions, options ?? {});
-      assocService.addAuthorizationFilters(countOptions, options ?? {});
+      assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
       count = await sourceModel.$count(assoc_key, countOptions);
       findOptions = {
         ...findOptions,

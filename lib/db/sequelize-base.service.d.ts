@@ -9,7 +9,7 @@ import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 export interface SequelizeBaseServiceInterface<TApi extends Node<TApi> = any, TModel extends Model<TModel> = any, TConnection extends Connection<TApi> = any, TFilter = any, TInput = any, TUpdate = any> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     dbModel(): ModelClass<TModel> & typeof Model;
     gqlFromDbModel(dao: object): TApi;
-    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions): object;
+    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>, forCountQuery?: boolean): object;
 }
 export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
@@ -66,7 +66,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param nodeServiceOptions The framework options passed into the API
      * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
      */
-    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>): object;
+    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>, forCountQuery?: boolean): object;
     /**
      *
      * Called by the setAuthorizeContext. Dont call directly unless you have totally overridden
@@ -75,7 +75,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param findOptions
      * @param nodeServiceOptions
      */
-    protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<any>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions): FindOptions;
+    protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<any>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions, forCountQuery?: boolean): FindOptions;
     /**
      * This should be called ONLY by the service contructor and adds the authorization check
      * to the sequelize Model Class.
