@@ -1,6 +1,5 @@
 import { ContainerInstance } from 'typedi';
 import { Authorizer } from '@rumbleship/acl';
-import { RFIBeeline } from '@rumbleship/o11y';
 
 // Defining this here, for now, so I don't have to migrate all of Spyglass to TypeScript.
 export interface SpyglassLogger {
@@ -17,8 +16,6 @@ export interface SpyglassLogger {
   debug: (message: any, metadata?: object) => void;
 }
 export interface Context {
-  rfiBeeline: RFIBeeline;
-  trace: any; // beeline trace
   requestId: string;
   container: ContainerInstance;
   authorizer: Authorizer;
