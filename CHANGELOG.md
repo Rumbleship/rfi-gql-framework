@@ -5,20 +5,14 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [3.0.3] -- 2020-01-23
 
-### Added
-### Removed
-### Changed
 ### Fixed
   * findOne uses `first` not `limit`
   * Magic Authorization:
     * AuthorizeContextKey is now a plain string; not a symbol -- Sequelize didn't like cloning the symbol
     * Optional (default: false) flag passable when adding the `AuthorizationFilters` -- force `$count` to not include attributes on models used to derive auth.
   * Allow explicit auth-skip for reloading sequelize models.
-### Deprecated
-### Security
-
 
 ## [3.0.2] -- 2020-01-15
 
