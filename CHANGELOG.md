@@ -8,11 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-  * `@rumbleship/o11y` as a peer/dev dependency
 ### Removed
 ### Changed
-  * Request context now requires a beeline and a trace
-    * **TODO** does this mean minor or major version bump?
 ### Fixed
   * findOne uses `first` not `limit`
   * Magic Authorization:
