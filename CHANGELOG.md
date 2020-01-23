@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * findOne uses `first` not `limit`
+  * Magic Authorization:
+    * AuthorizeContextKey is now a plain string; not a symbol -- Sequelize didn't like cloning the symbol
+    * Optional (default: false) flag passable when adding the `AuthorizationFilters` -- force `$count` to not include attributes on models used to derive auth.
+  * Allow explicit auth-skip for reloading sequelize models.
 ### Deprecated
 ### Security
 

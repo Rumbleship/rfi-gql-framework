@@ -12,6 +12,7 @@ import { Op } from 'sequelize';
 export interface AuthIncludeEntry {
   model: typeof Model;
   as: string;
+  attributes?: string[];
 }
 
 export function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap {
@@ -101,7 +102,7 @@ export interface AuthorizeContext {
   authApplied?: boolean;
 }
 
-export const AuthorizeContextKey = Symbol('AuthorizeContextKey');
+export const AuthorizeContextKey = '_@RumbleshipAuthorizeContextKey';
 export function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext) {
   Reflect.set(findOptions, AuthorizeContextKey, authorizeContext);
   return findOptions;
