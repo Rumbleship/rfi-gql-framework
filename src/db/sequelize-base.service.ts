@@ -50,7 +50,12 @@ export interface SequelizeBaseServiceInterface<
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
   gqlFromDbModel(dao: object): TApi;
-  addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions): object;
+  addAuthorizationFilters(
+    findOptions: object,
+    nodeServiceOptions: NodeServiceOptions,
+    authorizableClass?: ClassType<any>,
+    forCountQuery?: boolean
+  ): object;
 }
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -149,7 +154,8 @@ export class SequelizeBaseService<
   addAuthorizationFilters(
     findOptions: object,
     nodeServiceOptions: NodeServiceOptions,
-    authorizableClass?: ClassType<any>
+    authorizableClass?: ClassType<any>,
+    forCountQuery: boolean = false
   ) {
     let authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions);
     if (!authorizeContext) {
@@ -172,7 +178,8 @@ export class SequelizeBaseService<
     findOptions = this.addAuthorizationToWhere(
       authorizableClasses,
       findOptions,
-      nodeServiceOptions
+      nodeServiceOptions,
+      forCountQuery
     );
     authorizeContext.authApplied = true;
 
@@ -189,7 +196,8 @@ export class SequelizeBaseService<
   protected addAuthorizationToWhere(
     authorizableClasses: Array<ClassType<any>>,
     findOptions: FindOptions,
-    nodeServiceOptions?: NodeServiceOptions
+    nodeServiceOptions: NodeServiceOptions = {},
+    forCountQuery: boolean = false
   ): FindOptions {
     if (nodeServiceOptions?.skipAuthorizationCheck) {
       return findOptions;
@@ -230,7 +238,10 @@ export class SequelizeBaseService<
         ) as any).dbModel() as ClassType<Model> & typeof Model;
         eagerLoads.push({
           model: assocModel,
-          as: authEntry.associationName
+          as: authEntry.associationName,
+          // If we're counting, force the omission of all attributes on eager includes.
+          // Otherwise, let Sequelize inflect its defaults and load whatever it wants
+          attributes: forCountQuery ? [] : undefined
         });
       }
       findOptions.where = {
@@ -273,6 +284,11 @@ export class SequelizeBaseService<
         modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
           const authorizeContext = getAuthorizeContext(findOptions);
           if (!authorizeContext) {
+            // Sequelize loses our auth context tracker on reload, so we add an (UGLY)
+            // explicit override for that case
+            if (Reflect.get(findOptions, 'reloadAuthSkip')) {
+              return;
+            }
             throw new Error(
               'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
             );
@@ -329,7 +345,6 @@ export class SequelizeBaseService<
     }
     throw Error(`Service not defined for Class: ${name}`);
   }
-
   getServiceForDbModel(
     dbClass: Model
   ): SequelizeBaseServiceInterface<any, any, any, any, any, any> {
@@ -462,7 +477,7 @@ export class SequelizeBaseService<
     });
 
     // Authorization done in getAll
-    const matched = await this.getAll({ ...filterBy, ...{ limit: 1 } }, options);
+    const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
     if (matched.edges.length) {
       return matched.edges[0].node;
     }
@@ -694,12 +709,17 @@ export class SequelizeBaseService<
       autocommit: false
     });
     try {
+      // we are definately authed to go find the model,
+      //  set the context so we can do sequelize finds
+      // within the rest of this function
+      const findOptions = setAuthorizeContext(
+        { ...sequelizeOptions, transaction: updateTransaction },
+        { authApplied: true }
+      );
+
       const modelInstance = target
         ? (Reflect.get(target, modelKey) as Model)
-        : await this.model.findByPk(dbId, {
-            ...sequelizeOptions,
-            transaction: updateTransaction
-          });
+        : await this.model.findByPk(dbId, findOptions);
 
       if (!modelInstance) {
         throw new Error('invalid model in db');
@@ -773,8 +793,14 @@ export class SequelizeBaseService<
         where: whereClause
       };
 
+      const countOptions: FindOptions = {
+        where: whereClause,
+        attributes: []
+      };
+
       assocService.addAuthorizationFilters(findOptions, options ?? {});
-      count = await sourceModel.$count(assoc_key, findOptions);
+      assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
+      count = await sourceModel.$count(assoc_key, countOptions);
       findOptions = {
         ...findOptions,
         offset: limits.offset,
