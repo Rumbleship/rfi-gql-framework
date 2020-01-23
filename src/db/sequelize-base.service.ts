@@ -396,11 +396,16 @@ export class SequelizeBaseService<
   @WithSpan()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
+    const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
       this.ctx.rfiBeeline.addContext({
         [`framework.db.service.filter.${k}`]: v
       });
     }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters.join(', ')
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getAll: { filterBy }
@@ -440,11 +445,16 @@ export class SequelizeBaseService<
 
   @WithSpan()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
+    const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
       this.ctx.rfiBeeline.addContext({
         [`framework.db.service.filter.${k}`]: v
       });
     }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters.join(', ')
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findOne: { filterBy }
@@ -466,11 +476,16 @@ export class SequelizeBaseService<
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
+    const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
       this.ctx.rfiBeeline.addContext({
         [`framework.db.service.filter.${k}`]: v
       });
     }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters.join(', ')
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findEach: { filterBy }
@@ -495,11 +510,16 @@ export class SequelizeBaseService<
 
   @WithSpan()
   async count(filterBy: any, options?: NodeServiceOptions) {
+    const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
       this.ctx.rfiBeeline.addContext({
         [`framework.db.service.filter.${k}`]: v
       });
     }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters.join(', ')
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         count: { filterBy }
@@ -517,6 +537,7 @@ export class SequelizeBaseService<
 
   @WithSpan()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
+    this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getOne: { ...oid, id: oid.unwrap().id, scope: oid.unwrap().scope }
