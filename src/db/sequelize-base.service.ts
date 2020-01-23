@@ -186,7 +186,8 @@ export class SequelizeBaseService<
     findOptions = this.addAuthorizationToWhere(
       authorizableClasses,
       findOptions,
-      nodeServiceOptions
+      nodeServiceOptions,
+      forCountQuery
     );
     authorizeContext.authApplied = true;
 
@@ -770,7 +771,7 @@ export class SequelizeBaseService<
         where: whereClause,
         attributes: []
       };
-    
+
       assocService.addAuthorizationFilters(findOptions, options ?? {});
       assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
       count = await sourceModel.$count(assoc_key, countOptions);
