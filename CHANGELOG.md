@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Peer & dev dependency: @rumbleship/o11y#0.0.7
   * Auto spanning in db.services
 ### Removed
 ### Changed
