@@ -38,6 +38,7 @@ import {
   setAuthorizeContext,
   AuthorizeContext
 } from './create-auth-where-clause';
+import { WithSpan } from '@rumbleship/o11y';
 
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,
@@ -407,9 +408,19 @@ export class SequelizeBaseService<
       return undefined;
     }
   }
-
+  @WithSpan()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getAll: { filterBy }
@@ -447,7 +458,18 @@ export class SequelizeBaseService<
     return connection;
   }
 
+  @WithSpan()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findOne: { filterBy }
@@ -463,11 +485,22 @@ export class SequelizeBaseService<
     return undefined;
   }
 
+  @WithSpan()
   async findEach(
     filterBy: TFilter,
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findEach: { filterBy }
@@ -490,7 +523,18 @@ export class SequelizeBaseService<
     });
   }
 
+  @WithSpan()
   async count(filterBy: any, options?: NodeServiceOptions) {
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         count: { filterBy }
@@ -506,7 +550,9 @@ export class SequelizeBaseService<
     return this.model.count(findOptions);
   }
 
+  @WithSpan()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
+    this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getOne: { ...oid, id: oid.unwrap().id, scope: oid.unwrap().scope }
@@ -561,6 +607,7 @@ export class SequelizeBaseService<
    * @param createInput Parameters to use for input
    * @param options
    */
+  @WithSpan()
   async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
     if (
       this.can({
@@ -587,6 +634,7 @@ export class SequelizeBaseService<
    * @param action
    * @param options
    */
+  @WithSpan()
   async checkDbIsAuthorized(
     id: string | number,
     action: Actions,
@@ -631,11 +679,8 @@ export class SequelizeBaseService<
    * @param options - may include a transaction
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
-  async update(
-    updateInput: TUpdate,
-    options: NodeServiceOptions = {},
-    target?: TApi
-  ): Promise<TApi> {
+  @WithSpan()
+  async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
@@ -711,6 +756,7 @@ export class SequelizeBaseService<
     TAssocEdge extends Edge<TAssocApi>,
     TAssocModel
     > */
+  @WithSpan()
   async getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
@@ -724,6 +770,15 @@ export class SequelizeBaseService<
     assocConnectionClass: ClassType<TAssocConnection>,
     options?: NodeServiceOptions
   ): Promise<TAssocConnection> {
+    for (const [k, v] of Object.entries(filterBy)) {
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.association.source`]: source.constructor.name,
+      [`framework.db.service.association.target`]: assoc_key
+    });
     const { after, before, first, last, ...filter } = filterBy;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
@@ -774,12 +829,17 @@ export class SequelizeBaseService<
     return connection;
   }
 
+  @WithSpan()
   async getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
     assoc_key: string,
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
   ): Promise<TAssocApi | undefined> {
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.association.source`]: source.constructor.name,
+      [`framework.db.service.association.target`]: assoc_key
+    });
     let associatedModel;
     if (assoc_key in source) {
       associatedModel = Reflect.get(source, assoc_key);

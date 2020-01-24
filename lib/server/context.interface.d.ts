@@ -1,5 +1,6 @@
 import { ContainerInstance } from 'typedi';
 import { Authorizer } from '@rumbleship/acl';
+import { RFIBeeline } from '@rumbleship/o11y';
 export interface SpyglassLogger {
     addMetadata: (object: object) => void;
     log: (message: any, metadata?: object) => void;
@@ -14,6 +15,8 @@ export interface SpyglassLogger {
     debug: (message: any, metadata?: object) => void;
 }
 export interface Context {
+    rfiBeeline: RFIBeeline;
+    trace: any;
     requestId: string;
     container: ContainerInstance;
     authorizer: Authorizer;
