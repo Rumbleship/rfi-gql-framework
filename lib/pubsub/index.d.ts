@@ -1,4 +1,5 @@
 export * from './helper';
+export * from './publishing';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize';
 import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pubsub';

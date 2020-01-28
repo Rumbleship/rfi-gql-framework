@@ -1,5 +1,5 @@
 export * from './helper';
-
+export * from './publishing';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize';
 

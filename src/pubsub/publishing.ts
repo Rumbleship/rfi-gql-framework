@@ -8,7 +8,7 @@ import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/nod
 // import { logging } from '@rumbleship/spyglass';
 // const logger = logging.getLogger({});
 
-interface Payload {
+export interface Payload {
   oid: string;
   payload_class: string;
   id: string;
