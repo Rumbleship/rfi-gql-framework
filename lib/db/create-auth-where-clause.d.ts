@@ -1,10 +1,10 @@
 import { Permissions, Authorizer, AuthorizerTreatAsMap, Actions } from '@rumbleship/acl';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers';
-import { NodeService, NodeServiceOptions } from '../gql';
 export interface AuthIncludeEntry {
     model: typeof Model;
     as: string;
+    attributes?: string[];
 }
 export declare function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap;
 export declare const AUTHORIZE_THROUGH_ENTRIES: unique symbol;
@@ -24,12 +24,15 @@ export declare function addAuthorizeThrough(target: object, authThroughEntry: Au
  */
 export declare function AuthorizeThrough(targetClass: () => ClassType<object>, associationName?: string): (target: object, propertyKey: string) => void;
 export declare function createAuthWhereClause(permissions: Permissions, authorizer: Authorizer, action: Actions, targetClass: object, associationName?: string): {};
-export interface AuthorizeContext<T extends NodeService<object>> {
-    service: T;
-    nodeServiceOptions?: NodeServiceOptions;
+/**
+ * Holds the information needed to calculate the
+ * additional where clause to ensure that the current authorized user
+ * only retrieves rows they are allowed to
+ */
+export interface AuthorizeContext {
     authApplied?: boolean;
 }
-export declare const AuthorizeContextKey: unique symbol;
-export declare function setAuthorizeContext<T extends NodeService<object>>(target: object, service: AuthorizeContext<T>): object;
-export declare function getAuthorizeContext<T extends NodeService<object>>(target: object): AuthorizeContext<T>;
+export declare const AuthorizeContextKey = "_@RumbleshipAuthorizeContextKey";
+export declare function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext): object;
+export declare function getAuthorizeContext(target: object): AuthorizeContext;
 export {};

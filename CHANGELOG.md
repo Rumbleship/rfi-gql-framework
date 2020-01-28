@@ -15,6 +15,56 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [3.1.1] -- 2020-01-25
+
+### Added
+  * honeycomb-beeline` as peer + dev dep
+
+## [3.1.0] -- 2020-01-24
+
+### Added
+  * Peer & dev dependency: @rumbleship/o11y#0.0.7
+  * Auto spanning in db.services
+
+## [3.0.3] -- 2020-01-23
+
+### Fixed
+  * findOne uses `first` not `limit`
+  * Magic Authorization:
+    * AuthorizeContextKey is now a plain string; not a symbol -- Sequelize didn't like cloning the symbol
+    * Optional (default: false) flag passable when adding the `AuthorizationFilters` -- force `$count` to not include attributes on models used to derive auth.
+  * Allow explicit auth-skip for reloading sequelize models.
+
+## [3.0.2] -- 2020-01-15
+
+### Fixed
+  * fixed introduced double loading of eager loaded associated objects
+
+## [3.0.1] -- 2020-01-14
+
+### Added
+  * Add lint "no-floating-promises": true,
+  * Update code to explictly state when floating promise wanted
+### Fixed
+  * Update code missing an await
+
+## [3.0.0] -- 2020-01-14
+
+### Added
+  * added convertToSequelizeDateFilters utility class to convert DateRange objects to sequelize
+    where clauses
+  * Added @AuthorizeThrough decorator as a companion to @AuthorizerTreatAs to enable authorization filtering via associated classes
+    * added helpers to enable implmentation in SequelizeBaseService
+### Removed
+  * BREAKING CHANGE  * removed modelToClass in favor of SequelizeBaseServiceInterface.gqlFromDbModel()
+
+### Changed
+  * BREAKING CHANGE: Changed extended ACL logic to queries, updates. 
+    * REQUIRES the method SequelizeBaseService.addAuthorizationFilters to be called on a sequelize FindOptions object before any sequelize 'find' operation is called
+  * createWhereClauseFilter(filter) now calls convertToSequelizeDateFilters(filter) so both oids and DateRanges are converted to sequelize filters
+### Fixed
+  * createWhereClause correctly checks the type of an id before trying to coerce to a database id
+
 ## [2.0.0] -- 2019-12-15
 
 ### Changed

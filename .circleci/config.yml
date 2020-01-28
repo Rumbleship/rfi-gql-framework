@@ -29,18 +29,18 @@ workflows:
               only:
                 - master
                 - dev
-      - approve_for_publishing:
-          type: approval
-          requires:
-            - build
-          filters:
-            branches:
-              only:
-                - master
+      # - approve_for_publishing:
+      #     type: approval
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
       - publish:
           requires:
             - build
-            - approve_for_publishing
+            # - approve_for_publishing
           filters:
             branches:
               only:

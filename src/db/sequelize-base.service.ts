@@ -20,10 +20,10 @@ import { toBase64 } from '../helpers/base64';
 import { ClassType } from '../helpers/classtype';
 import {
   GqlSingleTableInheritanceFactory,
-  modelToClass,
   modelKey,
-  reloadNodeFromModel
-} from './model-to-class';
+  reloadNodeFromModel,
+  dbToGql
+} from './db-to-gql';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction, FindOptions, Op } from 'sequelize';
@@ -35,20 +35,27 @@ import {
   getAuthorizeThroughEntries,
   AuthIncludeEntry,
   getAuthorizeContext,
-  setAuthorizeContext
+  setAuthorizeContext,
+  AuthorizeContext
 } from './create-auth-where-clause';
+import { WithSpan } from '@rumbleship/o11y';
 
 export interface SequelizeBaseServiceInterface<
-  TApi extends Node<TApi>,
-  TModel extends Model<TModel>,
-  TConnection extends Connection<TApi>,
-  TFilter,
-  TInput,
-  TUpdate
+  TApi extends Node<TApi> = any,
+  TModel extends Model<TModel> = any,
+  TConnection extends Connection<TApi> = any,
+  TFilter = any,
+  TInput = any,
+  TUpdate = any
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
   gqlFromDbModel(dao: object): TApi;
-  setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
+  addAuthorizationFilters(
+    findOptions: object,
+    nodeServiceOptions: NodeServiceOptions,
+    authorizableClass?: ClassType<any>,
+    forCountQuery?: boolean
+  ): object;
 }
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -59,14 +66,7 @@ export function getSequelizeServiceInterfaceFor<
   TUpdate,
   V extends NodeService<TApi>
 >(service: V) {
-  return (service as unknown) as SequelizeBaseServiceInterface<
-    TApi,
-    TModel,
-    TConnection,
-    TFilter,
-    TInput,
-    TUpdate
-  >;
+  return (service as unknown) as SequelizeBaseServiceInterface;
 }
 type ModelClass<T> = new (values?: any, options?: any) => T;
 @Service()
@@ -147,32 +147,78 @@ export class SequelizeBaseService<
    * Connects the options passed into the API to the sequelize options used in a query and the
    * service that is being used.
    *
-   * @param target Typically the FindOptions sequelize object passed into a query
+   * @param findOptions Typically the FindOptions sequelize object passed into a query
    * @param nodeServiceOptions The framework options passed into the API
+   * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
    */
-  setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions) {
-    return setAuthorizeContext(target, { nodeServiceOptions, service: this });
+  addAuthorizationFilters(
+    findOptions: object,
+    nodeServiceOptions: NodeServiceOptions,
+    authorizableClass?: ClassType<any>,
+    forCountQuery: boolean = false
+  ) {
+    let authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions);
+    if (!authorizeContext) {
+      authorizeContext = {};
+      setAuthorizeContext(findOptions, authorizeContext);
+    }
+    if (
+      authorizeContext.authApplied ||
+      nodeServiceOptions?.skipAuthorizationCheck ||
+      this.getContext().authorizer.inScope(Scopes.SYSADMIN)
+    ) {
+      return findOptions;
+    }
+    const authorizableClasses = authorizableClass
+      ? [authorizableClass]
+      : this.options.apiClassFactory
+      ? this.options.apiClassFactory.getClasses()
+      : [this.relayClass];
+    setAuthorizeContext(findOptions, authorizeContext);
+    findOptions = this.addAuthorizationToWhere(
+      authorizableClasses,
+      findOptions,
+      nodeServiceOptions,
+      forCountQuery
+    );
+    authorizeContext.authApplied = true;
+
+    return findOptions;
   }
   /**
    *
-   * Called by the hook. Dont call directly
+   * Called by the setAuthorizeContext. Dont call directly unless you have totally overridden
+   * the auth and want to do some special processing...
    *
    * @param findOptions
    * @param nodeServiceOptions
    */
-  addAuthorizationToWhere(
+  protected addAuthorizationToWhere(
+    authorizableClasses: Array<ClassType<any>>,
     findOptions: FindOptions,
-    nodeServiceOptions?: NodeServiceOptions
+    nodeServiceOptions: NodeServiceOptions = {},
+    forCountQuery: boolean = false
   ): FindOptions {
-    if (!nodeServiceOptions?.skipAuthorizationCheck) {
-      const whereAuthClause = createAuthWhereClause(
-        this.permissions,
-        this.ctx.authorizer,
-        nodeServiceOptions?.action ?? Actions.QUERY,
-        this.relayClass.prototype
-      );
+    if (nodeServiceOptions?.skipAuthorizationCheck) {
+      return findOptions;
+    }
+    // because they are classes not instances...
+    const protypesForClasses = authorizableClasses.map(clazz => clazz.prototype);
+    let whereAuthClause: FindOptions = {};
+    for (const authProtos of protypesForClasses) {
+      whereAuthClause = {
+        ...whereAuthClause,
+        ...createAuthWhereClause(
+          this.permissions,
+          this.ctx.authorizer,
+          nodeServiceOptions?.action ?? Actions.QUERY,
+          authProtos
+        )
+      };
       // any associated objects that must be scanned?
-      const authThroughEntries = getAuthorizeThroughEntries(this.relayClass.prototype);
+      const authThroughEntries = protypesForClasses
+        .map(proto => getAuthorizeThroughEntries(proto))
+        .reduce((pre, val) => pre.concat(val));
       const eagerLoads: AuthIncludeEntry[] = [];
       let includedWhereAuthClause = {};
       for (const authEntry of authThroughEntries) {
@@ -192,11 +238,12 @@ export class SequelizeBaseService<
         ) as any).dbModel() as ClassType<Model> & typeof Model;
         eagerLoads.push({
           model: assocModel,
-          as: authEntry.associationName
+          as: authEntry.associationName,
+          // If we're counting, force the omission of all attributes on eager includes.
+          // Otherwise, let Sequelize inflect its defaults and load whatever it wants
+          attributes: forCountQuery ? [] : undefined
         });
       }
-
-      // [sequelize.literal('`TheAlias->RecipeIngredient`.amount'), 'amount']
       findOptions.where = {
         ...findOptions.where,
         ...{ [Op.or]: [includedWhereAuthClause, whereAuthClause] }
@@ -208,11 +255,12 @@ export class SequelizeBaseService<
         findOptions.include.push(...eagerLoads);
       }
     }
+
     return findOptions;
   }
 
   /**
-   * This should be called ONLY by the service contructor and adds the authorization filter code
+   * This should be called ONLY by the service contructor and adds the authorization check
    * to the sequelize Model Class.
    *
    * @param modelClass
@@ -224,7 +272,7 @@ export class SequelizeBaseService<
     //
     // In the meantime... Watch for closures, this gets added once, so dont add anything but static/globals
     // to the members
-    // so all of the conext MUST be got form the options object passsed into the find.
+    // so all of the context MUST be got form the options object passsed into the find.
     //
     //
     // there are times (eg unit testing), when we dont want to actually add the hook and the Model is not
@@ -236,22 +284,14 @@ export class SequelizeBaseService<
         modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
           const authorizeContext = getAuthorizeContext(findOptions);
           if (!authorizeContext) {
+            // Sequelize loses our auth context tracker on reload, so we add an (UGLY)
+            // explicit override for that case
+            if (Reflect.get(findOptions, 'reloadAuthSkip')) {
+              return;
+            }
             throw new Error(
               'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
             );
-          }
-          if (!authorizeContext.nodeServiceOptions?.skipAuthorizationCheck) {
-            if (!authorizeContext.authApplied) {
-              // only do once
-              if (!authorizeContext.service.getContext().authorizer.inScope(Scopes.SYSADMIN)) {
-                // This is ugly... but not sure how best to accomplish with typesafety
-                (authorizeContext.service as any).addAuthorizationToWhere(
-                  findOptions,
-                  authorizeContext.nodeServiceOptions
-                );
-                authorizeContext.authApplied = true;
-              }
-            }
           }
         });
       }
@@ -264,13 +304,30 @@ export class SequelizeBaseService<
   nodeType(): string {
     return this.relayClass.constructor.name;
   }
-
+  /**
+   * Creates the appropriate gql Relay object from the sequelize
+   * Model instance. Note that eager loaded associated Models are NOT converted.
+   * @param dbModel
+   */
   gqlFromDbModel(dbModel: TModel): TApi {
-    if (this.options.apiClassFactory) {
-      return this.options.apiClassFactory.makeFrom(dbModel, this);
-    } else {
-      return modelToClass(this, this.relayClass, dbModel);
-    }
+    const gqlObject = this.options.apiClassFactory
+      ? this.options.apiClassFactory.makeFrom(dbModel, this)
+      : dbToGql(this, this.relayClass, dbModel);
+    // Singular associated objects are also converted to gqlRelayObjects
+    // Note that this will only happen in eager loading.
+    //
+    // However 'Many' associtions are not managed here. As they are complex and require
+    // Connection paging logic.
+    //
+    // for (const key in gqlObject) {
+    //   if (gqlObject.hasOwnProperty(key)) {
+    //     if (gqlObject[key] instanceof Model) {
+    //       const service = this.getServiceForDbModel((gqlObject[key] as unknown) as Model);
+    //       gqlObject[key] = service.gqlFromDbModel((gqlObject[key] as unknown) as Model);
+    //     }
+    //   }
+    // }
+    return gqlObject;
   }
 
   dbModel() {
@@ -287,6 +344,19 @@ export class SequelizeBaseService<
       return Reflect.get(this.nodeServices, name);
     }
     throw Error(`Service not defined for Class: ${name}`);
+  }
+  getServiceForDbModel(
+    dbClass: Model
+  ): SequelizeBaseServiceInterface<any, any, any, any, any, any> {
+    for (const key in this.nodeServices) {
+      if (this.nodeServices.hasOwnProperty(key)) {
+        const service = this.nodeServices[key];
+        if (service.dbModel === dbClass) {
+          return service;
+        }
+      }
+    }
+    throw Error(`Service not defined for Model`);
   }
 
   async newTransaction(params: {
@@ -338,8 +408,19 @@ export class SequelizeBaseService<
       return undefined;
     }
   }
+  @WithSpan()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getAll: { filterBy }
@@ -362,7 +443,7 @@ export class SequelizeBaseService<
       ...sequelizeOptions
     };
 
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
 
     const { rows, count } = await this.model.findAndCountAll(findOptions);
     // prime the cache
@@ -377,7 +458,18 @@ export class SequelizeBaseService<
     return connection;
   }
 
+  @WithSpan()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findOne: { filterBy }
@@ -385,7 +477,7 @@ export class SequelizeBaseService<
     });
 
     // Authorization done in getAll
-    const matched = await this.getAll({ ...filterBy, ...{ limit: 1 } }, options);
+    const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
     if (matched.edges.length) {
       return matched.edges[0].node;
     }
@@ -393,11 +485,22 @@ export class SequelizeBaseService<
     return undefined;
   }
 
+  @WithSpan()
   async findEach(
     filterBy: TFilter,
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findEach: { filterBy }
@@ -411,7 +514,7 @@ export class SequelizeBaseService<
       where: whereClause,
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
 
     const modelFindEach = findEach.bind(this.model);
     return modelFindEach(findOptions, (model: TModel) => {
@@ -420,22 +523,36 @@ export class SequelizeBaseService<
     });
   }
 
+  @WithSpan()
   async count(filterBy: any, options?: NodeServiceOptions) {
+    const filters = [];
+    for (const [k, v] of Object.entries(filterBy)) {
+      filters.push(k);
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.filters`]: filters
+    });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         count: { filterBy }
       }
     });
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    filterBy = createWhereClauseWith(filterBy);
     const findOptions: FindOptions = {
       where: filterBy,
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
     return this.model.count(findOptions);
   }
 
+  @WithSpan()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
+    this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getOne: { ...oid, id: oid.unwrap().id, scope: oid.unwrap().scope }
@@ -447,7 +564,7 @@ export class SequelizeBaseService<
       where: { id },
       ...sequelizeOptions
     };
-    this.setAuthorizeContext(findOptions, options ?? {});
+    this.addAuthorizationFilters(findOptions, options ?? {});
 
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
@@ -471,7 +588,7 @@ export class SequelizeBaseService<
     const findOptions: FindOptions = {
       where: { id }
     };
-    this.setAuthorizeContext(findOptions, {});
+    this.addAuthorizationFilters(findOptions, {});
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
       throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
@@ -490,7 +607,7 @@ export class SequelizeBaseService<
    * @param createInput Parameters to use for input
    * @param options
    */
-
+  @WithSpan()
   async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
     if (
       this.can({
@@ -511,101 +628,126 @@ export class SequelizeBaseService<
     throw new RFIAuthError();
   }
   /**
-   * NOTE: the @AthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
-   * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
+   * Runs an autyhroization query to see if the requested action  is allowed based
+   * on the users permissions
+   * @param oid
+   * @param action
+   * @param options
+   */
+  @WithSpan()
+  async checkDbIsAuthorized(
+    id: string | number,
+    action: Actions,
+    sequelizeOptions: FindOptions,
+    options?: NodeServiceOptions
+  ) {
+    if (options?.skipAuthorizationCheck) {
+      return true;
+    }
+    const optionsForTest: NodeServiceOptions = { ...options, action };
+    const findOptions: FindOptions = {
+      where: { id },
+      attributes: ['id'],
+      ...sequelizeOptions
+    };
+    this.addAuthorizationFilters(findOptions, optionsForTest);
+    const instance = await this.model.findOne(findOptions);
+    if (!instance) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
    *
-   * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
-   * FOr now if there are specific associated objects that provide permissions, then this methid should be overridden
+   * Updates with data dependant authorizations require a check on the before data and a
+   * check on the after data. For the update to be successful, both checks must suceed.
+   *
+   * Authorization check for updates:
+   *   Check option to skip authorization
+   *      else
+   *   If not skipped, the update start a (nested) transaction
+   *    re-read with Action.UPDATE permission matrix to see if you can update the version in the db.
+   *    make the update
+   *    re-read again with the permissions for Actions.update.
+   *      if the object is not retrievable, it means that the update is not allowed, and the
+   *         transaction is rolled back and an exception thrown.
+   *
    *
    *
    * @param updateInput - data to uipdate
    * @param options - may include a transaction
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
+  @WithSpan()
   async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
-    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    let modelInstance;
-    let oid;
-    const optionsClone: NodeServiceOptions = { ...options, action: Actions.UPDATE };
-    // Check the input for permissions first
-    // if this fails, we check the target later in the process
-    let isAuthorized = optionsClone.skipAuthorizationCheck
-      ? true
-      : typeof updateInput === 'object'
-      ? this.can({ action: Actions.UPDATE, authorizable: updateInput as any, options })
-      : false;
-    if (target) {
-      // we already have the id and should have the model that was loaded
-      // this resolves issues with transactional query for update and stops having to go back and reload
-      //
-      if (modelKey in target) {
-        modelInstance = Reflect.get(target, modelKey);
-        const gqlModelName = modelInstance.constructor.name.slice(
-          0,
-          modelInstance.constructor.name.length - 'Model'.length
-        );
-        oid = Oid.Create(gqlModelName, modelInstance.id);
-      } else {
-        // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
-        throw new Error(`Invalid ${this.relayClass.name}: No id`);
-      }
-    } else {
-      if ((updateInput as any).id) {
-        oid = new Oid((updateInput as any).id.toString());
-        const { id } = oid.unwrap();
-        const findOptions: FindOptions = {
-          where: { id },
-          ...sequelizeOptions
-        };
-        // Note the action is set to Actions.UPDATE above...
-        this.setAuthorizeContext(findOptions, optionsClone ?? {});
-
-        modelInstance = await this.model.findOne(findOptions);
-
-        if (!modelInstance) {
-          throw new Error(`Invalid ${this.relayClass.name}: No id`);
-        }
-        isAuthorized = true; // we know this because it would not be returned unless it was
-      } else {
-        // TODO(@isparling) Instead of waiting to the end to throw, can we throw here?
-        throw new Error(`Invalid ${this.relayClass.name}: No id`);
-      }
+    if (target && !(modelKey in target)) {
+      throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        update: {
-          ...oid,
-          id: oid.unwrap().id,
-          scope: oid.unwrap().scope
-        }
-      }
-    });
+    let isAuthorized = options?.skipAuthorizationCheck ? true : false;
+
+    const oid = target
+      ? target.id
+      : (updateInput as any).id
+      ? new Oid((updateInput as any).id.toString())
+      : undefined;
+    if (!oid) {
+      throw new Error(`Invalid ${this.relayClass.name}: No id`);
+    }
     delete (updateInput as any).id;
-    // do a second check if needed (ie the check on the input object failed)
-    // NOTE: if an authorization is via an associated object, this is not checked, and
-    // a specialized version of this method should be implemented
-    if (
-      isAuthorized ||
-      this.can({
-        action: Actions.UPDATE,
-        authorizable: modelInstance as any,
+    const { id: dbId } = oid.unwrap();
+    const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+    isAuthorized = isAuthorized
+      ? isAuthorized
+      : await this.checkDbIsAuthorized(dbId, Actions.UPDATE, sequelizeOptions ?? {}, options);
+    if (!isAuthorized) {
+      throw new RFIAuthError();
+    }
+    // start a (nested) transaction
+    const updateTransaction = await this.model.sequelize!.transaction({
+      transaction: sequelizeOptions?.transaction,
+      autocommit: false
+    });
+    try {
+      // we are definately authed to go find the model,
+      //  set the context so we can do sequelize finds
+      // within the rest of this function
+      const findOptions = setAuthorizeContext(
+        { ...sequelizeOptions, transaction: updateTransaction },
+        { authApplied: true }
+      );
+
+      const modelInstance = target
+        ? (Reflect.get(target, modelKey) as Model)
+        : await this.model.findByPk(dbId, findOptions);
+
+      if (!modelInstance) {
+        throw new Error('invalid model in db');
+      }
+      await modelInstance.update(updateInput as any, {
+        ...sequelizeOptions,
+        transaction: updateTransaction
+      });
+      isAuthorized = await this.checkDbIsAuthorized(
+        dbId,
+        Actions.UPDATE,
+        { ...sequelizeOptions, transaction: updateTransaction },
         options
-      })
-    ) {
-      await modelInstance.update(updateInput as any, sequelizeOptions);
+      );
+      if (!isAuthorized) {
+        throw new RFIAuthError();
+      } else {
+        await updateTransaction.commit();
+      }
       if (target) {
         await reloadNodeFromModel(target, false);
         return target;
       } else {
         return this.gqlFromDbModel(modelInstance as any);
       }
-    } else {
-      this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-        [this.spyglassKey]: {
-          method: 'update'
-        }
-      });
-      throw new RFIAuthError();
+    } catch (e) {
+      await updateTransaction.rollback();
+      throw e;
     }
   }
 
@@ -614,6 +756,7 @@ export class SequelizeBaseService<
     TAssocEdge extends Edge<TAssocApi>,
     TAssocModel
     > */
+  @WithSpan()
   async getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
@@ -627,6 +770,15 @@ export class SequelizeBaseService<
     assocConnectionClass: ClassType<TAssocConnection>,
     options?: NodeServiceOptions
   ): Promise<TAssocConnection> {
+    for (const [k, v] of Object.entries(filterBy)) {
+      this.ctx.rfiBeeline.addContext({
+        [`framework.db.service.filter.${k}`]: v
+      });
+    }
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.association.source`]: source.constructor.name,
+      [`framework.db.service.association.target`]: assoc_key
+    });
     const { after, before, first, last, ...filter } = filterBy;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
@@ -641,8 +793,14 @@ export class SequelizeBaseService<
         where: whereClause
       };
 
-      assocService.setAuthorizeContext(findOptions, options ?? {});
-      count = await sourceModel.$count(assoc_key, findOptions);
+      const countOptions: FindOptions = {
+        where: whereClause,
+        attributes: []
+      };
+
+      assocService.addAuthorizationFilters(findOptions, options ?? {});
+      assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
+      count = await sourceModel.$count(assoc_key, countOptions);
       findOptions = {
         ...findOptions,
         offset: limits.offset,
@@ -671,33 +829,41 @@ export class SequelizeBaseService<
     return connection;
   }
 
+  @WithSpan()
   async getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
     assoc_key: string,
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
   ): Promise<TAssocApi | undefined> {
+    this.ctx.rfiBeeline.addContext({
+      [`framework.db.service.association.source`]: source.constructor.name,
+      [`framework.db.service.association.target`]: assoc_key
+    });
+    let associatedModel;
     if (assoc_key in source) {
-      const ret = Reflect.get(source, assoc_key);
-      if (ret instanceof assocApiClass) {
-        return ret;
-      } else {
-        throw new Error(`Invalid associated type for ${assoc_key}`);
+      associatedModel = Reflect.get(source, assoc_key);
+      if (associatedModel instanceof assocApiClass) {
+        return associatedModel;
       }
     }
     if (!(modelKey in source)) {
       throw new Error(`Invalid ${source.constructor.name}`);
     }
     const assocService = getSequelizeServiceInterfaceFor(this.getServiceFor(assocApiClass));
-    const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
-    const sequelizeOptions: FindOptions =
-      this.convertServiceOptionsToSequelizeOptions(options) ?? {};
+    /*
+     * With eager loading, the model may already be in place but of the wrong type :-)
+     * If it isnt a relay class, and it isnt a sequelize model then reload
+     */
+    if (!(associatedModel instanceof Model)) {
+      const sourceModel = Reflect.get(source, modelKey) as Model<Model<any>>;
+      const sequelizeOptions: FindOptions =
+        this.convertServiceOptionsToSequelizeOptions(options) ?? {};
 
-    assocService.setAuthorizeContext(sequelizeOptions, options ?? {});
+      assocService.addAuthorizationFilters(sequelizeOptions, options ?? {});
 
-    const associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model<
-      Model<any>
-    >;
+      associatedModel = (await sourceModel.$get(assoc_key as any, sequelizeOptions)) as Model;
+    }
     if (associatedModel) {
       Reflect.set(source, assoc_key, assocService.gqlFromDbModel(associatedModel));
       return Reflect.get(source, assoc_key);

@@ -84,7 +84,7 @@ function gqlCreateHook(
   deltas: ModelDelta[],
   options: CreateOptions
 ) {
-  pubSub.publishPayload(NotificationOf.LAST_KNOWN_STATE, instance, []);
+  pubSub.publishPayload(NotificationOf.CREATED, instance, deltas);
 }
 function gqlUpdateHook(
   pubSub: RfiPubSubEngine,
@@ -92,5 +92,5 @@ function gqlUpdateHook(
   deltas: ModelDelta[],
   options: UpdateOptions
 ) {
-  pubSub.publishPayload(NotificationOf.LAST_KNOWN_STATE, instance, []);
+  pubSub.publishPayload(NotificationOf.CREATED, instance, deltas);
 }

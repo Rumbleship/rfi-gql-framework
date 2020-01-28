@@ -1,6 +1,6 @@
 {
   "name": "@rumbleship/gql",
-  "version": "2.0.0",
+  "version": "3.1.1",
   "authors": [
     "Mat Henshall <mat.henshall@rumbleship.com>",
     "Isaac Sparling <isaac@rumbleship.com"
@@ -25,8 +25,9 @@
   },
   "devDependencies": {
     "@hapi/good": "^8.1.1",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.0",
-    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#2.0.0",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.2",
+    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#3.0.0",
+    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#0.0.7",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
@@ -42,6 +43,7 @@
     "dataloader-sequelize": "^1.7.10",
     "graphql": "^14.1.1",
     "hashids": "^1.2.2",
+    "honeycomb-beeline": "git+ssh://git@github.com/rumbleship/beeline-nodejs.git#master",
     "iterable-model": "git+ssh://git@github.com/rumbleship/iterable-model.git#master",
     "jest": "^24.7.1",
     "mysql2": "^1.6.5",
@@ -64,13 +66,15 @@
     "xxhash": "^0.2.4"
   },
   "peerDependencies": {
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.0",
-    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#2.0.0",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.2",
+    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#3.0.0",
+    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#0.0.7",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
     "class-transformer": "^0.2.0",
     "class-validator": "^0.9.1",
     "graphql": "^14.1.1",
     "hashids": "^1.2.2",
+    "honeycomb-beeline": "git+ssh://git@github.com/rumbleship/beeline-nodejs.git#master",
     "iterable-model": "git+ssh://git@github.com/rumbleship/iterable-model.git#master",
     "mysql2": "^1.6.5",
     "reflect-metadata": "^0.1.13",

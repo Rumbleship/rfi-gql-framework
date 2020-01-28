@@ -9,11 +9,10 @@ import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers';
 import { Op } from 'sequelize';
 
-import { NodeService, NodeServiceOptions } from '../gql';
-
 export interface AuthIncludeEntry {
   model: typeof Model;
   as: string;
+  attributes?: string[];
 }
 
 export function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap {
@@ -76,15 +75,17 @@ export function createAuthWhereClause(
   let whereAuthClause = {};
 
   for (const [role, keys] of authorizingAttributes) {
-    const setOfIds = authorizer.identifiersThatCan({
+    const identifiersThatCan = authorizer.identifiersThatCan({
       action,
       matrix: permissions,
       only: role
     });
-    if (setOfIds.length) {
+    if (identifiersThatCan.length) {
       for (const key of keys) {
         const whereKey = associationName ? `$${associationName}.${key}$` : key;
-        whereAuthClause = { [Op.or]: [{ [whereKey]: { [Op.in]: setOfIds } }, whereAuthClause] };
+        whereAuthClause = {
+          [Op.or]: [{ [whereKey]: { [Op.in]: identifiersThatCan } }, whereAuthClause]
+        };
       }
     }
   }
@@ -92,22 +93,20 @@ export function createAuthWhereClause(
   return whereAuthClause;
 }
 
-export interface AuthorizeContext<T extends NodeService<object>> {
-  service: T;
-  nodeServiceOptions?: NodeServiceOptions;
+/**
+ * Holds the information needed to calculate the
+ * additional where clause to ensure that the current authorized user
+ * only retrieves rows they are allowed to
+ */
+export interface AuthorizeContext {
   authApplied?: boolean;
 }
 
-export const AuthorizeContextKey = Symbol('AuthorizeContextKey');
-export function setAuthorizeContext<T extends NodeService<object>>(
-  target: object,
-  service: AuthorizeContext<T>
-) {
-  Reflect.set(target, AuthorizeContextKey, service);
-  return target;
+export const AuthorizeContextKey = '_@RumbleshipAuthorizeContextKey';
+export function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext) {
+  Reflect.set(findOptions, AuthorizeContextKey, authorizeContext);
+  return findOptions;
 }
-export function getAuthorizeContext<T extends NodeService<object>>(
-  target: object
-): AuthorizeContext<T> {
+export function getAuthorizeContext(target: object): AuthorizeContext {
   return Reflect.get(target, AuthorizeContextKey);
 }

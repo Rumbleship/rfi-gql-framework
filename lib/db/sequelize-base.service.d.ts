@@ -2,16 +2,16 @@ import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
-import { GqlSingleTableInheritanceFactory } from './model-to-class';
+import { GqlSingleTableInheritanceFactory } from './db-to-gql';
 import { Context } from '../server/index';
 import { Transaction, FindOptions } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
-export interface SequelizeBaseServiceInterface<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
+export interface SequelizeBaseServiceInterface<TApi extends Node<TApi> = any, TModel extends Model<TModel> = any, TConnection extends Connection<TApi> = any, TFilter = any, TInput = any, TUpdate = any> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
     dbModel(): ModelClass<TModel> & typeof Model;
     gqlFromDbModel(dao: object): TApi;
-    setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
+    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>, forCountQuery?: boolean): object;
 }
-export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate>;
+export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
 declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate> {
     protected relayClass: ClassType<TApi>;
@@ -61,20 +61,22 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * Connects the options passed into the API to the sequelize options used in a query and the
      * service that is being used.
      *
-     * @param target Typically the FindOptions sequelize object passed into a query
+     * @param findOptions Typically the FindOptions sequelize object passed into a query
      * @param nodeServiceOptions The framework options passed into the API
+     * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
      */
-    setAuthorizeContext(target: object, nodeServiceOptions: NodeServiceOptions): object;
+    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>, forCountQuery?: boolean): object;
     /**
      *
-     * Called by the hook. Dont call directly
+     * Called by the setAuthorizeContext. Dont call directly unless you have totally overridden
+     * the auth and want to do some special processing...
      *
      * @param findOptions
      * @param nodeServiceOptions
      */
-    addAuthorizationToWhere(findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions): FindOptions;
+    protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<any>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions, forCountQuery?: boolean): FindOptions;
     /**
-     * This should be called ONLY by the service contructor and adds the authorization filter code
+     * This should be called ONLY by the service contructor and adds the authorization check
      * to the sequelize Model Class.
      *
      * @param modelClass
@@ -82,10 +84,16 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     static addAuthCheckHook(modelClass: typeof Model): void;
     setServiceRegister(services: any): void;
     nodeType(): string;
+    /**
+     * Creates the appropriate gql Relay object from the sequelize
+     * Model instance. Note that eager loaded associated Models are NOT converted.
+     * @param dbModel
+     */
     gqlFromDbModel(dbModel: TModel): TApi;
     dbModel(): ModelClass<TModel> & typeof Model;
     getContext(): Context;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
+    getServiceForDbModel(dbClass: Model): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
     newTransaction(params: {
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
@@ -116,11 +124,28 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      */
     create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi>;
     /**
-     * NOTE: the @AthorizeThrough decorator doesnt apply to Updates UNLESS the instance to be updated
-     * is retrieved again. THis is a bit hokey and we may want to revisit this functionality
+     * Runs an autyhroization query to see if the requested action  is allowed based
+     * on the users permissions
+     * @param oid
+     * @param action
+     * @param options
+     */
+    checkDbIsAuthorized(id: string | number, action: Actions, sequelizeOptions: FindOptions, options?: NodeServiceOptions): Promise<boolean>;
+    /**
      *
-     * But it is tricky as it depends on how we do isolation levels and such like and needs additional experimentation and testing
-     * FOr now if there are specific associated objects that provide permissions, then this methid should be overridden
+     * Updates with data dependant authorizations require a check on the before data and a
+     * check on the after data. For the update to be successful, both checks must suceed.
+     *
+     * Authorization check for updates:
+     *   Check option to skip authorization
+     *      else
+     *   If not skipped, the update start a (nested) transaction
+     *    re-read with Action.UPDATE permission matrix to see if you can update the version in the db.
+     *    make the update
+     *    re-read again with the permissions for Actions.update.
+     *      if the object is not retrievable, it means that the update is not allowed, and the
+     *         transaction is rolled back and an exception thrown.
+     *
      *
      *
      * @param updateInput - data to uipdate
