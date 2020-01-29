@@ -1,8 +1,8 @@
 import { Model } from 'sequelize';
-import { Oid } from '@rumbleship/oid';
 import { RfiPubSubEngine } from './index';
 
 import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/node-notification';
+import { apiKey } from '../db';
 
 // Cannot access app level config for debug logging
 // import { logging } from '@rumbleship/spyglass';
@@ -10,19 +10,23 @@ import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/nod
 
 export interface Payload {
   oid: string;
-  payload_class: string;
   id: string;
   action: string;
   deltas: ModelDelta[];
 }
 
-function payloadFromModel(model: Model): { oid: string; payload_class: string; id: string } {
-  const fullClassName: string = model.constructor.name;
+function payloadFromModel(model: Model): { oid: string; id: string } {
+  let node;
+  if (apiKey in model) {
+    node = Reflect.get(model, apiKey);
+  }
+  /* const fullClassName: string = model.constructor.name;
   const idx: number = fullClassName.toString().lastIndexOf('Model');
   const payloadClassName: string = fullClassName.substr(0, idx);
+  */
   const modelId = model?.get('id') as string;
-  const oid: string = Oid.create(payloadClassName, modelId).toString();
-  return { oid, payload_class: payloadClassName, id: modelId };
+  const oid = node?.id.toString();
+  return { oid, id: modelId };
 }
 
 async function _publishPayload(

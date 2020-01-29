@@ -3,7 +3,6 @@ import { RfiPubSubEngine } from './index';
 import { NotificationOf, ModelDelta } from '../gql/node-notification';
 export interface Payload {
     oid: string;
-    payload_class: string;
     id: string;
     action: string;
     deltas: ModelDelta[];
