@@ -411,8 +411,8 @@ export class SequelizeBaseService<
   // @WithSpan()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
-    const filters = [];
-    for (const [k, v] of Object.entries(filterBy)) {
+    /*const filters = [];
+     for (const [k, v] of Object.entries(filterBy)) {
       filters.push(k);
       this.ctx.rfiBeeline.addContext({
         [`framework.db.service.filter.${k}`]: v
@@ -421,6 +421,7 @@ export class SequelizeBaseService<
     this.ctx.rfiBeeline.addContext({
       [`framework.db.service.filters`]: filters
     });
+    */
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getAll: { filterBy }
@@ -460,7 +461,7 @@ export class SequelizeBaseService<
 
   // @WithSpan()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
-    const filters = [];
+    /* const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
       filters.push(k);
       this.ctx.rfiBeeline.addContext({
@@ -470,6 +471,7 @@ export class SequelizeBaseService<
     this.ctx.rfiBeeline.addContext({
       [`framework.db.service.filters`]: filters
     });
+     */
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findOne: { filterBy }
@@ -491,7 +493,7 @@ export class SequelizeBaseService<
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
-    const filters = [];
+    /* const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
       filters.push(k);
       this.ctx.rfiBeeline.addContext({
@@ -500,12 +502,13 @@ export class SequelizeBaseService<
     }
     this.ctx.rfiBeeline.addContext({
       [`framework.db.service.filters`]: filters
-    });
+    }); */
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         findEach: { filterBy }
       }
     });
+
     const { after, before, first, last, ...filter } = filterBy as any;
 
     const whereClause = createWhereClauseWith(filter);
@@ -525,7 +528,7 @@ export class SequelizeBaseService<
 
   // @WithSpan()
   async count(filterBy: any, options?: NodeServiceOptions) {
-    const filters = [];
+    /* const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
       filters.push(k);
       this.ctx.rfiBeeline.addContext({
@@ -535,11 +538,13 @@ export class SequelizeBaseService<
     this.ctx.rfiBeeline.addContext({
       [`framework.db.service.filters`]: filters
     });
+     */
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         count: { filterBy }
       }
     });
+
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     filterBy = createWhereClauseWith(filterBy);
     const findOptions: FindOptions = {
@@ -552,7 +557,8 @@ export class SequelizeBaseService<
 
   // @WithSpan()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
-    this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
+    /* this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
+     */
     this.ctx.logger.addMetadata({
       [this.spyglassKey]: {
         getOne: { ...oid, id: oid.unwrap().id, scope: oid.unwrap().scope }
@@ -770,7 +776,7 @@ export class SequelizeBaseService<
     assocConnectionClass: ClassType<TAssocConnection>,
     options?: NodeServiceOptions
   ): Promise<TAssocConnection> {
-    for (const [k, v] of Object.entries(filterBy)) {
+    /* for (const [k, v] of Object.entries(filterBy)) {
       this.ctx.rfiBeeline.addContext({
         [`framework.db.service.filter.${k}`]: v
       });
@@ -779,6 +785,7 @@ export class SequelizeBaseService<
       [`framework.db.service.association.source`]: source.constructor.name,
       [`framework.db.service.association.target`]: assoc_key
     });
+    */
     const { after, before, first, last, ...filter } = filterBy;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
@@ -836,10 +843,11 @@ export class SequelizeBaseService<
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
   ): Promise<TAssocApi | undefined> {
-    this.ctx.rfiBeeline.addContext({
+    /* this.ctx.rfiBeeline.addContext({
       [`framework.db.service.association.source`]: source.constructor.name,
       [`framework.db.service.association.target`]: assoc_key
     });
+    */
     let associatedModel;
     if (assoc_key in source) {
       associatedModel = Reflect.get(source, assoc_key);
