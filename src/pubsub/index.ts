@@ -9,28 +9,24 @@ import { publishPayload } from './publishing';
 import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 
-export const googlePubSubOptions = {
-  googlePubSubOptions: {
-    project: {
-      doc: 'Gcloud project name',
-      format: 'nonempty-string',
-      default: 'the-development-project',
-      env: 'GCLOUD_PUBSUB_PROJECT_NAME'
-    },
-    credentials: {
-      username: {
-        doc: 'Gcloud (service) account name',
-        format: 'nonempty-string',
-        default: 'the-pubsub-service-account',
-        env: 'GCLOUD_PUBSUB_USERNAME'
-      },
-      privateKey: {
-        doc: 'Gcloud (service) account auth key',
-        format: 'nonempty-string',
-        default: '-BEGIN-NON-FUNCTIONAL-KEY',
-        env: 'GCLOUD_PUBSUB_KEY'
-      }
-    }
+export const GCPPubSub = {
+  project: {
+    doc: 'Gcloud project name',
+    format: String,
+    default: 'the-development-project',
+    env: 'GCLOUD_PUBSUB_PROJECT_NAME'
+  },
+  client_email: {
+    doc: 'Gcloud (service) account name',
+    format: 'nonempty-string',
+    default: "pubsub-rw-svc-acct@rfi-devel-project.iam.gserviceaccount.com",
+    env: 'GCLOUD_PUBSUB_USERNAME'
+  },
+  private_key: {
+    doc: 'Gcloud (service) account auth key',
+    format: 'nonempty-string',
+    default: '-BEGIN-NON-FUNCTIONAL-KEY',
+    env: 'GCLOUD_PUBSUB_KEY'
   }
 };
 
