@@ -23,7 +23,9 @@ export class GQLBaseResolver<
   TInput,
   TUpdate
 > {
-  constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {}
+  constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
+    service.nodeType();
+  }
   async getAll(filterBy: TFilter): Promise<TConnection> {
     return this.service.getAll(filterBy);
   }
@@ -86,7 +88,7 @@ export function createBaseResolver<
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
-      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
+      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
@@ -129,7 +131,7 @@ export function createReadOnlyBaseResolver<
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
-      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
+      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {

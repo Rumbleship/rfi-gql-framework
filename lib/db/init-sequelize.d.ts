@@ -1,4 +1,5 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
+import { Oid } from '@rumbleship/oid';
 /**
  * Returns the global instance of sequelize used by this application
  */
@@ -7,6 +8,12 @@ export declare function getSequelizeInstance(): Sequelize | null;
  * Nulls the global sequelize instance (for testing purposes)
  */
 export declare function nullSequelizeInstance(): void;
+export interface DbModelAndOidScope {
+    scope: string;
+    dbModel: ModelCtor & typeof Model;
+}
+export declare function getScopeFor(model: Model): string | undefined;
+export declare function getOidFor(model: Model): Oid;
 /**
  * initializes sequelize for the app and sets up a global sequelize
  * @param config An object with the shape: { db: { database, username, password, dialect, host, port, pool, socketPath, define }}
@@ -19,7 +26,7 @@ export declare function nullSequelizeInstance(): void;
  * create isolated test databases in test suites
  * pubSub is the PubSubEngine to use to publish model changes
  */
-export declare function initSequelize(config: any, loggingFun: (msg: string) => any, dbModels: Array<ModelCtor & typeof Model>, opt?: {
+export declare function initSequelize(config: any, loggingFun: (msg: string) => any, dbModels: DbModelAndOidScope[], opt?: {
     force: boolean;
     dbSuffix?: string;
 }): Promise<Sequelize>;

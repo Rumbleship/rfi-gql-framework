@@ -1,7 +1,7 @@
 export * from './helper';
 export * from './publishing';
 import { PubSubEngine } from 'type-graphql';
-import { Model } from 'sequelize';
+import { Model } from 'sequelize-typescript';
 
 import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pubsub';
 
@@ -66,6 +66,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   }
 
   public publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void {
+    // tslint:disable-next-line: no-floating-promises
     publishPayload(this, notificationType, model, deltas);
   }
 

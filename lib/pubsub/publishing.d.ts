@@ -1,4 +1,4 @@
-import { Model } from 'sequelize';
+import { Model } from 'sequelize-typescript';
 import { RfiPubSubEngine } from './index';
 import { NotificationOf, ModelDelta } from '../gql/node-notification';
 export interface Payload {

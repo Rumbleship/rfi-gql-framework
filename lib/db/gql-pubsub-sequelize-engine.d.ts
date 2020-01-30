@@ -1,6 +1,5 @@
 import { RfiPubSubEngine } from '../pubsub';
-import { Sequelize } from 'sequelize-typescript';
-import { Model } from 'sequelize';
+import { Model, Sequelize } from 'sequelize-typescript';
 /**
  *
  */
