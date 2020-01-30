@@ -47,6 +47,9 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
 
   // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
   public publish(triggerName: string, payload: any): Promise<void> {
+    if (!this.pubSubClient.topic(triggerName)){
+      await this.pubSubClient.createTopic(triggerName);
+    }
     return super.publish(triggerName, payload);
   }
 
