@@ -95,5 +95,5 @@ function gqlUpdateHook(
   deltas: ModelDelta[],
   options: UpdateOptions
 ) {
-  pubSub.publishPayload(NotificationOf.CREATED, instance, deltas);
+  pubSub.publishPayload(NotificationOf.UPDATED, instance, deltas);
 }
