@@ -46,19 +46,18 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   }
 
   // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
-  public publish(triggerName: string, payload: any): Promise<void> {
-    if (!this.pubSubClient.topic(triggerName)){
-      await this.pubSubClient.createTopic(triggerName);
-    }
+  public async publish(triggerName: string, payload: any): Promise<void> {
+    this.createTopicIfNotExist(triggerName);
     return super.publish(triggerName, payload);
   }
 
-  public subscribe(
+  public async subscribe(
     triggerName: string,
     onMessage: (message: string) => null,
     // Upstream definition uses Object but tslint does not like that
     options?: Object, // tslint:disable-line
   ): Promise<number> {
+    this.createTopicIfNotExist(triggerName);
     return super.subscribe(triggerName, onMessage, options);
   }
 
@@ -72,5 +71,13 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
 
   public publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void {
     publishPayload(this, notificationType, model, deltas);
+  }
+
+  private async createTopicIfNotExist(topicName: string): Promise<void> {
+    try {
+      await this.pubSubClient.topic(topicName);
+    } catch(err) {
+      await this.pubSubClient.createTopic(topicName);
+    }
   }
 }
