@@ -19,7 +19,7 @@ export const GCPPubSub = {
   client_email: {
     doc: 'Gcloud (service) account name',
     format: 'nonempty-string',
-    default: "pubsub-rw-svc-acct@rfi-devel-project.iam.gserviceaccount.com",
+    default: 'pubsub-rw-svc-acct@rfi-devel-project.iam.gserviceaccount.com',
     env: 'GCLOUD_PUBSUB_USERNAME'
   },
   private_key: {
@@ -43,6 +43,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
 
   // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
   public async publish(triggerName: string, payload: any): Promise<void> {
+    // tslint:disable-next-line: no-floating-promises
     this.createTopicIfNotExist(triggerName);
     return super.publish(triggerName, payload);
   }
@@ -53,6 +54,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     // Upstream definition uses Object but tslint does not like that
     options?: Object, // tslint:disable-line
   ): Promise<number> {
+    // tslint:disable-next-line: no-floating-promises
     this.createTopicIfNotExist(triggerName);
     return super.subscribe(triggerName, onMessage, options);
   }
@@ -73,7 +75,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   private async createTopicIfNotExist(topicName: string): Promise<void> {
     try {
       await this.pubSubClient.topic(topicName);
-    } catch(err) {
+    } catch (err) {
       await this.pubSubClient.createTopic(topicName);
     }
   }
