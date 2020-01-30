@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * function to get an Oid from a sequelize db Model instance
 ### Removed
 ### Changed
+  * breaking change: initSequelize now takes an array of ModelCtr/scopename pairs instead of just ModelCtr.
 ### Fixed
 ### Deprecated
 ### Security
