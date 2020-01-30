@@ -38,7 +38,7 @@ import {
   setAuthorizeContext,
   AuthorizeContext
 } from './create-auth-where-clause';
-import { WithSpan } from '@rumbleship/o11y';
+// import { WithSpan } from '@rumbleship/o11y';
 
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,
@@ -408,7 +408,7 @@ export class SequelizeBaseService<
       return undefined;
     }
   }
-  @WithSpan()
+  // @WithSpan()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     const { after, before, first, last, ...filter } = filterBy as any;
     const filters = [];
@@ -458,7 +458,7 @@ export class SequelizeBaseService<
     return connection;
   }
 
-  @WithSpan()
+  // @WithSpan()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
     const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
@@ -485,7 +485,7 @@ export class SequelizeBaseService<
     return undefined;
   }
 
-  @WithSpan()
+  // @WithSpan()
   async findEach(
     filterBy: TFilter,
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
@@ -523,7 +523,7 @@ export class SequelizeBaseService<
     });
   }
 
-  @WithSpan()
+  // @WithSpan()
   async count(filterBy: any, options?: NodeServiceOptions) {
     const filters = [];
     for (const [k, v] of Object.entries(filterBy)) {
@@ -550,7 +550,7 @@ export class SequelizeBaseService<
     return this.model.count(findOptions);
   }
 
-  @WithSpan()
+  // @WithSpan()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
     this.ctx.logger.addMetadata({
@@ -607,7 +607,7 @@ export class SequelizeBaseService<
    * @param createInput Parameters to use for input
    * @param options
    */
-  @WithSpan()
+  // @WithSpan()
   async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
     if (
       this.can({
@@ -634,7 +634,7 @@ export class SequelizeBaseService<
    * @param action
    * @param options
    */
-  @WithSpan()
+  // @WithSpan()
   async checkDbIsAuthorized(
     id: string | number,
     action: Actions,
@@ -679,7 +679,7 @@ export class SequelizeBaseService<
    * @param options - may include a transaction
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
-  @WithSpan()
+  // @WithSpan()
   async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
@@ -756,7 +756,7 @@ export class SequelizeBaseService<
     TAssocEdge extends Edge<TAssocApi>,
     TAssocModel
     > */
-  @WithSpan()
+  // @WithSpan()
   async getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
@@ -829,7 +829,7 @@ export class SequelizeBaseService<
     return connection;
   }
 
-  @WithSpan()
+  // @WithSpan()
   async getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
     assoc_key: string,
