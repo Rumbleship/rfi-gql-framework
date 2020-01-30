@@ -1,8 +1,8 @@
-import { Model } from 'sequelize';
+import { Model } from 'sequelize-typescript';
 import { RfiPubSubEngine } from './index';
 
 import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/node-notification';
-import { apiKey } from '../db';
+import { getOidFor } from '../db';
 
 // Cannot access app level config for debug logging
 // import { logging } from '@rumbleship/spyglass';
@@ -16,16 +16,12 @@ export interface Payload {
 }
 
 function payloadFromModel(model: Model): { oid: string; id: string } {
-  let node;
-  if (apiKey in model) {
-    node = Reflect.get(model, apiKey);
-  }
   /* const fullClassName: string = model.constructor.name;
   const idx: number = fullClassName.toString().lastIndexOf('Model');
   const payloadClassName: string = fullClassName.substr(0, idx);
   */
   const modelId = model?.get('id') as string;
-  const oid = node?.id.toString();
+  const oid = getOidFor(model).toString();
   return { oid, id: modelId };
 }
 
@@ -44,10 +40,12 @@ async function _publishPayload(
 
   // FIXME - enable when logger object can be used here
   // logger.debug('Publishing ' + payload + ' to topic ' + NODE_CHANGE_NOTIFICATION);
+  // tslint:disable-next-line: no-floating-promises
   pubSub.publish(NODE_CHANGE_NOTIFICATION, payload);
 
   // Also publish the specific Model
   // logger.debug('Publishing ' + payload + ' to topic ' + topicName);
+  // tslint:disable-next-line: no-floating-promises
   pubSub.publish(topicName, payload);
 }
 

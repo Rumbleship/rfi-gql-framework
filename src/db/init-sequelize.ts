@@ -1,4 +1,5 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
+import { Oid } from '@rumbleship/oid';
 
 let theSequelizeInstance: Sequelize | null;
 /**
@@ -15,6 +16,23 @@ export function nullSequelizeInstance() {
   theSequelizeInstance = null;
 }
 
+export interface DbModelAndOidScope {
+  scope: string;
+  dbModel: ModelCtor & typeof Model;
+}
+const theDbModels: DbModelAndOidScope[] = [];
+
+export function getScopeFor(model: Model) {
+  const found = theDbModels.find(entry => model instanceof entry.dbModel);
+  return found?.scope;
+}
+export function getOidFor(model: Model) {
+  const scope = getScopeFor(model);
+  if (!scope) {
+    throw new Error(`Cant find Scope for model: ${model.constructor.name}`);
+  }
+  return Oid.create(scope, model.id);
+}
 /**
  * initializes sequelize for the app and sets up a global sequelize
  * @param config An object with the shape: { db: { database, username, password, dialect, host, port, pool, socketPath, define }}
@@ -30,7 +48,7 @@ export function nullSequelizeInstance() {
 export async function initSequelize(
   config: any,
   loggingFun: (msg: string) => any,
-  dbModels: Array<ModelCtor & typeof Model>,
+  dbModels: DbModelAndOidScope[],
   opt?: {
     force: boolean;
     dbSuffix?: string;
@@ -76,8 +94,8 @@ export async function initSequelize(
     options.database = db;
   }
   theSequelizeInstance = new Sequelize(options);
-
-  theSequelizeInstance.addModels(dbModels);
+  theDbModels.push(...dbModels);
+  theSequelizeInstance.addModels(dbModels.map(entry => entry.dbModel));
 
   if (force) {
     await theSequelizeInstance.sync({ force });
