@@ -2,7 +2,7 @@ import { Model } from 'sequelize-typescript';
 import { RfiPubSubEngine } from './index';
 
 import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/node-notification';
-import { getOidFor } from '../db';
+import { getOidFor, getScopeFor } from '../db';
 
 // Cannot access app level config for debug logging
 // import { logging } from '@rumbleship/spyglass';
@@ -36,7 +36,8 @@ async function _publishPayload(
   rval.deltas = deltas;
   const payload = JSON.stringify(rval);
 
-  const topicName: string = `${NODE_CHANGE_NOTIFICATION}_${rawPayload.constructor.name}`;
+  const oidScope = getScopeFor(rawPayload);
+  const topicName: string = `${NODE_CHANGE_NOTIFICATION}_${oidScope}`;
 
   // FIXME - enable when logger object can be used here
   // logger.debug('Publishing ' + payload + ' to topic ' + NODE_CHANGE_NOTIFICATION);
