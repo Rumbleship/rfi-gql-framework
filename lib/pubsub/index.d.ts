@@ -5,7 +5,7 @@ import { Model } from 'sequelize-typescript';
 import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pubsub';
 import { NotificationOf } from '../gql/node-notification';
 export declare const GCPPubSub: {
-    project: {
+    projectId: {
         doc: string;
         format: StringConstructor;
         default: string;
