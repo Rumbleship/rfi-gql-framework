@@ -73,7 +73,12 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   private async createTopicIfNotExist(topicName: string): Promise<void> {
     const topics = await this.pubSubClient.getTopics();
     if (topics.indexOf(topicName) < 0) {
-      await this.pubSubClient.createTopic(topicName);
+      try {
+        await this.pubSubClient.createTopic(topicName);
+      } catch (e) {
+        // tslint:disable-next-line: no-console
+        console.log(`${e?.message}`);
+      }
     }
   }
 }
