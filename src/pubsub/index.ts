@@ -10,23 +10,23 @@ import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 
 export const GCPPubSub = {
-  project: {
-    doc: 'Gcloud project name',
+  projectId: {
+    doc: 'Gcp project name',
     format: String,
     default: 'the-development-project',
-    env: 'GCLOUD_PUBSUB_PROJECT_NAME'
+    env: 'GCP_PUBSUB_PROJECT_NAME'
   },
   client_email: {
-    doc: 'Gcloud (service) account name',
+    doc: 'Gcp (service) account name',
     format: 'nonempty-string',
     default: 'pubsub-rw-svc-acct@rfi-devel-project.iam.gserviceaccount.com',
-    env: 'GCLOUD_PUBSUB_USERNAME'
+    env: 'GCP_PUBSUB_USERNAME'
   },
   private_key: {
-    doc: 'Gcloud (service) account auth key',
+    doc: 'Gcp (service) account auth key',
     format: 'nonempty-string',
     default: '-BEGIN-NON-FUNCTIONAL-KEY',
-    env: 'GCLOUD_PUBSUB_KEY'
+    env: 'GCP_PUBSUB_KEY'
   }
 };
 
@@ -43,8 +43,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
 
   // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
   public async publish(triggerName: string, payload: any): Promise<void> {
-    // tslint:disable-next-line: no-floating-promises
-    this.createTopicIfNotExist(triggerName);
+    await this.createTopicIfNotExist(triggerName);
     return super.publish(triggerName, payload);
   }
 
@@ -54,8 +53,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     // Upstream definition uses Object but tslint does not like that
     options?: Object, // tslint:disable-line
   ): Promise<number> {
-    // tslint:disable-next-line: no-floating-promises
-    this.createTopicIfNotExist(triggerName);
+    await this.createTopicIfNotExist(triggerName);
     return super.subscribe(triggerName, onMessage, options);
   }
 
@@ -73,9 +71,8 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {
-    try {
-      await this.pubSubClient.topic(topicName);
-    } catch (err) {
+    const topics = await this.pubSubClient.getTopics();
+    if (topics.indexOf(topicName) < 0) {
       await this.pubSubClient.createTopic(topicName);
     }
   }
