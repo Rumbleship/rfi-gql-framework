@@ -26,7 +26,7 @@ import {
 } from './db-to-gql';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
-import { Transaction, FindOptions, Op } from 'sequelize';
+import { Transaction, FindOptions, Op, Order } from 'sequelize';
 import { findEach } from 'iterable-model';
 import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
 import { createWhereClauseWith } from '../gql/create-where-clause-with';
@@ -768,7 +768,8 @@ export class SequelizeBaseService<
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
     assocConnectionClass: ClassType<TAssocConnection>,
-    options?: NodeServiceOptions
+    options?: NodeServiceOptions,
+    order?: Order
   ): Promise<TAssocConnection> {
     for (const [k, v] of Object.entries(filterBy)) {
       this.ctx.rfiBeeline.addContext({
@@ -790,12 +791,14 @@ export class SequelizeBaseService<
       sourceModel = Reflect.get(source, modelKey);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       let findOptions: FindOptions = {
-        where: whereClause
+        where: whereClause,
+        order
       };
 
       const countOptions: FindOptions = {
         where: whereClause,
-        attributes: []
+        attributes: [],
+        order
       };
 
       assocService.addAuthorizationFilters(findOptions, options ?? {});
