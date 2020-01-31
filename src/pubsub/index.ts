@@ -10,23 +10,11 @@ import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 
 export const GCPPubSub = {
-  projectId: {
-    doc: 'Gcp project name',
+  keyFilename: {
+    doc: 'filename',
     format: String,
-    default: 'the-development-project',
-    env: 'GCP_PUBSUB_PROJECT_NAME'
-  },
-  client_email: {
-    doc: 'Gcp (service) account name',
-    format: 'nonempty-string',
-    default: 'pubsub-rw-svc-acct@rfi-devel-project.iam.gserviceaccount.com',
-    env: 'GCP_PUBSUB_USERNAME'
-  },
-  private_key: {
-    doc: 'Gcp (service) account auth key',
-    format: 'nonempty-string',
-    default: '-BEGIN-NON-FUNCTIONAL-KEY',
-    env: 'GCP_PUBSUB_KEY'
+    default: '~/Downloads/rfi-development-pubsub-rw.json',
+    env: 'GCP_PUBSUB_KEYFILE'
   }
 };
 
