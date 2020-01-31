@@ -1,3 +1,4 @@
+import { Order } from 'sequelize';
 import { Context } from './../server/context.interface';
 import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node } from './index';
@@ -59,6 +60,6 @@ export interface RelayService<TApi extends Node<TApi>, TConnection extends Conne
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
     update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
-    getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
+    getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions, order?: Order): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
 }
