@@ -1,3 +1,4 @@
+import { Order } from 'sequelize';
 import { Context } from './../server/context.interface';
 import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node } from './index';
@@ -84,7 +85,8 @@ export interface RelayService<
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
     assocConnectionClass: ClassType<TAssocConnection>,
-    options?: NodeServiceOptions
+    options?: NodeServiceOptions,
+    order?: Order
   ): Promise<TAssocConnection>;
   getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
