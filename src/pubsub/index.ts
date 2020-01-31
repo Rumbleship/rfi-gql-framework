@@ -8,6 +8,7 @@ import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pu
 import { publishPayload } from './publishing';
 import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
+import { status } from '@grpc/grpc-js';
 
 export const GCPPubSub = {
   keyFilename: {
@@ -61,7 +62,16 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   private async createTopicIfNotExist(topicName: string): Promise<void> {
     const topics = await this.pubSubClient.getTopics();
     if (topics.indexOf(topicName) < 0) {
-      await this.pubSubClient.createTopic(topicName);
+      try {
+        await this.pubSubClient.createTopic(topicName);
+      } catch (e) {
+        // tslint:disable-next-line: no-console
+        if (!(e.code === status.ALREADY_EXISTS)) {
+          // It can be created during a race condition,
+          // so only rethrow if it is another error
+          throw e;
+        }
+      }
     }
   }
 }
