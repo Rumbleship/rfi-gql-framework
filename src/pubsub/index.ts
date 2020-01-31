@@ -8,6 +8,9 @@ import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pu
 import { publishPayload } from './publishing';
 import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
+// tslint:disable-next-line: no-submodule-imports
+import { StatusError } from '@google-cloud/pubsub/build/src/message-stream';
+import { status } from '@grpc/grpc-js';
 
 export const GCPPubSub = {
   projectId: {
@@ -77,7 +80,13 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
         await this.pubSubClient.createTopic(topicName);
       } catch (e) {
         // tslint:disable-next-line: no-console
-        console.log(`${e?.message}`);
+        if (e instanceof StatusError) {
+          if (e.code !== status.ALREADY_EXISTS) {
+            // It can be created during a race condition,
+            // so only rethrow if it is another error
+            throw e;
+          }
+        }
       }
     }
   }
