@@ -78,8 +78,8 @@ export class NodeResolver implements RelayResolver {
     const { scope } = oid.unwrap();
 
     if (scope in this.nodeServices) {
-      const resolver = Reflect.get(this.nodeServices, scope);
-      return createPayloadUsingOid(rawPayload, resolver, ClassGqlNodeNotification);
+      const service = Reflect.get(this.nodeServices, scope);
+      return createPayloadUsingOid(rawPayload, service, ClassGqlNodeNotification);
     }
     throw Error('Invalid OID. Scope: ' + scope);
   }
