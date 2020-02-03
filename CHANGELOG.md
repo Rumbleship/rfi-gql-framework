@@ -8,8 +8,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * function to get an Oid from a sequelize db Model instance
+  * Added the @google-cloud/pub-sub, @axelspringer/grapql-google-pubsub and @grpc/grpc/js packages to dev and peer dependancies
+  * upgraded to version 3.0.0 of @rumblship/oid
+  * created an "RfiPubSubEngine" as a derivative of the grapql-google-pubsub engine and associated helpers
+
 ### Removed
+  * Support for o11y 'WithSpan and honeycomb- temporay fix for issues with trace and span in apps
+  * BREAKING CHANGE - removed class DbModelChangeNotification as all db changes are now communicated via PubSub
+
 ### Changed
+  * breaking change: initSequelize now takes an array of ModelCtr/scopename pairs instead of just ModelCtr.
+  * Chnges to database are communicated via PubSub and use an Oid to indicate what thing changed and an array of deltas to indicate what attributes changed
+  * topics have 'Model' removed from name. Uses the scope name assigned to the dbModel during intiSequelize for publish: For subscribe, the capitalizedName passed into the BaseResolver is used.
+  * the gqlSubscription on the nodeREsolver (ie you can subscribe to all changes to any node) now uses the scope of the oid to find the appropriate service rather than using class names
+
+  
 ### Fixed
 ### Deprecated
 ### Security

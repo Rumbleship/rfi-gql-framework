@@ -17,12 +17,8 @@ import {
 import { Oid } from '@rumbleship/oid';
 import { Node, RelayResolver } from './index';
 import { NodeService } from './relay.service';
-import {
-  NodeNotification,
-  NotificationOf,
-  NODE_CHANGE_NOTIFICATION,
-  DbModelChangeNotification
-} from './node-notification';
+import { NodeNotification, NotificationOf, NODE_CHANGE_NOTIFICATION } from './node-notification';
+import { createPayloadUsingOid, RawPayload } from '../pubsub/helper';
 
 // we make a specific concreate type here for the concrete general Node notification
 @ObjectType()
@@ -75,22 +71,17 @@ export class NodeResolver implements RelayResolver {
     topics: `${NODE_CHANGE_NOTIFICATION}`,
     nullable: true
   })
-  async onChange(@Root() payload: DbModelChangeNotification): Promise<ClassGqlNodeNotification> {
-    // convert to GQL Model
-    const modelId: number | string = payload.model.get('id') as number | string;
-    // ASSUME that the db model is suffixed with Model
-    const gqlModelName = payload.model.constructor.name.slice(
-      0,
-      payload.model.constructor.name.length - 'Model'.length
-    );
-    const oid = Oid.Create(gqlModelName, modelId);
-    if (gqlModelName in this.nodeServices) {
-      const node = Reflect.get(this.nodeServices, gqlModelName).getOne(oid);
-      const gqlNodeNotification = new ClassGqlNodeNotification(payload.notificationOf, node);
-      return gqlNodeNotification;
-    } else {
-      throw Error('Invalid OID. Scope:' + gqlModelName);
+  async onChange(@Root() rawPayload: RawPayload): Promise<ClassGqlNodeNotification> {
+    const recieved = JSON.parse(rawPayload.data.toString());
+    const strOid = recieved?.oid;
+    const oid: Oid = new Oid(strOid);
+    const { scope } = oid.unwrap();
+
+    if (scope in this.nodeServices) {
+      const service = Reflect.get(this.nodeServices, scope);
+      return createPayloadUsingOid(rawPayload, service, ClassGqlNodeNotification);
     }
+    throw Error('Invalid OID. Scope: ' + scope);
   }
   // for developers and system support,
   @Query(returns => String)
