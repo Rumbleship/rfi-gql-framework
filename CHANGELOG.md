@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [3.1.2] -- 2020-01-31
+
+### Added
+  * (quick hack) Optional trailing parameter `order` on SequelizeBaseService.getAssociatedMany()
+
 ## [3.1.1] -- 2020-01-25
 
 ### Added
