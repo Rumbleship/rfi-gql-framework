@@ -1,6 +1,5 @@
 import { ObjectType, Field, registerEnumType } from 'type-graphql';
 import { Node } from './node.interface';
-import { Model } from 'sequelize';
 import { ClassType } from '../helpers/index';
 
 export enum NotificationOf {
@@ -54,13 +53,4 @@ export function GqlNodeNotification<T extends Node<T>>(
     }
   }
   return GqlNodeNotificationClass;
-}
-
-// and the type used to transmit database changes
-export class DbModelChangeNotification {
-  constructor(
-    public notificationOf: NotificationOf,
-    public model: Model<any, any>,
-    public deltas: ModelDelta[]
-  ) {}
 }

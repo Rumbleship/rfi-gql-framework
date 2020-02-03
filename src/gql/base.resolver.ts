@@ -12,12 +12,9 @@ import {
 import { Oid } from '@rumbleship/oid';
 import { RelayService, Node, Connection } from './index';
 import { ClassType } from './../helpers/classtype';
-import {
-  DbModelChangeNotification,
-  NodeNotification,
-  NODE_CHANGE_NOTIFICATION
-} from './node-notification';
+import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
 import { Scopes } from '@rumbleship/acl';
+import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -26,7 +23,9 @@ export class GQLBaseResolver<
   TInput,
   TUpdate
 > {
-  constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {}
+  constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
+    service.nodeType();
+  }
   async getAll(filterBy: TFilter): Promise<TConnection> {
     return this.service.getAll(filterBy);
   }
@@ -89,16 +88,11 @@ export function createBaseResolver<
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
-      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
+      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true
     })
-    async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
-      // convert to GQL Model
-      const modelId: string = payload.model.get('id') as string;
-      const oid = Oid.Create(objectTypeCls.name, modelId);
-      const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
-      return gqlNodeNotification;
+    async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
+      return createPayloadUsingStr(rawPayload, this, notificationClsType);
     }
   }
   return BaseResolver;
@@ -137,16 +131,11 @@ export function createReadOnlyBaseResolver<
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
-      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}Model`,
+      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true
     })
-    async onChange(@Root() payload: DbModelChangeNotification): Promise<NodeNotification<TApi>> {
-      // convert to GQL Model
-      const modelId: string = payload.model.get('id') as string;
-      const oid = Oid.Create(objectTypeCls.name, modelId);
-      const node = await this.getOne(oid.toString());
-      const gqlNodeNotification = new notificationClsType(payload.notificationOf, node);
-      return gqlNodeNotification;
+    async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
+      return createPayloadUsingStr(rawPayload, this, notificationClsType);
     }
   }
   return BaseResolver;
