@@ -10,12 +10,11 @@ import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 
-export const GCPPubSub = {
+export const PubSubConfig = {
   keyFilename: {
     doc: 'filename',
     format: String,
-    default: '~/Downloads/rfi-development-pubsub-rw.json',
-    env: 'GCP_PUBSUB_KEYFILE'
+    default: `/dev/null`
   }
 };
 
@@ -27,6 +26,9 @@ export type RfiPubSubEngine = PubEngine & PubSubEngine;
 
 export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   constructor(config: any) {
+    if (config.keyFilename === `/dev/null`) {
+      config = {};
+    }
     super(config, uniqueSubscriptionNamePart);
   }
 
