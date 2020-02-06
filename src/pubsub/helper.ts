@@ -1,4 +1,3 @@
-import { hostname } from 'os';
 import { Model } from 'sequelize';
 import { Oid } from '@rumbleship/oid';
 
@@ -19,7 +18,7 @@ import { ClassType } from './../helpers/classtype';
 // }
 
 export function uniqueSubscriptionNamePart(topicName: string) {
-  return `${topicName}-${hostname()}`;
+  return `${topicName}`;
 }
 
 interface OIDPayloadCreator {
