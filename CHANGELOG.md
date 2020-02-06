@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 ### Security
 
+## [4.0.0] -- 2020-02-03
+
+### Changed
+  * Major Version number change
 
 ## [3.1.3] -- 2020-02-03
 
