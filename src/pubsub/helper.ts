@@ -2,7 +2,7 @@ import { hostname } from 'os';
 import { Model } from 'sequelize';
 import { Oid } from '@rumbleship/oid';
 
-import { NODE_CHANGE_NOTIFICATION, NodeNotification } from '../gql/node-notification';
+import { NodeNotification } from '../gql/node-notification';
 import { ClassType } from './../helpers/classtype';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
@@ -18,22 +18,8 @@ import { ClassType } from './../helpers/classtype';
 //   return pubSub ? pubSub : null;
 // }
 
-function randint(min: number, max: number): number {
-  const diff: number = max - min;
-  return Math.floor(Math.random() * Math.floor(diff)) + min;
-}
-
-function randchar(): number {
-  // not technically a char as name implies
-  return randint(97, 122); // a-z
-}
-
-function randstr(len: number) {
-  return String.fromCharCode(...Array.from(new Array(len), randchar));
-}
-
 export function uniqueSubscriptionNamePart(topicName: string) {
-  return `${hostname()}-${randstr(6)}-${NODE_CHANGE_NOTIFICATION}_${topicName}`;
+  return `${topicName}-${hostname()}`;
 }
 
 interface OIDPayloadCreator {

@@ -4,12 +4,11 @@ import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
 import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pubsub';
 import { NotificationOf } from '../gql/node-notification';
-export declare const GCPPubSub: {
+export declare const PubSubConfig: {
     keyFilename: {
         doc: string;
         format: StringConstructor;
         default: string;
-        env: string;
     };
 };
 export interface PubEngine extends PubSubEngine {
