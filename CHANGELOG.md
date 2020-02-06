@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * removed unnecessary randon muber in subscription name
+    * Each instance has its own subscription by host name
+  * removed superfluous NODE_NOTIFICATION string from subscription
+  
 ### Deprecated
 ### Security
 
