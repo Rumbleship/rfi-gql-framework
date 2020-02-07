@@ -1,6 +1,6 @@
 export interface RfiPubSubConfig {
   keyFilename: string;
-  topicPrefex: string;
+  topicPrefix: string;
 }
 export const PubSubConfig = {
   keyFilename: {

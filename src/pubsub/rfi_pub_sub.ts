@@ -23,12 +23,12 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
       config = {} as any;
     }
     super(config, uniqueSubscriptionNamePart);
-    this.topicPrefix = config.topicPrefex;
+    this.topicPrefix = config.topicPrefix;
   }
 
   static validatePubSubConfig(config: RfiPubSubConfig) {
     if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
-      if (['test', 'development'].includes(config.topicPrefex)) {
+      if (['test', 'development'].includes(config.topicPrefix)) {
         /**
          * Each instance of a dev environment (which really means each instance of the database)
          * e.g. when running locally needs to have a prefix for the topics so they dont clash with others
