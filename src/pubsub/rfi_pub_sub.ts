@@ -45,7 +45,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
 
   // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
   public async publish(triggerName: string, payload: any): Promise<void> {
-    triggerName = `${this.topicPrefix}/${triggerName}`;
+    triggerName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(triggerName);
     return super.publish(triggerName, payload);
   }
@@ -57,7 +57,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     // tslint:disable-next-line: ban-types
     options?: Object
   ): Promise<number> {
-    triggerName = `${this.topicPrefix}/${triggerName}`;
+    triggerName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(triggerName);
     return super.subscribe(triggerName, onMessage, options);
   }
