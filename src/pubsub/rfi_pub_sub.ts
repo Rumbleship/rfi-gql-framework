@@ -37,7 +37,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
          * Alternatively, use an emulator!
          */
         throw new Error(
-          'PubSubConfig.topicPrefix MUST be set to a non-clashing value i.e your username'
+          'PubSubConfig.topicPrefix MUST be set to a non-clashing value i.e your username.: See @rumbleship/gql: RfiPubSub'
         );
       }
     }
