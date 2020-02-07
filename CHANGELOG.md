@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * added function to validate config to RfiPubSub contructor
+  * added prefixTopic to publish and subscribe 'triggerName' which is retrieved from the config
+    * This is used to create a unique set of topics and subscriptions for the 'sub' environement 
+      I.e. each developer wont clash when we are sharing a single queue
 ### Removed
 ### Changed
+  * moved classes and functions out of pubsub/index.ts
 ### Fixed
 ### Deprecated
 ### Security
