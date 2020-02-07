@@ -1,5 +1,7 @@
 export * from './helper';
 export * from './publishing';
+export * from './pub_sub_config';
+
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
 
@@ -10,13 +12,6 @@ import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 
-export const PubSubConfig = {
-  keyFilename: {
-    doc: 'filename',
-    format: String,
-    default: `/dev/null`
-  }
-};
 
 export interface PubEngine extends PubSubEngine {
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;

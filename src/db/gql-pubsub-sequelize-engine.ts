@@ -1,12 +1,34 @@
-import { RfiPubSubEngine } from '../pubsub';
+import { RfiPubSubEngine, RfiPubSubConfig } from '../pubsub';
 import { Model, Sequelize } from 'sequelize-typescript';
 import { CreateOptions, UpdateOptions } from 'sequelize';
 import { NotificationOf, ModelDelta } from '../gql/node-notification';
 
+function validatePubSubConfig(config: RfiPubSubConfig) {
+  if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
+    if (['test', 'development'].includes(config.topicPrefex)) {
+      /**
+       * Each instance of a dev environment (which really means each instance of the database)
+       * e.g. when running locally needs to have a prefix for the topics so they dont clash with others
+       * as we share a development queue in GCP pub sub
+       *
+       * Alternatively, use an emulator!
+       */
+      throw new Error(
+        'PubSubConfig.topicPrefix MUST be set to a non-clashing value i.e your username'
+      );
+    }
+  }
+}
+
 /**
  *
  */
-export function linkSequelizeToPubSubEngine(pubSub: RfiPubSubEngine, sequelize: Sequelize) {
+export function linkSequelizeToPubSubEngine(
+  pubSub: RfiPubSubEngine,
+  sequelize: Sequelize,
+  pubSubConfig: RfiPubSubConfig
+) {
+  validatePubSubConfig(pubSubConfig);
   // Install hooks on Sequelize that publish GqlNodeNotifications
   // Takes advantage of the RFI frameworks connection of sequelize Model<> class to our
   // GQL classes
