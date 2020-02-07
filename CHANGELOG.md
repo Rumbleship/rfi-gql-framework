@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * added function to validate config to RfiPubSub contructor
+  * added prefixTopic to publish and subscribe 'triggerName' which is retrieved from the config
+    * This is used to create a unique set of topics and subscriptions for the 'sub' environement 
+      I.e. each developer wont clash when we are sharing a single queue
+### Removed
+### Changed
+  * moved classes and functions out of pubsub/index.ts
+### Fixed
+### Deprecated
+### Security
+
+
 ## [4.0.1] -- 2020-02-06
 
 ### Fixed
