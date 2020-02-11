@@ -19,11 +19,12 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   protected topicPrefix: string;
   constructor(config: RfiPubSubConfig) {
     RfiPubSub.validatePubSubConfig(config);
+    const { topicPrefix } = config;
     if (config.keyFilename === `/dev/null`) {
       config = {} as any;
     }
     super(config, uniqueSubscriptionNamePart);
-    this.topicPrefix = config.topicPrefix;
+    this.topicPrefix = topicPrefix;
   }
 
   static validatePubSubConfig(config: RfiPubSubConfig) {
