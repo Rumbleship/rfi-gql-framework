@@ -439,7 +439,7 @@ export class SequelizeBaseService<
     if (id_attribute) {
       // if it is a uuid or string as id, then we want to use created_at if its there...
       // but we may not have either condition, in which case there is no default ordering
-      if (id_attribute.type === DataType.NUMBER) {
+      if (id_attribute.type === DataType.INTEGER) {
         orderClause = [['id', 'DESC']];
       } else {
         const created_at_attribute = this.model.rawAttributes['id'];
