@@ -16,6 +16,6 @@ export declare class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngin
     unsubscribe(subId: number): any;
     asyncIterator<T>(triggers: string | string[]): AsyncIterator<T>;
     publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
-    deleteCurrentSubscriptions(): Promise<void>;
+    deleteCurrentSubscriptionsMatchingPrefix(): Promise<void>;
     private createTopicIfNotExist;
 }
