@@ -82,8 +82,10 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
       s.name.match(new RegExp(`${this.topicPrefix}`))
     );
     for await (const { name } of mySubscriptions) {
+      // tslint:disable-next-line: no-console
       console.log(`Deleting subscription: ${name}`);
       await this.pubSubClient.subscription(name).delete();
+      // tslint:disable-next-line: no-console
       console.log(`\tDeleted subscription: ${name}`);
     }
   }
