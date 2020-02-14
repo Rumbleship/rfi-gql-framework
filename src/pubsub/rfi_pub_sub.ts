@@ -76,6 +76,20 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     publishPayload(this, notificationType, model, deltas);
   }
 
+  public async deleteCurrentSubscriptionsMatchingPrefix() {
+    const [subscriptions] = await this.pubSubClient.getSubscriptions();
+    const mySubscriptions = subscriptions.filter((s: any) =>
+      s.name.match(new RegExp(`${this.topicPrefix}`))
+    );
+    for await (const { name } of mySubscriptions) {
+      // tslint:disable-next-line: no-console
+      console.log(`Deleting subscription: ${name}`);
+      await this.pubSubClient.subscription(name).delete();
+      // tslint:disable-next-line: no-console
+      console.log(`\tDeleted subscription: ${name}`);
+    }
+  }
+
   private async createTopicIfNotExist(topicName: string): Promise<void> {
     const topics = await this.pubSubClient.getTopics();
     if (topics.indexOf(topicName) < 0) {
