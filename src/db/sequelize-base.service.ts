@@ -26,7 +26,7 @@ import {
 } from './db-to-gql';
 import { Context } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
-import { Transaction, FindOptions, Op, Order, OrderItem, INTEGER } from 'sequelize';
+import { Transaction, FindOptions, Op, Order, OrderItem } from 'sequelize';
 import { findEach } from 'iterable-model';
 import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
 import { createWhereClauseWith } from '../gql/create-where-clause-with';
@@ -434,12 +434,12 @@ export class SequelizeBaseService<
     //
     const connection = new this.connectionClass();
 
-    const id_attribute = this.model.rawAttributes['id'];
+    const id_attribute = this.model.rawAttributes['id'] as any; // sequelize typings are not correct
     let orderClause: OrderItem[] | undefined;
     if (id_attribute) {
       // if it is a uuid or string as id, then we want to use created_at if its there...
       // but we may not have either condition, in which case there is no default ordering
-      if (id_attribute.type === INTEGER) {
+      if (id_attribute?.type?.key === 'INTEGER') {
         orderClause = [['id', 'DESC']];
       } else {
         const created_at_attribute = this.model.rawAttributes['id'];
