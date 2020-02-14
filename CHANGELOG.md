@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * default order to [['id': 'DESC']] if a number and created_at if id is not a number (ie banking)
 ### Fixed
 ### Deprecated
 ### Security
