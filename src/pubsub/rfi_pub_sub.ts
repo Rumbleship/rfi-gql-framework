@@ -60,7 +60,8 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   ): Promise<number> {
     triggerName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(triggerName);
-    return super.subscribe(triggerName, onMessage, options);
+    const id = await super.subscribe(triggerName, onMessage, options);
+    return id;
   }
 
   public unsubscribe(subId: number): any {
