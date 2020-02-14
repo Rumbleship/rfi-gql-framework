@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Ability to clear all current subscriptions
 ### Removed
 ### Changed
 ### Fixed
