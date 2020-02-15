@@ -5,19 +5,13 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [4.0.6] -- 2020-02-15
 
 ### Added
   * Helpers for dev/test implementors of RFIPubSub to enable full reset of hosted env
     * PubSubConfig.resetHostedSubscriptions -> default:false
     * `deleteCurrentSubscriptionsMatchingPrefix()`
     * `createSubscriptionsFor(dbModels)`
-### Removed
-### Changed
-### Fixed
-### Deprecated
-### Security
-
 
 ## [4.0.5] -- 2020-02-14
 
