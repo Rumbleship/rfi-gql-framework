@@ -60,8 +60,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   ): Promise<number> {
     triggerName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(triggerName);
-    const id = await super.subscribe(triggerName, onMessage, options);
-    return id;
+    return super.subscribe(triggerName, onMessage, options);
   }
 
   public unsubscribe(subId: number): any {
@@ -88,6 +87,24 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
       await this.pubSubClient.subscription(name).delete();
       // tslint:disable-next-line: no-console
       console.log(`\tDeleted subscription: ${name}`);
+    }
+  }
+
+  public async resetCurrentSubscriptionsMatchingPrefix() {
+    const [subscriptions] = await this.pubSubClient.getSubscriptions();
+    const mySubscriptions = subscriptions.filter((s: any) =>
+      s.name.match(new RegExp(`${this.topicPrefix}`))
+    );
+    for await (const {
+      name,
+      metadata: { topic }
+    } of mySubscriptions) {
+      // tslint:disable-next-line: no-console
+      console.log(`Deleting subscription: ${name}`);
+      await this.pubSubClient.subscription(name).delete();
+      await this.pubSubClient.topic(topic).createSubscription(name);
+      // tslint:disable-next-line: no-console
+      console.log(`\tRecreated subscription: ${name}`);
     }
   }
 
