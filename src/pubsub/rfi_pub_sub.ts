@@ -1,3 +1,4 @@
+import { DbModelAndOidScope } from './../db/init-sequelize';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
 
@@ -8,6 +9,7 @@ import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 import { RfiPubSubConfig } from './pub_sub_config';
+import { hostname } from 'os';
 
 export interface PubEngine extends PubSubEngine {
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
@@ -87,6 +89,13 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
       await this.pubSubClient.subscription(name).delete();
       // tslint:disable-next-line: no-console
       console.log(`\tDeleted subscription: ${name}`);
+    }
+  }
+
+  public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]) {
+    for await (const { scope } of dbModels) {
+      const triggerName = `${this.topicPrefix}_NODE_CHANGE_NOTIFICATION_${scope}`;
+      await this.pubSubClient.topic(triggerName).createSubscription(triggerName + `-${hostname()}`);
     }
   }
 
