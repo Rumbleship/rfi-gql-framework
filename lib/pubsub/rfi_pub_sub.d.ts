@@ -1,3 +1,4 @@
+import { DbModelAndOidScope } from './../db/init-sequelize';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
 import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pubsub';
@@ -17,6 +18,6 @@ export declare class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngin
     asyncIterator<T>(triggers: string | string[]): AsyncIterator<T>;
     publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
     deleteCurrentSubscriptionsMatchingPrefix(): Promise<void>;
-    resetCurrentSubscriptionsMatchingPrefix(): Promise<void>;
+    createSubscriptionsFor(dbModels: DbModelAndOidScope[]): Promise<void>;
     private createTopicIfNotExist;
 }

@@ -1,3 +1,4 @@
+import { DbModelAndOidScope } from './../db/init-sequelize';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
 
@@ -8,6 +9,7 @@ import { uniqueSubscriptionNamePart } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 import { RfiPubSubConfig } from './pub_sub_config';
+import { hostname } from 'os';
 
 export interface PubEngine extends PubSubEngine {
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
@@ -90,21 +92,10 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     }
   }
 
-  public async resetCurrentSubscriptionsMatchingPrefix() {
-    const [subscriptions] = await this.pubSubClient.getSubscriptions();
-    const mySubscriptions = subscriptions.filter((s: any) =>
-      s.name.match(new RegExp(`${this.topicPrefix}`))
-    );
-    for await (const {
-      name,
-      metadata: { topic }
-    } of mySubscriptions) {
-      // tslint:disable-next-line: no-console
-      console.log(`Deleting subscription: ${name}`);
-      await this.pubSubClient.subscription(name).delete();
-      await this.pubSubClient.topic(topic).createSubscription(name);
-      // tslint:disable-next-line: no-console
-      console.log(`\tRecreated subscription: ${name}`);
+  public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]) {
+    for await (const { scope } of dbModels) {
+      const triggerName = `${this.topicPrefix}_NODE_CHANGE_NOTIFICATION_${scope}`;
+      await this.pubSubClient.topic(triggerName).createSubscription(triggerName + `-${hostname()}`);
     }
   }
 
