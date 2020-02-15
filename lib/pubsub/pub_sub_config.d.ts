@@ -15,4 +15,10 @@ export declare const PubSubConfig: {
         default: string | undefined;
         env: string;
     };
+    resetHostedSubscriptions: {
+        doc: string;
+        format: BooleanConstructor;
+        default: boolean;
+        env: string;
+    };
 };

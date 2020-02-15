@@ -8,9 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Helpers for dev/test implementors of RFIPubSub to enable full reset of hosted env
+    * PubSubConfig.resetHostedSubscriptions -> default:false
+    * `deleteCurrentSubscriptionsMatchingPrefix()`
+    * `createSubscriptionsFor(dbModels)`
 ### Removed
 ### Changed
-  * Await on starting a subscription
 ### Fixed
 ### Deprecated
 ### Security
