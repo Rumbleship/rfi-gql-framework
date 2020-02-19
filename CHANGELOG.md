@@ -5,16 +5,10 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [4.0.7] -- 2020-02-19
 
-### Added
-### Removed
 ### Changed
   * ENV variable to set credentials `GCP_PUBSUB_KEY_FILE_NAME`--> `GOOGLE_APPLICATION_CREDENTIALS` (default for GCP service)
-### Fixed
-### Deprecated
-### Security
-
 
 ## [4.0.6] -- 2020-02-15
 
