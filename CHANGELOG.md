@@ -8,10 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-  * Helpers for dev/test implementors of RFIPubSub to enable full reset of hosted env
-    * PubSubConfig.resetHostedSubscriptions -> default:false
-    * `deleteCurrentSubscriptionsMatchingPrefix()`
-    * `createSubscriptionsFor(dbModels)`
 ### Removed
 ### Changed
   * ENV variable to set credentials `GCP_PUBSUB_KEY_FILE_NAME`--> `GOOGLE_APPLICATION_CREDENTIALS` (default for GCP service)
@@ -19,6 +15,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 ### Security
 
+
+## [4.0.6] -- 2020-02-15
+
+### Added
+  * Helpers for dev/test implementors of RFIPubSub to enable full reset of hosted env
+    * PubSubConfig.resetHostedSubscriptions -> default:false
+    * `deleteCurrentSubscriptionsMatchingPrefix()`
+    * `createSubscriptionsFor(dbModels)`
 
 ## [4.0.5] -- 2020-02-14
 
