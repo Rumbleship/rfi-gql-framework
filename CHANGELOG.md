@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     * `createSubscriptionsFor(dbModels)`
 ### Removed
 ### Changed
+  * ENV variable to set credentials `GCP_PUBSUB_KEY_FILE_NAME`--> `GOOGLE_APPLICATION_CREDENTIALS` (default for GCP service)
 ### Fixed
 ### Deprecated
 ### Security
