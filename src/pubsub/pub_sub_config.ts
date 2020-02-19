@@ -7,7 +7,7 @@ export const PubSubConfig = {
     doc: 'filename',
     format: String,
     default: `/dev/null`,
-    env: 'GCP_PUBSUB_KEY_FILE_NAME'
+    env: 'GOOGLE_APPLICATION_CREDENTIALS'
   },
   topicPrefix: {
     doc: 'Topic prefix - used in dev to separate out indivdual dev enviroment topics',
