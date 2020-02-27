@@ -12,6 +12,7 @@ import { RfiPubSubConfig } from './pub_sub_config';
 import { hostname } from 'os';
 
 export interface PubEngine extends PubSubEngine {
+  publisher_version: string;
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
 }
 
@@ -19,7 +20,8 @@ export type RfiPubSubEngine = PubEngine & PubSubEngine;
 
 export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
   protected topicPrefix: string;
-  constructor(config: RfiPubSubConfig) {
+  public publisher_version: string;
+  constructor(publisher_version: string, config: RfiPubSubConfig) {
     RfiPubSub.validatePubSubConfig(config);
     const { topicPrefix } = config;
     if (config.keyFilename === `/dev/null`) {
@@ -27,6 +29,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     }
     super(config, uniqueSubscriptionNamePart);
     this.topicPrefix = topicPrefix;
+    this.publisher_version = publisher_version;
   }
 
   static validatePubSubConfig(config: RfiPubSubConfig) {
