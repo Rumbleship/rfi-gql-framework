@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * publisher_version to the constructor of RfiPubSub
+  * embed the publisher_version to every message that is sent out
 ### Removed
 ### Changed
 ### Fixed

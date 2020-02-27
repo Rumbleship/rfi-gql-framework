@@ -2,6 +2,7 @@ import { Model } from 'sequelize-typescript';
 import { RfiPubSubEngine } from './index';
 import { NotificationOf, ModelDelta } from '../gql/node-notification';
 export interface Payload {
+    publisher_version: string;
     oid: string;
     id: string;
     action: string;
