@@ -13,7 +13,6 @@ export declare class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngin
     protected topicPrefix: string;
     publisher_version: string;
     constructor(publisher_version: string, config: RfiPubSubConfig);
-    static validatePubSubConfig(config: RfiPubSubConfig): void;
     publish(triggerName: string, payload: any): Promise<void>;
     subscribe(triggerName: string, onMessage: (message: string) => null, options?: Object): Promise<number>;
     unsubscribe(subId: number): any;
