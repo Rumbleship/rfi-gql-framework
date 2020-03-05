@@ -20,13 +20,14 @@ import { ClassType } from './../helpers/classtype';
 
 export interface RfiSubscriptionOptions {
   asService?: boolean;
+  serviceName?: string;
 }
 export function uniqueSubscriptionNamePart(
   topicName: string,
   subscriptionOptions?: RfiSubscriptionOptions
 ) {
   if (subscriptionOptions && subscriptionOptions.asService) {
-    return `${topicName}-ServiceSubscription`;
+    return `${topicName}-${subscriptionOptions.serviceName ?? 'any'}-ServiceSubscription`;
   } else {
     return `${topicName}-${hostname()}`;
   }
