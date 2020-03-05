@@ -8,6 +8,7 @@ import { RfiPubSubConfig } from './pub_sub_config';
 export interface PubEngine extends PubSubEngine {
     publisher_version: string;
     publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
+    subscribe(triggerName: string, onMessage: (message: string) => null, options?: RfiSubscriptionOptions): Promise<number>;
 }
 export declare type RfiPubSubEngine = PubEngine & PubSubEngine;
 export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {

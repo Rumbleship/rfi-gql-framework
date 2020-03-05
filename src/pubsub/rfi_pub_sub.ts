@@ -14,6 +14,11 @@ import { hostname } from 'os';
 export interface PubEngine extends PubSubEngine {
   publisher_version: string;
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
+  subscribe(
+    triggerName: string,
+    onMessage: (message: string) => null,
+    options?: RfiSubscriptionOptions
+  ): Promise<number>;
 }
 
 export type RfiPubSubEngine = PubEngine & PubSubEngine;
@@ -59,8 +64,6 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   public async subscribe(
     triggerName: string,
     onMessage: (message: string) => null,
-    // Upstream definition uses Object but tslint does not like that
-    // tslint:disable-next-line: ban-types
     options?: RfiSubscriptionOptions
   ): Promise<number> {
     triggerName = `${this.topicPrefix}_${triggerName}`;
