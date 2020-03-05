@@ -2,10 +2,10 @@ import { DbModelAndOidScope } from './../db/init-sequelize';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
 
-import { GooglePubSub as ApolloPubSubLib } from '@axelspringer/graphql-google-pubsub';
+import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
 
 import { publishPayload } from './publishing';
-import { uniqueSubscriptionNamePart } from './helper';
+import { uniqueSubscriptionNamePart, RfiSubscriptionOptions } from './helper';
 import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 import { RfiPubSubConfig } from './pub_sub_config';
@@ -18,7 +18,7 @@ export interface PubEngine extends PubSubEngine {
 
 export type RfiPubSubEngine = PubEngine & PubSubEngine;
 
-export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
+export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;
   public publisher_version: string;
   constructor(publisher_version: string, config: RfiPubSubConfig) {
@@ -61,7 +61,7 @@ export class RfiPubSub extends ApolloPubSubLib implements RfiPubSubEngine {
     onMessage: (message: string) => null,
     // Upstream definition uses Object but tslint does not like that
     // tslint:disable-next-line: ban-types
-    options?: Object
+    options?: RfiSubscriptionOptions
   ): Promise<number> {
     triggerName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(triggerName);
