@@ -1,7 +1,10 @@
 import { Oid } from '@rumbleship/oid';
 import { NodeNotification } from '../gql/node-notification';
 import { ClassType } from './../helpers/classtype';
-export declare function uniqueSubscriptionNamePart(topicName: string): string;
+export interface RfiSubscriptionOptions {
+    asService?: boolean;
+}
+export declare function uniqueSubscriptionNamePart(topicName: string, subscriptionOptions?: RfiSubscriptionOptions): string;
 interface OIDPayloadCreator {
     getOne(id: Oid): Promise<any>;
 }
