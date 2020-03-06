@@ -26,12 +26,15 @@
   "devDependencies": {
     "@axelspringer/graphql-google-pubsub": "^2.0.0",
     "@google-cloud/pubsub": "^1.1.6",
+    "@google-cloud/debug-agent": "^4.2.2",
+    "@google-cloud/error-reporting": "^1.1.3",
+    "@google-cloud/logging-winston": "3.0.5",
     "@grpc/grpc-js": "^0.6.15",
     "@hapi/good": "^8.1.1",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.2",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#0.0.7",
-    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#3.0.0",
-    "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
+    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.0",
+    "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.1",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
     "@types/hashids": "^1.0.30",
@@ -66,16 +69,16 @@
     "typescript": "^3.7.3",
     "typescript-tslint-plugin": "^0.5.5",
     "uuid": "^3.3.2",
-    "xxhash": "^0.2.4"
+    "winston": "^3.2.1"
   },
   "peerDependencies": {
     "@axelspringer/graphql-google-pubsub": "^2.0.0",
     "@google-cloud/pubsub": "^1.1.6",
     "@grpc/grpc-js": "^0.6.15",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.2",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#0.0.7",
-    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#3.0.0",
-    "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#2.2.5",
+    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.0",
+    "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.1",
     "class-transformer": "^0.2.0",
     "class-validator": "^0.9.1",
     "graphql": "^14.1.1",
@@ -87,8 +90,7 @@
     "sequelize": "^5.8.5",
     "sequelize-typescript": "^1.0.0-beta.3",
     "type-graphql": "^0.17.5",
-    "typedi": "^0.8.0",
-    "xxhash": "^0.2.4"
+    "typedi": "^0.8.0"
   },
   "dependencies": {}
 }

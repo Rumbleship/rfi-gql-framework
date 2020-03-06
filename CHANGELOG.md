@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * option to support 'service' subscriptions. I.e. only one instance of a service that subscribes gets an event from the pub-sub queue
+  * Remove the banking hack test and uuid oid tests as we no longer support uuid based oid's
+### Removed
+### Changed
+### Fixed
+### Deprecated
+### Security
+
+
 ## [4.1.0] -- 2020-02-27
 
 ### Added
