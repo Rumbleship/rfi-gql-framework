@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * option to support 'service' subscriptions. I.e. only one instance of a service that subscribes gets an event from the pub-sub queue
+  * Remove the banking hack test and uuid oid tests as we no longer support uuid based oid's
 ### Removed
 ### Changed
 ### Fixed

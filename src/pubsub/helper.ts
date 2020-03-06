@@ -18,8 +18,19 @@ import { ClassType } from './../helpers/classtype';
 //   return pubSub ? pubSub : null;
 // }
 
-export function uniqueSubscriptionNamePart(topicName: string) {
-  return `${topicName}-${hostname()}`;
+export interface RfiSubscriptionOptions {
+  asService?: boolean;
+  serviceName?: string;
+}
+export function uniqueSubscriptionNamePart(
+  topicName: string,
+  subscriptionOptions?: RfiSubscriptionOptions
+) {
+  if (subscriptionOptions && subscriptionOptions.asService) {
+    return `${topicName}-${subscriptionOptions.serviceName ?? 'any'}-ServiceSubscription`;
+  } else {
+    return `${topicName}-${hostname()}`;
+  }
 }
 
 interface OIDPayloadCreator {
