@@ -23,14 +23,14 @@ export class GqlSingleTableInheritanceFactory<
   constructor(
     private oidScope: string, // the scope is the base class scope.
     private discriminatorKey: string,
-    private concreteClassMap: Map<keyof TEnum, ClassType<TGql>>
+    private concreteClassMap: Map<keyof TEnum, () => ClassType<TGql>>
   ) {}
   makeFrom(from: TDb, nodeService: NodeService<TGql>): TGql {
     const discriminator = Reflect.get(from, this.discriminatorKey);
     if (discriminator) {
       const concreteClass = this.concreteClassMap.get(discriminator);
       if (concreteClass) {
-        return dbToGql(nodeService, concreteClass, from, this.oidScope);
+        return dbToGql(nodeService, concreteClass(), from, this.oidScope);
       }
     }
     throw Error(`couldnt find concrete class for: ${discriminator}`);
@@ -39,7 +39,9 @@ export class GqlSingleTableInheritanceFactory<
     return this.concreteClassMap.get(discriminator);
   }
   getClasses() {
-    return [...this.concreteClassMap.values()];
+    return [...this.concreteClassMap.values()].map((concreteFn: () => ClassType<TGql>) =>
+      concreteFn()
+    );
   }
 }
 
