@@ -10,12 +10,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
-  * ENV variable to set credentials `GCP_PUBSUB_KEY_FILE_NAME`--> `GOOGLE_APPLICATION_CREDENTIALS` (default for GCP service)
   * GqlSingleTableInheritanceFactory returns () => ClassType<Tgql> instead of just ClassType<TGql>
 ### Fixed
 ### Deprecated
 ### Security
 
+
+## [4.2.0] -- 2020-03-06
+
+### Added
+  * option to support 'service' subscriptions. I.e. only one instance of a service that subscribes gets an event from the pub-sub queue
+  * Remove the banking hack test and uuid oid tests as we no longer support uuid based oid's
+
+## [4.1.0] -- 2020-02-27
+
+### Added
+  * publisher_version to the constructor of RfiPubSub
+  * embed the publisher_version to every message that is sent out
+
+## [4.0.7] -- 2020-02-19
+
+### Changed
+  * ENV variable to set credentials `GCP_PUBSUB_KEY_FILE_NAME`--> `GOOGLE_APPLICATION_CREDENTIALS` (default for GCP service)
 
 ## [4.0.6] -- 2020-02-15
 

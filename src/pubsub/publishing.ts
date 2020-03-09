@@ -9,6 +9,7 @@ import { getOidFor, getScopeFor } from '../db';
 // const logger = logging.getLogger({});
 
 export interface Payload {
+  publisher_version: string;
   oid: string;
   id: string;
   action: string;
@@ -34,6 +35,7 @@ async function _publishPayload(
   const rval = payloadFromModel(rawPayload) as Payload;
   rval.action = notification;
   rval.deltas = deltas;
+  rval.publisher_version = pubSub.publisher_version;
   const payload = JSON.stringify(rval);
 
   const oidScope = getScopeFor(rawPayload);
