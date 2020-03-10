@@ -83,7 +83,6 @@ export class SequelizeBaseService<
   protected static hooksMap: Set<typeof Model> = new Set();
   private nodeServices: any;
   private permissions: Permissions;
-  private spyglassKey: string;
   constructor(
     protected relayClass: ClassType<TApi>,
     protected edgeClass: ClassType<TEdge>,
@@ -95,13 +94,7 @@ export class SequelizeBaseService<
       apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     }
   ) {
-    this.spyglassKey = relayClass.constructor.name;
     this.permissions = options.permissions;
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        permissions: this.permissions
-      }
-    });
     // Force authorizations on retrieve from db
     SequelizeBaseService.addAuthCheckHook(model);
   }
@@ -422,11 +415,6 @@ export class SequelizeBaseService<
       [`framework.db.service.filters`]: filters
     });
     */
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        getAll: { filterBy }
-      }
-    });
     // we hold cursors as base64 of the offset for this query... not perfect,
     // but good enough for now
     // see https://facebook.github.io/relay/graphql/connections.htm#sec-Pagination-algorithm
@@ -487,12 +475,6 @@ export class SequelizeBaseService<
       [`framework.db.service.filters`]: filters
     });
      */
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        findOne: { filterBy }
-      }
-    });
-
     // Authorization done in getAll
     const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
     if (matched.edges.length) {
@@ -518,11 +500,6 @@ export class SequelizeBaseService<
     this.ctx.rfiBeeline.addContext({
       [`framework.db.service.filters`]: filters
     }); */
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        findEach: { filterBy }
-      }
-    });
 
     const { after, before, first, last, ...filter } = filterBy as any;
 
@@ -554,12 +531,6 @@ export class SequelizeBaseService<
       [`framework.db.service.filters`]: filters
     });
      */
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        count: { filterBy }
-      }
-    });
-
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     filterBy = createWhereClauseWith(filterBy);
     const findOptions: FindOptions = {
@@ -574,11 +545,6 @@ export class SequelizeBaseService<
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     /* this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
      */
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        getOne: { ...oid, id: oid.unwrap().id, scope: oid.unwrap().scope }
-      }
-    });
     const { id } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const findOptions: FindOptions = {
@@ -595,15 +561,6 @@ export class SequelizeBaseService<
   }
 
   async publishLastKnownState(oid: Oid): Promise<void> {
-    this.ctx.logger.addMetadata({
-      [this.spyglassKey]: {
-        publishLastKnownState: {
-          ...oid,
-          id: oid.unwrap().id,
-          scope: oid.unwrap().scope
-        }
-      }
-    });
     const { id } = oid.unwrap();
 
     const findOptions: FindOptions = {
@@ -641,11 +598,7 @@ export class SequelizeBaseService<
       const instance = await this.model.create(createInput as any, sequelizeOptions);
       return this.gqlFromDbModel(instance as any);
     }
-    this.ctx.logger.info('sequelize_base_service_authorization_denied', {
-      [this.spyglassKey]: {
-        method: 'create'
-      }
-    });
+    this.ctx.logger.info('sequelize_base_service_authorization_denied');
     throw new RFIAuthError();
   }
   /**
