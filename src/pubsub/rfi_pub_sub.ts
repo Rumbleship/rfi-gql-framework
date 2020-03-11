@@ -19,6 +19,7 @@ export interface PubEngine extends PubSubEngine {
     onMessage: (message: string) => null,
     options?: RfiSubscriptionOptions
   ): Promise<number>;
+  unsubscribeAll(): void;
 }
 
 export type RfiPubSubEngine = PubEngine & PubSubEngine;
@@ -26,6 +27,7 @@ export type RfiPubSubEngine = PubEngine & PubSubEngine;
 export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;
   public publisher_version: string;
+  protected subscription_ids: number[];
   constructor(publisher_version: string, config: RfiPubSubConfig) {
     RfiPubSub.validatePubSubConfig(config);
     const { topicPrefix } = config;
@@ -35,6 +37,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     super(config, uniqueSubscriptionNamePart);
     this.topicPrefix = topicPrefix;
     this.publisher_version = publisher_version;
+    this.subscription_ids = [];
   }
 
   static validatePubSubConfig(config: RfiPubSubConfig) {
@@ -68,13 +71,23 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   ): Promise<number> {
     triggerName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(triggerName);
-    return super.subscribe(triggerName, onMessage, options);
+    const sub_id = await super.subscribe(triggerName, onMessage, options);
+    this.subscription_ids.push(sub_id);
+    return sub_id;
   }
 
-  public unsubscribe(subId: number): any {
-    return super.unsubscribe(subId);
+  public unsubscribe(subId: number): void {
+    this.subscription_ids = this.subscription_ids.filter(id => id !== subId);
+    super.unsubscribe(subId);
   }
 
+  unsubscribeAll(): void {
+    // Googlepub sub supposedly stops polling for events when there are no more listeners
+    for (const id of this.subscription_ids) {
+      super.unsubscribe(id);
+    }
+    this.subscription_ids = [];
+  }
   public asyncIterator<T>(triggers: string | string[]): AsyncIterator<T> {
     return super.asyncIterator(triggers);
   }
