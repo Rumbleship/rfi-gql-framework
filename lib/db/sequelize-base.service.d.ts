@@ -26,7 +26,6 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     protected static hooksMap: Set<typeof Model>;
     private nodeServices;
     private permissions;
-    private spyglassKey;
     constructor(relayClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: Context, options: {
         permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;

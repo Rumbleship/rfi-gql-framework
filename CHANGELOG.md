@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [5.0.1] -- 2020-03-10
+
+### Removed
+  * Extraneous Permissions metadata
+
+## [5.0.0] -- 2020-03-09
+
+### Changed
+  * GqlSingleTableInheritanceFactory returns () => ClassType<Tgql> instead of just ClassType<TGql>
+
 ## [4.2.0] -- 2020-03-06
 
 ### Added
