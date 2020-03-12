@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * createSubscriptionsFor create the topic before createing subscription if the topic doesn't already exist
 ### Deprecated
 ### Security
 
