@@ -114,6 +114,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]) {
     for await (const { scope } of dbModels) {
       const triggerName = `${this.topicPrefix}_NODE_CHANGE_NOTIFICATION_${scope}`;
+      await this.createTopicIfNotExist(triggerName);
       await this.pubSubClient.topic(triggerName).createSubscription(triggerName + `-${hostname()}`);
     }
   }
