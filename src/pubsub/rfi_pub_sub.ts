@@ -1,3 +1,4 @@
+import * as P from 'bluebird';
 import { DbModelAndOidScope } from './../db/init-sequelize';
 import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
@@ -102,21 +103,22 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     const mySubscriptions = subscriptions.filter((s: any) =>
       s.name.match(new RegExp(`${this.topicPrefix}`))
     );
-    for await (const { name } of mySubscriptions) {
+    await P.map(mySubscriptions, async subscription => {
+      const { name } = subscription as any;
       // tslint:disable-next-line: no-console
       console.log(`Deleting subscription: ${name}`);
       await this.pubSubClient.subscription(name).delete();
       // tslint:disable-next-line: no-console
       console.log(`\tDeleted subscription: ${name}`);
-    }
+    });
   }
 
   public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]) {
-    for await (const { scope } of dbModels) {
+    await P.map(dbModels, async ({ scope }) => {
       const triggerName = `${this.topicPrefix}_NODE_CHANGE_NOTIFICATION_${scope}`;
       await this.createTopicIfNotExist(triggerName);
       await this.pubSubClient.topic(triggerName).createSubscription(triggerName + `-${hostname()}`);
-    }
+    });
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {

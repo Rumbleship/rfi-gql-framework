@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * Bluebird as dev+peer dep
+### Removed
+### Changed
+  * Creating and deleting subscriptions en masse uses Bluebird Promise.map()
+### Fixed
+### Deprecated
+### Security
+
+
 ## [5.0.3] -- 2020-03-12
 
 ### Fixed
