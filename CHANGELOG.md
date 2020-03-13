@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Bluebird as dev+peer dep
 ### Removed
 ### Changed
+  * Creating and deleting subscriptions en masse uses Bluebird Promise.map()
 ### Fixed
 ### Deprecated
 ### Security
