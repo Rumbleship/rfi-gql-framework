@@ -111,8 +111,6 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
       // tslint:disable-next-line: no-console
       console.log(`\tDeleted subscription: ${name}`);
     });
-    // for await (const { name } of mySubscriptions) {
-    // }
   }
 
   public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]) {
@@ -121,8 +119,6 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
       await this.createTopicIfNotExist(triggerName);
       await this.pubSubClient.topic(triggerName).createSubscription(triggerName + `-${hostname()}`);
     });
-    // for await (const { scope } of dbModels) {
-    // }
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {
