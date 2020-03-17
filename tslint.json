@@ -3,7 +3,8 @@
   "extends": [
     "tslint:latest",
     "tslint-config-prettier",
-    "tslint-plugin-prettier"
+    "tslint-plugin-prettier",
+    "tslint-no-circular-imports"
   ],
   "rulesDirectory": [
     "tslint-no-focused-test"
@@ -17,9 +18,9 @@
       }
     ],
     "object-literal-key-quotes": false,
+    "no-floating-promises": true,
     "object-literal-sort-keys": false,
     "no-string-literal": false,
-    "no-floating-promises": true,
     "ordered-imports": false,
     "variable-name": false,
     "arrow-parens": false,
