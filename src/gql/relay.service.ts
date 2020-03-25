@@ -1,6 +1,7 @@
 import { Order } from 'sequelize';
-import { Context } from './../server/context.interface';
+import { RumbleshipContext } from './../server/context.interface';
 import { Oid } from '@rumbleship/oid';
+// tslint:disable-next-line: no-circular-imports
 import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';
 import { Actions } from '@rumbleship/acl';
@@ -44,7 +45,7 @@ export interface NodeServiceOptions {
 export interface NodeService<T> {
   getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
   nodeType(): string;
-  getContext(): Context;
+  getContext(): RumbleshipContext;
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
   setServiceRegister(services: any): void;
   publishLastKnownState(oid: Oid): Promise<void>;

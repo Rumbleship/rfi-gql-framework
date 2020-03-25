@@ -1,11 +1,11 @@
 import { Scopes } from '@rumbleship/acl';
 import { RelayService, Node, Connection } from './index';
-import { Context } from './../server/context.interface';
+import { RumbleshipContext } from './../server/context.interface';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification } from './node-notification';
 export declare class GQLBaseResolver<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> {
     protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>;
-    ctx: Context;
+    ctx: RumbleshipContext;
     constructor(service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>);
     getAll(filterBy: TFilter): Promise<TConnection>;
     getOne(id: string): Promise<TApi>;

@@ -3,7 +3,7 @@ import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, 
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './db-to-gql';
-import { Context } from '../server/index';
+import { RumbleshipContext } from '../server/index';
 import { Transaction, FindOptions, Order } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 export interface SequelizeBaseServiceInterface<TApi extends Node<TApi> = any, TModel extends Model<TModel> = any, TConnection extends Connection<TApi> = any, TFilter = any, TInput = any, TUpdate = any> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
@@ -18,7 +18,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     protected edgeClass: ClassType<TEdge>;
     protected connectionClass: ClassType<TConnection>;
     protected model: ModelClass<TModel> & typeof Model;
-    protected ctx: Context;
+    protected ctx: RumbleshipContext;
     protected options: {
         permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
@@ -26,7 +26,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     protected static hooksMap: Set<typeof Model>;
     private nodeServices;
     private permissions;
-    constructor(relayClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: Context, options: {
+    constructor(relayClass: ClassType<TApi>, edgeClass: ClassType<TEdge>, connectionClass: ClassType<TConnection>, model: ModelClass<TModel> & typeof Model, ctx: RumbleshipContext, options: {
         permissions: Permissions;
         apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
     });
@@ -90,7 +90,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      */
     gqlFromDbModel(dbModel: TModel): TApi;
     dbModel(): ModelClass<TModel> & typeof Model;
-    getContext(): Context;
+    getContext(): RumbleshipContext;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     getServiceForDbModel(dbClass: Model): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
     newTransaction(params: {

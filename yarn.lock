@@ -704,6 +704,10 @@
   version "4.0.0"
   resolved "git+ssh://git@github.com/rumbleship/oid#61c9963cf74795ab1b34063d84173b587de7e9e2"
 
+"@rumbleship/service-factory-map@git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.1":
+  version "0.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#8858619787596545a66eb389361b9095e4444d56"
+
 "@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.1":
   version "3.1.1"
   resolved "git+ssh://git@github.com/rumbleship/spyglass.git#09534becb80572e8527fe6012187156e708133ca"

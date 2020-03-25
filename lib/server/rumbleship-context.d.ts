@@ -1,7 +1,8 @@
 import { ContainerInstance } from 'typedi';
-import { Authorizer } from '@rumbleship/acl';
-import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
+import { Authorizer } from '@rumbleship/acl';
+import { SpyglassLogger } from './context.interface';
+import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 export interface RumbleshipContextOptionsPlain {
     config: object;
     id?: string;
@@ -32,18 +33,5 @@ export declare class RumbleshipContext implements Context {
     static make(filename: string, options: RumbleshipContextOptionsPlain): RumbleshipContext;
     constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline);
     release(): void;
-}
-export interface SpyglassLogger {
-    addMetadata: (object: object) => void;
-    log: (message: any, metadata?: object) => void;
-    emerg: (message: any, metadata?: object) => void;
-    alert: (message: any, metadata?: object) => void;
-    crit: (message: any, metadata?: object) => void;
-    error: (message: any, metadata?: object) => void;
-    warn: (message: any, metadata?: object) => void;
-    warning: (message: any, metadata?: object) => void;
-    notice: (message: any, metadata?: object) => void;
-    info: (message: any, metadata?: object) => void;
-    debug: (message: any, metadata?: object) => void;
 }
 export {};

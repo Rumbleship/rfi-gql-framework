@@ -25,7 +25,7 @@ import {
   reloadNodeFromModel,
   dbToGql
 } from './db-to-gql';
-import { Context } from '../server/index';
+import { RumbleshipContext } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
 import { Transaction, FindOptions, Op, Order, OrderItem } from 'sequelize';
 import { findEach } from 'iterable-model';
@@ -88,7 +88,7 @@ export class SequelizeBaseService<
     protected edgeClass: ClassType<TEdge>,
     protected connectionClass: ClassType<TConnection>,
     protected model: ModelClass<TModel> & typeof Model,
-    protected ctx: Context,
+    protected ctx: RumbleshipContext,
     protected options: {
       permissions: Permissions;
       apiClassFactory?: GqlSingleTableInheritanceFactory<TDiscriminatorEnum, TApi, TModel>;
@@ -327,7 +327,7 @@ export class SequelizeBaseService<
     return this.model;
   }
 
-  getContext(): Context {
+  getContext(): RumbleshipContext {
     return this.ctx;
   }
 
