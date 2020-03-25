@@ -13,7 +13,7 @@ import { Oid } from '@rumbleship/oid';
 import { Scopes } from '@rumbleship/acl';
 // tslint:disable-next-line: no-circular-imports
 import { RelayService, Node, Connection } from './index';
-import { RumbleshipContext } from './../server/context.interface';
+import { RumbleshipContext } from './../server/rumbleship-context';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
 import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';

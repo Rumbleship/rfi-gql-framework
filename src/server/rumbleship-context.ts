@@ -2,7 +2,6 @@ import { logging } from '@rumbleship/spyglass';
 import Container, { ContainerInstance } from 'typedi';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { Authorizer, Scopes, createAuthHeader } from '@rumbleship/acl';
-import { SpyglassLogger } from './context.interface';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import uuid = require('uuid');
 
@@ -70,7 +69,7 @@ class RumbleshipContextOptionsWithDefaults {
   }
 }
 
-interface Context {
+export interface Context {
   id: string;
   beeline: RumbleshipBeeline;
   trace?: HoneycombSpan;
@@ -182,4 +181,18 @@ export function releaseRumbleshipContext(context: Context) {
   context.beeline.finishRumbleshipContextTrace();
   context.logger.debug(`RELEASE SERVICE CONTEXT: ${context.id}`);
   context.container.reset();
+}
+
+export interface SpyglassLogger {
+  addMetadata: (object: object) => void;
+  log: (message: any, metadata?: object) => void;
+  emerg: (message: any, metadata?: object) => void;
+  alert: (message: any, metadata?: object) => void;
+  crit: (message: any, metadata?: object) => void;
+  error: (message: any, metadata?: object) => void;
+  warn: (message: any, metadata?: object) => void;
+  warning: (message: any, metadata?: object) => void;
+  notice: (message: any, metadata?: object) => void;
+  info: (message: any, metadata?: object) => void;
+  debug: (message: any, metadata?: object) => void;
 }

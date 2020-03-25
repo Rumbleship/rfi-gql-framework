@@ -1,5 +1,5 @@
 import { Order } from 'sequelize';
-import { RumbleshipContext } from './../server/context.interface';
+import { RumbleshipContext } from './../server/rumbleship-context';
 import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';

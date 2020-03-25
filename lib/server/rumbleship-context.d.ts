@@ -1,7 +1,6 @@
 import { ContainerInstance } from 'typedi';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { Authorizer } from '@rumbleship/acl';
-import { SpyglassLogger } from './context.interface';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 export interface RumbleshipContextOptionsPlain {
     config: object;
@@ -11,7 +10,7 @@ export interface RumbleshipContextOptionsPlain {
     container?: ContainerInstance;
     initial_trace_metadata?: object;
 }
-interface Context {
+export interface Context {
     id: string;
     beeline: RumbleshipBeeline;
     trace?: HoneycombSpan;
@@ -42,4 +41,16 @@ export declare function withRumbleshipContext<T>(filename: string, options: Rumb
  */
 export declare function getRumbleshipContext(filename: string, config: object): RumbleshipContext;
 export declare function releaseRumbleshipContext(context: Context): void;
-export {};
+export interface SpyglassLogger {
+    addMetadata: (object: object) => void;
+    log: (message: any, metadata?: object) => void;
+    emerg: (message: any, metadata?: object) => void;
+    alert: (message: any, metadata?: object) => void;
+    crit: (message: any, metadata?: object) => void;
+    error: (message: any, metadata?: object) => void;
+    warn: (message: any, metadata?: object) => void;
+    warning: (message: any, metadata?: object) => void;
+    notice: (message: any, metadata?: object) => void;
+    info: (message: any, metadata?: object) => void;
+    debug: (message: any, metadata?: object) => void;
+}

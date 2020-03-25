@@ -1,6 +1,6 @@
 import { Scopes } from '@rumbleship/acl';
 import { RelayService, Node, Connection } from './index';
-import { RumbleshipContext } from './../server/context.interface';
+import { RumbleshipContext } from './../server/rumbleship-context';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification } from './node-notification';
 export declare class GQLBaseResolver<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> {
