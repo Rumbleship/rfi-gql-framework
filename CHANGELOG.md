@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * BaseResolver assigns `.ctx:RumbleshipContext` on construction
-  * `RumbleshipContext` as a top level exported class to be used in lieu of just `Context.interface`
+  * `RumbleshipContext` and helpers as a top level exported class to be used in lieu of just `Context.interface`
+  * `withContext()` 
 ### Removed
 ### Changed
   * Updated tslint.json, tsconfig.json, plugins, etc to support nullish coalescing.

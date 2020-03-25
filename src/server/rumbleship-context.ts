@@ -73,7 +73,7 @@ class RumbleshipContextOptionsWithDefaults {
 interface Context {
   id: string;
   beeline: RumbleshipBeeline;
-  trace: HoneycombSpan | null;
+  trace?: HoneycombSpan;
   container: ContainerInstance;
   authorizer: Authorizer;
   logger: SpyglassLogger;
@@ -81,7 +81,7 @@ interface Context {
 
 export class RumbleshipContext implements Context {
   // Shouldn't generally be needed, but is useful when handing one trace off to a different one.
-  public trace = null;
+  public trace: HoneycombSpan | undefined;
   private static initialized: boolean = false;
   private static _serviceFactories: Map<string, RFIFactory<any>>;
   static addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext;
@@ -129,4 +129,57 @@ export class RumbleshipContext implements Context {
     this.logger.debug(`RELEASE SERVICE CONTEXT: ${this.id}`);
     this.container.reset();
   }
+}
+export function withRumbleshipContext<T>(
+  filename: string,
+  options: RumbleshipContextOptionsPlain,
+  fn: (ctx: RumbleshipContext) => T
+): Promise<T> {
+  const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
+  const ctx = RumbleshipContext.make(filename, options);
+  ctx.trace = ctx.beeline.startTrace(
+    {
+      ...initial_trace_metadata
+    },
+    ctx.id
+  );
+
+  return new Promise((resolve, reject) => {
+    const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx));
+    if (isPromise(value)) {
+      // tslint:disable-next-line: no-floating-promises
+      ((value as unknown) as Promise<T>)
+        .then(resolve)
+        .catch(reject)
+        .finally(() => ctx.release());
+    } else {
+      ctx.release();
+      resolve(value);
+    }
+  });
+}
+
+function isPromise(p: any) {
+  return p && typeof p.then === 'function';
+}
+
+/**
+ * Provides a context that has an authorizer and credentials etc specifically for
+ * THIS microservice so it can be used outside of the context of an Http/geaphql request
+ * or GQL subscription.
+ */
+export function getRumbleshipContext(filename: string, config: object): RumbleshipContext {
+  // tslint:disable-next-line: no-console
+  console.warn(`You probably DO NOT WANT to use this. 
+  \tYou probably want to wrap your code with \`RumbleshipContext.withContext(cb: () => any)\`
+  \tso you don't have to manage releasing the created context.
+  \tIf you meant to use this, YOU MUST INVOKE \`context.release()\` otherwise memory leaks!`);
+  const Factory = Container.get('RumbleshipContext') as typeof RumbleshipContext;
+  return Factory.make(filename, { config });
+}
+
+export function releaseRumbleshipContext(context: Context) {
+  context.beeline.finishRumbleshipContextTrace();
+  context.logger.debug(`RELEASE SERVICE CONTEXT: ${context.id}`);
+  context.container.reset();
 }
