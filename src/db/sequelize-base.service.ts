@@ -12,6 +12,7 @@ import {
   NodeServiceIsolationLevel,
   NodeServiceTransactionType
 } from '../gql';
+// tslint:disable-next-line: no-circular-imports
 import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
 
 import { Model } from 'sequelize-typescript';
@@ -38,7 +39,6 @@ import {
   setAuthorizeContext,
   AuthorizeContext
 } from './create-auth-where-clause';
-// import { WithSpan } from '@rumbleship/o11y';
 
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,

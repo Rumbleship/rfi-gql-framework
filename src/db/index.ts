@@ -1,5 +1,6 @@
 export * from './init-sequelize';
 export * from './pagination';
+// tslint:disable-next-line: no-circular-imports
 export * from './sequelize-base.service';
 export * from './transformers';
 export * from './validate-from-exemplar';
