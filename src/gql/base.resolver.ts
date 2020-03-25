@@ -10,10 +10,11 @@ import {
   Authorized
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
+import { Scopes } from '@rumbleship/acl';
 import { RelayService, Node, Connection } from './index';
+import { Context } from './../server/context.interface';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
-import { Scopes } from '@rumbleship/acl';
 import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
 
 export class GQLBaseResolver<
@@ -23,7 +24,9 @@ export class GQLBaseResolver<
   TInput,
   TUpdate
 > {
+  public ctx: Context;
   constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
+    this.ctx = service.getContext();
     service.nodeType();
   }
   async getAll(filterBy: TFilter): Promise<TConnection> {

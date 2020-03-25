@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * BaseResolver assigns `.ctx: Context` on construction
 ### Removed
 ### Changed
   * Updated tslint.json, tsconfig.json, plugins, etc to support nullish coalescing.
