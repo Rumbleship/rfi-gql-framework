@@ -173,27 +173,29 @@ export function withLinkedRumbleshipContext<T>(
 ): Promise<T> {
   const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
   const ctx = RumbleshipContext.make(filename, options);
-  ctx.trace = ctx.beeline.startTrace(
-    {
-      ...initial_trace_metadata
-    },
-    ctx.id
-  );
+  return ctx.beeline.runWithoutTrace(() => {
+    ctx.trace = ctx.beeline.startTrace(
+      {
+        ...initial_trace_metadata
+      },
+      ctx.id
+    );
 
-  ctx.beeline.linkToSpan(parentSpan);
+    ctx.beeline.linkToSpan(parentSpan);
 
-  return new Promise((resolve, reject) => {
-    const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx));
-    if (isPromise(value)) {
-      // tslint:disable-next-line: no-floating-promises
-      ((value as unknown) as Promise<T>)
-        .then(resolve)
-        .catch(reject)
-        .finally(() => ctx.release());
-    } else {
-      ctx.release();
-      resolve(value);
-    }
+    return new Promise((resolve, reject) => {
+      const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx));
+      if (isPromise(value)) {
+        // tslint:disable-next-line: no-floating-promises
+        ((value as unknown) as Promise<T>)
+          .then(resolve)
+          .catch(reject)
+          .finally(() => ctx.release());
+      } else {
+        ctx.release();
+        resolve(value);
+      }
+    });
   });
 }
 
