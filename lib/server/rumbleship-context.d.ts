@@ -36,6 +36,7 @@ export declare class RumbleshipContext implements Context {
     release(): void;
 }
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
+export declare function withLinkedRumbleshipContext<T>(parentSpan: HoneycombSpan, filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
 /**
  * Provides a context that has an authorizer and credentials etc specifically for
  * THIS microservice so it can be used outside of the context of an Http/geaphql request

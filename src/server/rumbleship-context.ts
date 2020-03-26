@@ -165,6 +165,38 @@ export function withRumbleshipContext<T>(
   });
 }
 
+export function withLinkedRumbleshipContext<T>(
+  parentSpan: HoneycombSpan,
+  filename: string,
+  options: RumbleshipContextOptionsPlain,
+  fn: (ctx: RumbleshipContext) => T
+): Promise<T> {
+  const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
+  const ctx = RumbleshipContext.make(filename, options);
+  ctx.trace = ctx.beeline.startTrace(
+    {
+      ...initial_trace_metadata
+    },
+    ctx.id
+  );
+
+  ctx.beeline.linkToSpan(parentSpan);
+
+  return new Promise((resolve, reject) => {
+    const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx));
+    if (isPromise(value)) {
+      // tslint:disable-next-line: no-floating-promises
+      ((value as unknown) as Promise<T>)
+        .then(resolve)
+        .catch(reject)
+        .finally(() => ctx.release());
+    } else {
+      ctx.release();
+      resolve(value);
+    }
+  });
+}
+
 function isPromise(p: any) {
   return p && typeof p.then === 'function';
 }
