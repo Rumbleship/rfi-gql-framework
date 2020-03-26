@@ -127,17 +127,20 @@ export function createReadOnlyBaseResolver<
     constructor(service: RelayService<TApi, TConnection, TFilter, any, any>) {
       super(service);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => objectTypeCls, { name: `${baseName}` })
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
 
+    @AddToTrace()
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
