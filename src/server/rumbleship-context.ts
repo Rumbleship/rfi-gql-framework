@@ -83,6 +83,7 @@ export class RumbleshipContext implements Context {
   public trace: HoneycombSpan | undefined;
   private static initialized: boolean = false;
   private static _serviceFactories: Map<string, RFIFactory<any>>;
+  private static ActiveContexts: Map<string, RumbleshipContext> = new Map();
   static addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext;
   static initialize(
     serviceFactories: Map<string, RFIFactory<any>>,
@@ -91,6 +92,11 @@ export class RumbleshipContext implements Context {
     this._serviceFactories = serviceFactories;
     this.addSequelizeServicesToContext = addSequelizeServicesToContext;
     this.initialized = true;
+  }
+  static releaseAllContexts() {
+    for (const ctx of RumbleshipContext.ActiveContexts.values()) {
+      ctx.release();
+    }
   }
   static make(filename: string, options: RumbleshipContextOptionsPlain): RumbleshipContext {
     if (!this.initialized) {
@@ -110,6 +116,7 @@ export class RumbleshipContext implements Context {
 
     const beeline = container.get<typeof RumbleshipBeeline>('beelineFactory').make(id);
     const ctx = new RumbleshipContext(id, container, logger, authorizer, beeline);
+    RumbleshipContext.ActiveContexts.set(ctx.id, ctx);
     logger.debug(`NEW SERVICE CONTEXT: ${ctx.id}`);
     const withSequelize = this.addSequelizeServicesToContext(ctx) as RumbleshipContext;
     return withSequelize;

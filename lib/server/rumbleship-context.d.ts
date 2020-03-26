@@ -27,8 +27,10 @@ export declare class RumbleshipContext implements Context {
     trace: HoneycombSpan | undefined;
     private static initialized;
     private static _serviceFactories;
+    private static ActiveContexts;
     static addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext;
     static initialize(serviceFactories: Map<string, RFIFactory<any>>, addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext): void;
+    static releaseAllContexts(): void;
     static make(filename: string, options: RumbleshipContextOptionsPlain): RumbleshipContext;
     constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline);
     release(): void;
