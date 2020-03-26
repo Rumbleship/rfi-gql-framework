@@ -17,6 +17,7 @@ import { RumbleshipContext } from './../server/rumbleship-context';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
 import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
+import { AddToTrace } from '@rumbleship/o11y';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -68,27 +69,32 @@ export function createBaseResolver<
       super(service);
     }
 
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => objectTypeCls, { name: `${baseName}` })
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Mutation(type => objectTypeCls, { name: `add${capitalizedName}` })
     async create(@Arg('input', type => inputClsType) input: TInput): Promise<TApi> {
       return super.create(input);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Mutation(type => objectTypeCls, { name: `update${capitalizedName}` })
     async update(@Arg('input', type => updateClsType) input: TUpdate): Promise<TApi> {
       return super.update(input);
     }
 
+    @AddToTrace()
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
