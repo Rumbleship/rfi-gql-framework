@@ -142,7 +142,7 @@ export function withRumbleshipContext<T>(
   fn: (ctx: RumbleshipContext) => T
 ): Promise<T> {
   const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
-  const ctx = RumbleshipContext.make(filename, options);
+  const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(filename, options);
   ctx.trace = ctx.beeline.startTrace(
     {
       ...initial_trace_metadata
@@ -172,7 +172,7 @@ export function withLinkedRumbleshipContext<T>(
   fn: (ctx: RumbleshipContext) => T
 ): Promise<T> {
   const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
-  const ctx = RumbleshipContext.make(filename, options);
+  const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(filename, options);
   return ctx.beeline.runWithoutTrace(() => {
     ctx.trace = ctx.beeline.startTrace(
       {
