@@ -10,11 +10,14 @@ import {
   Authorized
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
+import { Scopes } from '@rumbleship/acl';
+// tslint:disable-next-line: no-circular-imports
 import { RelayService, Node, Connection } from './index';
+import { RumbleshipContext } from './../server/rumbleship-context';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
-import { Scopes } from '@rumbleship/acl';
 import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
+import { AddToTrace } from '@rumbleship/o11y';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -23,7 +26,9 @@ export class GQLBaseResolver<
   TInput,
   TUpdate
 > {
+  public ctx: RumbleshipContext;
   constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
+    this.ctx = service.getContext();
     service.nodeType();
   }
   async getAll(filterBy: TFilter): Promise<TConnection> {
@@ -64,27 +69,32 @@ export function createBaseResolver<
       super(service);
     }
 
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => objectTypeCls, { name: `${baseName}` })
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Mutation(type => objectTypeCls, { name: `add${capitalizedName}` })
     async create(@Arg('input', type => inputClsType) input: TInput): Promise<TApi> {
       return super.create(input);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Mutation(type => objectTypeCls, { name: `update${capitalizedName}` })
     async update(@Arg('input', type => updateClsType) input: TUpdate): Promise<TApi> {
       return super.update(input);
     }
 
+    @AddToTrace()
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
@@ -117,17 +127,20 @@ export function createReadOnlyBaseResolver<
     constructor(service: RelayService<TApi, TConnection, TFilter, any, any>) {
       super(service);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => connectionTypeCls, { name: `${baseName}s` })
     async getAll(@Args(type => filterClsType) filterBy: TFilter): Promise<TConnection> {
       return super.getAll(filterBy);
     }
+    @AddToTrace()
     @Authorized(defaultScope)
     @Query(type => objectTypeCls, { name: `${baseName}` })
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
 
+    @AddToTrace()
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
