@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
   * Updated tslint.json, tsconfig.json, plugins, etc to support nullish coalescing.
+  * Upgrade to `@rumbleship/o11y#1.0.0`
 ### Fixed
 ### Deprecated
 ### Security
