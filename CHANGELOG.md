@@ -5,20 +5,15 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [6.0.0] -- 2020-04-02
 
 ### Added
   * BaseResolver assigns `.ctx:RumbleshipContext` on construction
   * `RumbleshipContext` and helpers as a top level exported class to be used in lieu of just `Context.interface`
   * `withContext()` 
-### Removed
 ### Changed
   * Updated tslint.json, tsconfig.json, plugins, etc to support nullish coalescing.
   * Upgrade to `@rumbleship/o11y#1.0.0`
-### Fixed
-### Deprecated
-### Security
-
 
 ## [5.0.4] -- 2020-03-13
 
