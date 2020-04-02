@@ -696,9 +696,9 @@
   dependencies:
     jsonwebtoken "^8.5.1"
 
-"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#0.0.7":
-  version "0.0.7"
-  resolved "git+ssh://git@github.com/rumbleship/observability.git#7c66d39c3cedc2a29c5b55cc6528ad6dde3f0c65"
+"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#1.0.0":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/observability.git#9f05381991df8620b42e08e4ca83440e0c3bea4d"
 
 "@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.0":
   version "4.0.0"
