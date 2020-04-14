@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * RumbleshipContext.make() now accepts a third parameter of the factories to use (primarily for testing)
 ### Fixed
 ### Deprecated
 ### Security
