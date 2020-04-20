@@ -690,27 +690,27 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#1.0.3":
-  version "1.0.3"
-  resolved "git+ssh://git@github.com/rumbleship/acl.git#8dce212b6a07e747138672100a0576971ee2f460"
+"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#1.2.0":
+  version "1.2.0"
+  resolved "git+ssh://git@github.com/rumbleship/acl.git#c7f4b9ae4b18514ecf6f78bd5549b00a1726d9eb"
   dependencies:
     jsonwebtoken "^8.5.1"
 
-"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#1.0.0":
-  version "1.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/observability.git#9f05381991df8620b42e08e4ca83440e0c3bea4d"
+"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#1.1.3":
+  version "1.1.3"
+  resolved "git+ssh://git@github.com/rumbleship/observability.git#d26aa223333e396cd7ff397c87c870b4d375a6a3"
 
-"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.0":
-  version "4.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/oid#61c9963cf74795ab1b34063d84173b587de7e9e2"
+"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
+  version "4.0.2"
+  resolved "git+ssh://git@github.com/rumbleship/oid#ba4a0ae88d2e9aaf9ff68450c15ef69a031f1296"
 
-"@rumbleship/service-factory-map@git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.1":
-  version "0.0.1"
-  resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#8858619787596545a66eb389361b9095e4444d56"
+"@rumbleship/service-factory-map@git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.2":
+  version "0.0.2"
+  resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#864fb3fa6b29132b599e798ed788f28803b2468c"
 
-"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.1":
-  version "3.1.1"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#09534becb80572e8527fe6012187156e708133ca"
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.3":
+  version "3.1.3"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#b8e253f227ce82dede996423a0b2cf282ebf1aca"
 
 "@sindresorhus/is@^1.0.0":
   version "1.2.0"
@@ -3000,9 +3000,9 @@ istanbul-reports@^2.2.6:
   dependencies:
     handlebars "^4.1.2"
 
-"iterable-model@git+ssh://git@github.com/rumbleship/iterable-model.git#master":
+"iterable-model@git+ssh://git@github.com/rumbleship/iterable-model.git#0.0.1":
   version "0.1.0"
-  resolved "git+ssh://git@github.com/rumbleship/iterable-model.git#d8481cad672515e8937219a311b176599f0c7ad2"
+  resolved "git+ssh://git@github.com/rumbleship/iterable-model.git#31d7f9925dc33d16e7363e8a7ea56c875dab277d"
 
 iterall@^1.2.1, iterall@^1.2.2:
   version "1.2.2"
