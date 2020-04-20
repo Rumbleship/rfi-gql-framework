@@ -55,20 +55,20 @@ jobs:
       - add_ssh_keys: *rumbleship_ops_key
       - restore_cache:
           keys:
-            - v1-git-{{ .Branch }}
+            - v2-git-{{ .Branch }}
       - checkout
       - save_cache:
-          key: v1-git-{{ .Branch }}
+          key: v2-git-{{ .Branch }}
           paths:
             - ".git"
       - restore_cache:
           keys:
-            - v1-node-deps-node-{{ checksum "package.json" }}
+            - v2-node-deps-node-{{ checksum "package.json" }}
       - run:
           name: Install Node dependencies
           command: yarn install
       - save_cache:
-          key: v1-node-deps-node-{{ checksum "package.json" }}
+          key: v2-node-deps-node-{{ checksum "package.json" }}
           paths:
             - node_modules
       - run:
