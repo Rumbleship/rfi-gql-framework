@@ -10,7 +10,7 @@
   "license": "Propriatary",
   "private": true,
   "engines": {
-    "node": "10.x"
+    "node": "10.x || 12.x"
   },
   "scripts": {
     "build": "NODE_PATH=. tsc -p ./tsconfig-build.json",
