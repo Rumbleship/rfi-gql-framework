@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Modified RumbleshipContext to only finish a trace if there is a trace set in the context.
+  * added resetHostedSubscriptions to the RfiPubSubConfig interface
 ### Fixed
 ### Deprecated
 ### Security
