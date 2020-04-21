@@ -1,6 +1,6 @@
 {
   "name": "@rumbleship/gql",
-  "version": "6.0.0",
+  "version": "6.0.2",
   "authors": [
     "Mat Henshall <mat.henshall@rumbleship.com>",
     "Isaac Sparling <isaac@rumbleship.com"
@@ -10,7 +10,7 @@
   "license": "Propriatary",
   "private": true,
   "engines": {
-    "node": "10.x"
+    "node": "10.x || 12.x"
   },
   "scripts": {
     "build": "NODE_PATH=. tsc -p ./tsconfig-build.json",
@@ -31,11 +31,11 @@
     "@google-cloud/logging-winston": "3.0.5",
     "@grpc/grpc-js": "^0.6.15",
     "@hapi/good": "^8.1.1",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.3",
-    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#1.0.0",
-    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.0",
-    "@rumbleship/service-factory-map": "git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.1",
-    "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.1",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.2.0",
+    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#1.1.3",
+    "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.2",
+    "@rumbleship/service-factory-map": "git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.2",
+    "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.3",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
     "@types/hashids": "^1.0.30",
@@ -52,7 +52,7 @@
     "graphql": "^14.1.1",
     "hashids": "^1.2.2",
     "honeycomb-beeline": "git+ssh://git@github.com/rumbleship/beeline-nodejs.git#master",
-    "iterable-model": "git+ssh://git@github.com/rumbleship/iterable-model.git#master",
+    "iterable-model": "git+ssh://git@github.com/rumbleship/iterable-model.git#0.0.1",
     "jest": "^24.7.1",
     "mysql2": "^1.6.5",
     "prettier": "^1.19.1",

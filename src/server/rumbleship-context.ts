@@ -98,7 +98,11 @@ export class RumbleshipContext implements Context {
       ctx.release();
     }
   }
-  static make(filename: string, options: RumbleshipContextOptionsPlain): RumbleshipContext {
+  static make(
+    filename: string,
+    options: RumbleshipContextOptionsPlain,
+    factories: Map<string, RFIFactory<any>> = RumbleshipContext._serviceFactories
+  ): RumbleshipContext {
     if (!this.initialized) {
       throw new Error('Must initialize the RumbleshipContext before making instances');
     }
@@ -110,7 +114,7 @@ export class RumbleshipContext implements Context {
     container.set('logger', logger);
     container.set('authorizer', authorizer);
 
-    for (const [factory_name, factory] of this._serviceFactories.entries()) {
+    for (const [factory_name, factory] of factories.entries()) {
       container.set(factory_name, factory);
     }
 

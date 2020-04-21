@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [6.0.2] -- 2020-04-20
+
+### Changed
+  * package.json engine supports node 12
+
+## [6.0.1] -- 2020-04-14
+
+### Changed
+  * RumbleshipContext.make() now accepts a third parameter of the factories to use (primarily for testing)
+
 ## [6.0.0] -- 2020-04-02
 
 ### Added
