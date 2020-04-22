@@ -1,6 +1,7 @@
 export interface RfiPubSubConfig {
     keyFilename: string;
     topicPrefix: string;
+    resetHostedSubscriptions: boolean;
 }
 export declare const PubSubConfig: {
     keyFilename: {

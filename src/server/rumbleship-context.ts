@@ -135,7 +135,9 @@ export class RumbleshipContext implements Context {
   ) {}
 
   release() {
-    this.beeline.finishRumbleshipContextTrace();
+    if (this.trace) {
+      this.beeline.finishRumbleshipContextTrace();
+    }
     this.logger.debug(`RELEASE SERVICE CONTEXT: ${this.id}`);
     this.container.reset();
   }
