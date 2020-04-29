@@ -13,6 +13,7 @@ export interface RumbleshipContextOptionsPlain {
   container?: ContainerInstance;
   initial_trace_metadata?: object;
   marshalled_trace?: string;
+  linked_span?: HoneycombSpan;
 }
 
 class RumbleshipContextOptionsWithDefaults {
@@ -23,6 +24,7 @@ class RumbleshipContextOptionsWithDefaults {
   private readonly _initial_trace_metadata: object;
   private readonly _config: object;
   private readonly _marshalled_trace?: string;
+  private readonly _linked_span?: HoneycombSpan;
   get authorizer() {
     return this._authorizer;
   }
@@ -44,10 +46,14 @@ class RumbleshipContextOptionsWithDefaults {
   get marshalled_trace() {
     return this._marshalled_trace;
   }
+  get linked_span() {
+    return this._linked_span;
+  }
   constructor(filename: string, options: RumbleshipContextOptionsPlain) {
     this._config = options.config;
     this._id = options.id ?? uuid.v4();
     this._marshalled_trace = options.marshalled_trace;
+    this._linked_span = options.linked_span;
     this._initial_trace_metadata = options.initial_trace_metadata
       ? { name: 'app.rumbleship_context', ...options.initial_trace_metadata }
       : {
@@ -117,7 +123,8 @@ export class RumbleshipContext implements Context {
       container,
       id,
       logger,
-      marshalled_trace
+      marshalled_trace,
+      linked_span
     } = new RumbleshipContextOptionsWithDefaults(filename, options);
 
     container.set('logger', logger);
@@ -128,16 +135,17 @@ export class RumbleshipContext implements Context {
     }
 
     const beeline = container.get<typeof RumbleshipBeeline>('beelineFactory').make(id);
-    const ctx = new RumbleshipContext(id, container, logger, authorizer, beeline, marshalled_trace);
+    const ctx = new RumbleshipContext(
+      id,
+      container,
+      logger,
+      authorizer,
+      beeline,
+      marshalled_trace,
+      linked_span
+    );
     RumbleshipContext.ActiveContexts.set(ctx.id, ctx);
     logger.debug(`NEW SERVICE CONTEXT: ${ctx.id}`);
-    if (marshalled_trace) {
-      logger.debug('Starting distributed trace');
-      // Should the trace returned here be stored? Where?
-      // the `startTrace` invocation in startDistributedTrace should bind a finisher
-      // and attach it to the Beeline's map.
-      // ctx.startDistributedTrace({ name: 'test' });
-    }
     const withSequelize = this.addSequelizeServicesToContext(ctx) as RumbleshipContext;
     return withSequelize;
   }
@@ -148,9 +156,12 @@ export class RumbleshipContext implements Context {
     public logger: SpyglassLogger,
     public authorizer: Authorizer,
     public beeline: RumbleshipBeeline,
-    private marshalled_trace?: string
+    private marshalled_trace?: string,
+    private linked_span?: HoneycombSpan
   ) {
-    const hydrated_trace = this.beeline.unmarshalTraceContext(this.marshalled_trace);
+    const hydrated_trace = this.beeline.unmarshalTraceContext(
+      this.marshalled_trace
+    ) as HoneycombSpan;
     const trace_context = {
       name: 'rumbleship_context'
     };
@@ -160,6 +171,9 @@ export class RumbleshipContext implements Context {
       hydrated_trace.parentSpanId,
       hydrated_trace.dataset
     );
+    if (this.linked_span) {
+      this.beeline.linkToSpan(linked_span!);
+    }
   }
 
   release() {
