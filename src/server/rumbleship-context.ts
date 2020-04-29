@@ -47,6 +47,7 @@ class RumbleshipContextOptionsWithDefaults {
   constructor(filename: string, options: RumbleshipContextOptionsPlain) {
     this._config = options.config;
     this._id = options.id ?? uuid.v4();
+    this._marshalled_trace = options.marshalled_trace;
     this._initial_trace_metadata = options.initial_trace_metadata
       ? { name: 'app.rumbleship_context', ...options.initial_trace_metadata }
       : {
