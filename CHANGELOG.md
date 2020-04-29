@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * RumbleshipContext.make() takes an optional `marshalled_trace` to propagate
 ### Removed
 ### Changed
 ### Fixed

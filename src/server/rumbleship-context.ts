@@ -12,6 +12,7 @@ export interface RumbleshipContextOptionsPlain {
   logger?: SpyglassLogger;
   container?: ContainerInstance;
   initial_trace_metadata?: object;
+  marshalled_trace?: string;
 }
 
 class RumbleshipContextOptionsWithDefaults {
@@ -21,6 +22,7 @@ class RumbleshipContextOptionsWithDefaults {
   private readonly _id: string;
   private readonly _initial_trace_metadata: object;
   private readonly _config: object;
+  private readonly _marshalled_trace?: string;
   get authorizer() {
     return this._authorizer;
   }
@@ -38,6 +40,9 @@ class RumbleshipContextOptionsWithDefaults {
   }
   get config() {
     return this._config;
+  }
+  get marshalled_trace() {
+    return this._marshalled_trace;
   }
   constructor(filename: string, options: RumbleshipContextOptionsPlain) {
     this._config = options.config;
@@ -106,10 +111,13 @@ export class RumbleshipContext implements Context {
     if (!this.initialized) {
       throw new Error('Must initialize the RumbleshipContext before making instances');
     }
-    const { authorizer, container, id, logger } = new RumbleshipContextOptionsWithDefaults(
-      filename,
-      options
-    );
+    const {
+      authorizer,
+      container,
+      id,
+      logger,
+      marshalled_trace
+    } = new RumbleshipContextOptionsWithDefaults(filename, options);
 
     container.set('logger', logger);
     container.set('authorizer', authorizer);
@@ -119,9 +127,12 @@ export class RumbleshipContext implements Context {
     }
 
     const beeline = container.get<typeof RumbleshipBeeline>('beelineFactory').make(id);
-    const ctx = new RumbleshipContext(id, container, logger, authorizer, beeline);
+    const ctx = new RumbleshipContext(id, container, logger, authorizer, beeline, marshalled_trace);
     RumbleshipContext.ActiveContexts.set(ctx.id, ctx);
     logger.debug(`NEW SERVICE CONTEXT: ${ctx.id}`);
+    if (marshalled_trace) {
+      ctx.startDistributedTrace({ name: 'test' });
+    }
     const withSequelize = this.addSequelizeServicesToContext(ctx) as RumbleshipContext;
     return withSequelize;
   }
@@ -131,8 +142,22 @@ export class RumbleshipContext implements Context {
     public container: ContainerInstance,
     public logger: SpyglassLogger,
     public authorizer: Authorizer,
-    public beeline: RumbleshipBeeline
+    public beeline: RumbleshipBeeline,
+    private marshalled_trace?: string
   ) {}
+
+  startDistributedTrace(span_data: object) {
+    if (!this.marshalled_trace) {
+      throw new Error('Cannot start a distributed trace without a marshalled trace');
+    }
+    const hydrated_trace = this.beeline.unmarshalTraceContext(this.marshalled_trace);
+    return this.beeline.startTrace(
+      span_data,
+      hydrated_trace.traceId,
+      hydrated_trace.parentSpanId,
+      hydrated_trace.dataset
+    );
+  }
 
   release() {
     if (this.trace) {

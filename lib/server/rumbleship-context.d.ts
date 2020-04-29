@@ -9,6 +9,7 @@ export interface RumbleshipContextOptionsPlain {
     logger?: SpyglassLogger;
     container?: ContainerInstance;
     initial_trace_metadata?: object;
+    marshalled_trace?: string;
 }
 export interface Context {
     id: string;
@@ -24,6 +25,7 @@ export declare class RumbleshipContext implements Context {
     logger: SpyglassLogger;
     authorizer: Authorizer;
     beeline: RumbleshipBeeline;
+    private marshalled_trace?;
     trace: HoneycombSpan | undefined;
     private static initialized;
     private static _serviceFactories;
@@ -32,7 +34,8 @@ export declare class RumbleshipContext implements Context {
     static initialize(serviceFactories: Map<string, RFIFactory<any>>, addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext): void;
     static releaseAllContexts(): void;
     static make(filename: string, options: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
-    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline);
+    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, marshalled_trace?: string | undefined);
+    startDistributedTrace(span_data: object): HoneycombSpan;
     release(): void;
 }
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
