@@ -132,8 +132,11 @@ export class RumbleshipContext implements Context {
     RumbleshipContext.ActiveContexts.set(ctx.id, ctx);
     logger.debug(`NEW SERVICE CONTEXT: ${ctx.id}`);
     if (marshalled_trace) {
-      console.log('Starting distributed trace');
-      ctx.startDistributedTrace({ name: 'test' });
+      logger.debug('Starting distributed trace');
+      // Should the trace returned here be stored? Where?
+      // the `startTrace` invocation in startDistributedTrace should bind a finisher
+      // and attach it to the Beeline's map.
+      // ctx.startDistributedTrace({ name: 'test' });
     }
     const withSequelize = this.addSequelizeServicesToContext(ctx) as RumbleshipContext;
     return withSequelize;
@@ -146,15 +149,13 @@ export class RumbleshipContext implements Context {
     public authorizer: Authorizer,
     public beeline: RumbleshipBeeline,
     private marshalled_trace?: string
-  ) {}
-
-  startDistributedTrace(span_data: object) {
-    if (!this.marshalled_trace) {
-      throw new Error('Cannot start a distributed trace without a marshalled trace');
-    }
+  ) {
     const hydrated_trace = this.beeline.unmarshalTraceContext(this.marshalled_trace);
-    return this.beeline.startTrace(
-      span_data,
+    const trace_context = {
+      name: 'rumbleship_context'
+    };
+    this.trace = this.beeline.startTrace(
+      trace_context,
       hydrated_trace.traceId,
       hydrated_trace.parentSpanId,
       hydrated_trace.dataset
@@ -163,7 +164,7 @@ export class RumbleshipContext implements Context {
 
   release() {
     if (this.trace) {
-      this.beeline.finishRumbleshipContextTrace();
+      this.beeline.finishTrace(this.trace);
     }
     this.logger.debug(`RELEASE SERVICE CONTEXT: ${this.id}`);
     this.container.reset();
