@@ -80,7 +80,7 @@
     "@google-cloud/pubsub": "^1.1.6",
     "@grpc/grpc-js": "^0.6.15",
     "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.3",
-    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#1.0.0",
+    "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#2.0.1",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.0",
     "@rumbleship/service-factory-map": "git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.1",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.1",

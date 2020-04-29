@@ -132,6 +132,7 @@ export class RumbleshipContext implements Context {
     RumbleshipContext.ActiveContexts.set(ctx.id, ctx);
     logger.debug(`NEW SERVICE CONTEXT: ${ctx.id}`);
     if (marshalled_trace) {
+      console.log('Starting distributed trace');
       ctx.startDistributedTrace({ name: 'test' });
     }
     const withSequelize = this.addSequelizeServicesToContext(ctx) as RumbleshipContext;
@@ -183,7 +184,7 @@ export function withRumbleshipContext<T>(
   );
 
   return new Promise((resolve, reject) => {
-    const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx));
+    const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx))();
     if (isPromise(value)) {
       // tslint:disable-next-line: no-floating-promises
       ((value as unknown) as Promise<T>)
@@ -216,7 +217,7 @@ export function withLinkedRumbleshipContext<T>(
     ctx.beeline.linkToSpan(parentSpan);
 
     return new Promise((resolve, reject) => {
-      const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx));
+      const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx))();
       if (isPromise(value)) {
         // tslint:disable-next-line: no-floating-promises
         ((value as unknown) as Promise<T>)
