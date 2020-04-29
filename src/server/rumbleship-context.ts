@@ -252,8 +252,10 @@ export function getRumbleshipContext(filename: string, config: object): Rumblesh
   return Factory.make(filename, { config });
 }
 
-export function releaseRumbleshipContext(context: Context) {
-  context.beeline.finishRumbleshipContextTrace();
+export function releaseRumbleshipContext(context: RumbleshipContext) {
+  if (context.trace) {
+    context.beeline.finishTrace(context.trace);
+  }
   context.logger.debug(`RELEASE SERVICE CONTEXT: ${context.id}`);
   context.container.reset();
 }

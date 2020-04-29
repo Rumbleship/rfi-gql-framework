@@ -35,7 +35,6 @@ export declare class RumbleshipContext implements Context {
     static releaseAllContexts(): void;
     static make(filename: string, options: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
     constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, marshalled_trace?: string | undefined);
-    startDistributedTrace(span_data: object): HoneycombSpan;
     release(): void;
 }
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
@@ -46,7 +45,7 @@ export declare function withLinkedRumbleshipContext<T>(parentSpan: HoneycombSpan
  * or GQL subscription.
  */
 export declare function getRumbleshipContext(filename: string, config: object): RumbleshipContext;
-export declare function releaseRumbleshipContext(context: Context): void;
+export declare function releaseRumbleshipContext(context: RumbleshipContext): void;
 export interface SpyglassLogger {
     addMetadata: (object: object) => void;
     log: (message: any, metadata?: object) => void;
