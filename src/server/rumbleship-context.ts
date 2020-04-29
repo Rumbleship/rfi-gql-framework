@@ -123,6 +123,7 @@ export class RumbleshipContext implements Context {
       container,
       id,
       logger,
+      initial_trace_metadata,
       marshalled_trace,
       linked_span
     } = new RumbleshipContextOptionsWithDefaults(filename, options);
@@ -141,6 +142,7 @@ export class RumbleshipContext implements Context {
       logger,
       authorizer,
       beeline,
+      initial_trace_metadata,
       marshalled_trace,
       linked_span
     );
@@ -156,22 +158,18 @@ export class RumbleshipContext implements Context {
     public logger: SpyglassLogger,
     public authorizer: Authorizer,
     public beeline: RumbleshipBeeline,
-    private marshalled_trace?: string,
-    private linked_span?: HoneycombSpan
+    initial_trace_metadata: object,
+    marshalled_trace?: string,
+    linked_span?: HoneycombSpan
   ) {
-    const hydrated_trace = this.beeline.unmarshalTraceContext(
-      this.marshalled_trace
-    ) as HoneycombSpan;
-    const trace_context = {
-      name: 'rumbleship_context'
-    };
+    const hydrated_trace = this.beeline.unmarshalTraceContext(marshalled_trace) as HoneycombSpan;
     this.trace = this.beeline.startTrace(
-      trace_context,
+      { name: 'rumbleship_context', ...initial_trace_metadata },
       hydrated_trace.traceId,
       hydrated_trace.parentSpanId,
       hydrated_trace.dataset
     );
-    if (this.linked_span) {
+    if (linked_span) {
       this.beeline.linkToSpan(linked_span!);
     }
   }
@@ -184,6 +182,7 @@ export class RumbleshipContext implements Context {
     this.container.reset();
   }
 }
+/** @deprecated ? */
 export function withRumbleshipContext<T>(
   filename: string,
   options: RumbleshipContextOptionsPlain,
@@ -213,6 +212,7 @@ export function withRumbleshipContext<T>(
   });
 }
 
+/** @deprecated ? */
 export function withLinkedRumbleshipContext<T>(
   parentSpan: HoneycombSpan,
   filename: string,
