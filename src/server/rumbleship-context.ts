@@ -212,66 +212,8 @@ export function withRumbleshipContext<T>(
   });
 }
 
-/** @deprecated ? */
-export function withLinkedRumbleshipContext<T>(
-  parentSpan: HoneycombSpan,
-  filename: string,
-  options: RumbleshipContextOptionsPlain,
-  fn: (ctx: RumbleshipContext) => T
-): Promise<T> {
-  const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
-  const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(filename, options);
-  return ctx.beeline.runWithoutTrace(() => {
-    ctx.trace = ctx.beeline.startTrace(
-      {
-        ...initial_trace_metadata
-      },
-      ctx.id
-    );
-
-    ctx.beeline.linkToSpan(parentSpan);
-
-    return new Promise((resolve, reject) => {
-      const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx))();
-      if (isPromise(value)) {
-        // tslint:disable-next-line: no-floating-promises
-        ((value as unknown) as Promise<T>)
-          .then(resolve)
-          .catch(reject)
-          .finally(() => ctx.release());
-      } else {
-        ctx.release();
-        resolve(value);
-      }
-    });
-  });
-}
-
 function isPromise(p: any) {
   return p && typeof p.then === 'function';
-}
-
-/**
- * Provides a context that has an authorizer and credentials etc specifically for
- * THIS microservice so it can be used outside of the context of an Http/geaphql request
- * or GQL subscription.
- */
-export function getRumbleshipContext(filename: string, config: object): RumbleshipContext {
-  // tslint:disable-next-line: no-console
-  console.warn(`You probably DO NOT WANT to use this. 
-  \tYou probably want to wrap your code with \`RumbleshipContext.withContext(cb: () => any)\`
-  \tso you don't have to manage releasing the created context.
-  \tIf you meant to use this, YOU MUST INVOKE \`context.release()\` otherwise memory leaks!`);
-  const Factory = Container.get('RumbleshipContext') as typeof RumbleshipContext;
-  return Factory.make(filename, { config });
-}
-
-export function releaseRumbleshipContext(context: RumbleshipContext) {
-  if (context.trace) {
-    context.beeline.finishTrace(context.trace);
-  }
-  context.logger.debug(`RELEASE SERVICE CONTEXT: ${context.id}`);
-  context.container.reset();
 }
 
 export interface SpyglassLogger {
