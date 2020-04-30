@@ -5,18 +5,13 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [7.0.0] -- 2020-04-30
 
 ### Added
   * RumbleshipContext.make() takes an optional `marshalled_trace` to propagate, optional `linked_span` to link to
   * **IMPORTANT** Peer + dev dependency on `@rumbleship/o11y` bumped to 3.0.0
-### Removed
 ### Changed
   * Instantiating a RumbleshipContext automatically starts its (possibly distributed, possible linked) trace.
-### Fixed
-### Deprecated
-### Security
-
 
 ## [6.0.3] -- 2020-04-22
 
