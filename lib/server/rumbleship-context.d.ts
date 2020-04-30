@@ -39,15 +39,6 @@ export declare class RumbleshipContext implements Context {
 }
 /** @deprecated ? */
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
-/** @deprecated ? */
-export declare function withLinkedRumbleshipContext<T>(parentSpan: HoneycombSpan, filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
-/**
- * Provides a context that has an authorizer and credentials etc specifically for
- * THIS microservice so it can be used outside of the context of an Http/geaphql request
- * or GQL subscription.
- */
-export declare function getRumbleshipContext(filename: string, config: object): RumbleshipContext;
-export declare function releaseRumbleshipContext(context: RumbleshipContext): void;
 export interface SpyglassLogger {
     addMetadata: (object: object) => void;
     log: (message: any, metadata?: object) => void;
