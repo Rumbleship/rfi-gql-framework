@@ -9,6 +9,8 @@ export interface RumbleshipContextOptionsPlain {
     logger?: SpyglassLogger;
     container?: ContainerInstance;
     initial_trace_metadata?: object;
+    marshalled_trace?: string;
+    linked_span?: HoneycombSpan;
 }
 export interface Context {
     id: string;
@@ -32,10 +34,12 @@ export declare class RumbleshipContext implements Context {
     static initialize(serviceFactories: Map<string, RFIFactory<any>>, addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext): void;
     static releaseAllContexts(): void;
     static make(filename: string, options: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
-    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline);
+    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: object, marshalled_trace?: string, linked_span?: HoneycombSpan);
     release(): void;
 }
+/** @deprecated ? */
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
+/** @deprecated ? */
 export declare function withLinkedRumbleshipContext<T>(parentSpan: HoneycombSpan, filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
 /**
  * Provides a context that has an authorizer and credentials etc specifically for
@@ -43,7 +47,7 @@ export declare function withLinkedRumbleshipContext<T>(parentSpan: HoneycombSpan
  * or GQL subscription.
  */
 export declare function getRumbleshipContext(filename: string, config: object): RumbleshipContext;
-export declare function releaseRumbleshipContext(context: Context): void;
+export declare function releaseRumbleshipContext(context: RumbleshipContext): void;
 export interface SpyglassLogger {
     addMetadata: (object: object) => void;
     log: (message: any, metadata?: object) => void;
