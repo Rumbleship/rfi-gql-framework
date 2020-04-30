@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * RumbleshipContext.make() takes an optional `marshalled_trace` to propagate, optional `linked_span` to link to
+  * **IMPORTANT** Peer + dev dependency on `@rumbleship/o11y` bumped to 3.0.0
 ### Removed
 ### Changed
+  * Instantiating a RumbleshipContext automatically starts its (possibly distributed, possible linked) trace.
 ### Fixed
 ### Deprecated
 ### Security
