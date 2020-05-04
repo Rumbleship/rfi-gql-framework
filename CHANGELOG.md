@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Default ordering by [[id, desc]] on getAssociatedMany()
 ### Removed
+  * Fallback support for ordering by `created_at` on old (uuid-primary) tables
 ### Changed
 ### Fixed
 ### Deprecated
