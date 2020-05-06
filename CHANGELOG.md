@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * Default ordering by [[id, desc]] on getAssociatedMany()
+### Removed
+  * Fallback support for ordering by `created_at` on old (uuid-primary) tables
+### Changed
+### Fixed
+### Deprecated
+### Security
+
+
 ## [7.0.1] -- 2020-04-30
 
 ### Removed

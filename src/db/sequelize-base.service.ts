@@ -423,19 +423,7 @@ export class SequelizeBaseService<
     const connection = new this.connectionClass();
 
     const id_attribute = this.model.rawAttributes['id'] as any; // sequelize typings are not correct
-    let orderClause: OrderItem[] | undefined;
-    if (id_attribute) {
-      // if it is a uuid or string as id, then we want to use created_at if its there...
-      // but we may not have either condition, in which case there is no default ordering
-      if (id_attribute?.type?.key === 'INTEGER') {
-        orderClause = [['id', 'DESC']];
-      } else {
-        const created_at_attribute = this.model.rawAttributes['id'];
-        if (created_at_attribute) {
-          orderClause = [['created_at', 'DESC']];
-        }
-      }
-    }
+    const orderClause: OrderItem[] | undefined = id_attribute ? [['id', 'DESC']] : undefined;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options) ?? {};
@@ -776,13 +764,15 @@ export class SequelizeBaseService<
         order
       };
 
-      assocService.addAuthorizationFilters(findOptions, options ?? {});
       assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
       count = await sourceModel.$count(assoc_key, countOptions);
+      assocService.addAuthorizationFilters(findOptions, options ?? {});
+      const orderClause: OrderItem[] = [['id', 'DESC']];
       findOptions = {
         ...findOptions,
         offset: limits.offset,
         limit: limits.limit,
+        order: orderClause,
         ...sequelizeOptions
       };
       const result = await sourceModel.$get(assoc_key as any, findOptions);
