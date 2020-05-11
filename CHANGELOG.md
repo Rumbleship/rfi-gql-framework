@@ -10,12 +10,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
-  * Modified RumbleshipContext to only finish a trace if there is a trace set in the context.
-  * added resetHostedSubscriptions to the RfiPubSubConfig interface
 ### Fixed
 ### Deprecated
 ### Security
 
+
+## [7.0.2] -- 2020-05-06
+
+### Added
+  * Default ordering by [[id, desc]] on getAssociatedMany()
+### Removed
+  * Fallback support for ordering by `created_at` on old (uuid-primary) tables
+
+## [7.0.1] -- 2020-04-30
+
+### Removed
+  * `withRumbleshipContext`, `withLinkedRumbleshipContext`, `releaseRumbleshipContext`
+
+## [7.0.0] -- 2020-04-30
+
+### Added
+  * RumbleshipContext.make() takes an optional `marshalled_trace` to propagate, optional `linked_span` to link to
+  * **IMPORTANT** Peer + dev dependency on `@rumbleship/o11y` bumped to 3.0.0
+### Changed
+  * Instantiating a RumbleshipContext automatically starts its (possibly distributed, possible linked) trace.
+
+## [6.0.3] -- 2020-04-22
+
+### Changed
+  * Modified RumbleshipContext to only finish a trace if there is a trace set in the context.
+  * added resetHostedSubscriptions to the RfiPubSubConfig interface
 
 ## [6.0.2] -- 2020-04-20
 
