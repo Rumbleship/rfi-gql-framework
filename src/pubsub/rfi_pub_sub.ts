@@ -31,11 +31,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected subscription_ids: number[];
   constructor(publisher_version: string, config: RfiPubSubConfig) {
     RfiPubSub.validatePubSubConfig(config);
-    const { topicPrefix } = config;
-    if (config.keyFilename === `/dev/null`) {
-      config = {} as any;
-    }
-    super(config, uniqueSubscriptionNamePart);
+    const { topicPrefix, keyFilename } = config;
+    super(keyFilename === `/dev/null` ? {} : config, uniqueSubscriptionNamePart);
     this.topicPrefix = topicPrefix;
     this.publisher_version = publisher_version;
     this.subscription_ids = [];
