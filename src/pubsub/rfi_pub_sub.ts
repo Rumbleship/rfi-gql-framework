@@ -125,8 +125,9 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {
-    const [topics] = await this.pubSubClient.getTopics();
-    if (!topics.find((topic: Topic) => topic.name === topicName)) {
+    const topic: Topic = this.pubSubClient.topic(topicName);
+    const [exists] = await topic.exists();
+    if (!exists) {
       try {
         await this.pubSubClient.createTopic(topicName);
       } catch (e) {
