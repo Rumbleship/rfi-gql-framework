@@ -1,4 +1,5 @@
 import { Model } from 'sequelize-typescript';
+// tslint:disable-next-line: no-circular-imports
 import { RfiPubSubEngine } from './index';
 
 import { NODE_CHANGE_NOTIFICATION, NotificationOf, ModelDelta } from '../gql/node-notification';
