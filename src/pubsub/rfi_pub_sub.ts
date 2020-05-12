@@ -11,6 +11,7 @@ import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 import { RfiPubSubConfig } from './pub_sub_config';
 import { hostname } from 'os';
+import { Topic } from '@google-cloud/pubsub';
 
 export interface PubEngine extends PubSubEngine {
   publisher_version: string;
@@ -125,7 +126,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {
     const [topics] = await this.pubSubClient.getTopics();
-    if (topics.indexOf(topicName) < 0) {
+    if (!topics.find((topic: Topic) => topic.name === topicName)) {
       try {
         await this.pubSubClient.createTopic(topicName);
       } catch (e) {
