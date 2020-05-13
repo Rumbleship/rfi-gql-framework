@@ -31,11 +31,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected subscription_ids: number[];
   constructor(publisher_version: string, config: RfiPubSubConfig) {
     RfiPubSub.validatePubSubConfig(config);
-    const { topicPrefix } = config;
-    if (config.keyFilename === `/dev/null`) {
-      config = {} as any;
-    }
-    super(config, uniqueSubscriptionNamePart);
+    const { topicPrefix, keyFilename } = config;
+    super(keyFilename === `/dev/null` ? {} : config, uniqueSubscriptionNamePart);
     this.topicPrefix = topicPrefix;
     this.publisher_version = publisher_version;
     this.subscription_ids = [];
@@ -60,9 +57,9 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
   // Couldn't get typescript to be happy with 'extends', so we end up repeat ourselves
   public async publish(triggerName: string, payload: any): Promise<void> {
-    triggerName = `${this.topicPrefix}_${triggerName}`;
-    await this.createTopicIfNotExist(triggerName);
-    return super.publish(triggerName, payload);
+    const topicName = `${this.topicPrefix}_${triggerName}`;
+    await this.createTopicIfNotExist(topicName);
+    return super.publish(topicName, payload);
   }
 
   public async subscribe(
@@ -70,9 +67,9 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     onMessage: (message: string) => null,
     options?: RfiSubscriptionOptions
   ): Promise<number> {
-    triggerName = `${this.topicPrefix}_${triggerName}`;
-    await this.createTopicIfNotExist(triggerName);
-    const sub_id = await super.subscribe(triggerName, onMessage, options);
+    const topicName = `${this.topicPrefix}_${triggerName}`;
+    await this.createTopicIfNotExist(topicName);
+    const sub_id = await super.subscribe(topicName, onMessage, options);
     this.subscription_ids.push(sub_id);
     return sub_id;
   }
@@ -122,8 +119,9 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {
-    const topics = await this.pubSubClient.getTopics();
-    if (topics.indexOf(topicName) < 0) {
+    const topic = this.pubSubClient.topic(topicName);
+    const [exists] = await topic.exists();
+    if (!exists) {
       try {
         await this.pubSubClient.createTopic(topicName);
       } catch (e) {
