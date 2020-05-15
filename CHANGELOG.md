@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Centralized convict defaults for database config
 ### Removed
 ### Changed
-  * dialect options
+  * Refactored `sequelizeOptions` to be strongly typed; 
 ### Fixed
 ### Deprecated
+  * Passing entire `config` into `initSequelize()`; pass exclusively the `db` object that conforms to `RumbleshipDatabaseOptions` shape.
 ### Security
 
 
