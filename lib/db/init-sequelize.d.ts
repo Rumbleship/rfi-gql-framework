@@ -1,5 +1,6 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 import { Oid } from '@rumbleship/oid';
+import { RumbleshipDatabaseOptions } from './db.convict';
 /**
  * Returns the global instance of sequelize used by this application
  */
@@ -16,8 +17,8 @@ export declare function getScopeFor(model: Model): string | undefined;
 export declare function getOidFor(model: Model): Oid;
 /**
  * initializes sequelize for the app and sets up a global sequelize
- * @param config An object with the shape: { db: { database, username, password, dialect, host, port, pool, socketPath, define }}
- * This is modified and passed to new Sequelize()
+ * @param cfg A Sequelize Configuration object, passed directly, or ((DEPRECATED)) nested under a key `{db: cfg}`
+ * { database, username, password, dialect, host, port, pool, define, dialectOptions: { socketPath, maxPreparedStatements }}
  * @param loggingFun The logging function to pass in. Required
  * @param dbModels An array of sequelize-typescript models for this application
  * @param opt options...
@@ -26,7 +27,9 @@ export declare function getOidFor(model: Model): Oid;
  * create isolated test databases in test suites
  * pubSub is the PubSubEngine to use to publish model changes
  */
-export declare function initSequelize(config: any, loggingFun: (msg: string) => any, dbModels: DbModelAndOidScope[], opt?: {
+export declare function initSequelize(cfg: RumbleshipDatabaseOptions | {
+    db: RumbleshipDatabaseOptions;
+}, loggingFun: (msg: string) => any, dbModels: DbModelAndOidScope[], opt?: {
     force: boolean;
     dbSuffix?: string;
 }): Promise<Sequelize>;
