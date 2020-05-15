@@ -37,7 +37,7 @@ export const ConvictDatabaseSchema = {
   database: {
     doc: 'Database name',
     format: String,
-    default: 'banking',
+    default: undefined,
     env: 'DB_DATABASE'
   },
   dialect: {
