@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * Centralized convict defaults for database config
+  * Support (+default:100) for setting `db.dialectOptions.maxPreparedStatements`
 ### Removed
 ### Changed
   * Refactored `sequelizeOptions` to be strongly typed; 
