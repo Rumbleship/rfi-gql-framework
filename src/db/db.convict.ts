@@ -57,7 +57,7 @@ export const ConvictDatabaseSchema = {
       doc:
         'Tune the number of prepared statements the mysql2 lib keeps open (distinct from what the mysql server manages)',
       format: Number,
-      default: undefined,
+      default: 100,
       env: 'DB_DIALECT_MAX_PREPARED_STATEMENTS'
     }
   },
