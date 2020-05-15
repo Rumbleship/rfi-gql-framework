@@ -60,7 +60,7 @@ export async function initSequelize(
   const force = opt?.force ?? false;
   const dbSuffix = opt?.dbSuffix ?? '';
   const { database, username, password, dialect, host, port, pool, define } = config;
-  const db = database + '_' + dbSuffix;
+  const db = database + (dbSuffix[0] === '_' ? dbSuffix.slice(1) : dbSuffix);
 
   const options: RumbleshipDatabaseOptions = {
     database: db,
