@@ -5,19 +5,15 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [7.0.4] -- 2020-05-15
 
 ### Added
   * Centralized convict defaults for database config
   * Support (+default:100) for setting `db.dialectOptions.maxPreparedStatements`
-### Removed
 ### Changed
   * Refactored `sequelizeOptions` to be strongly typed; 
-### Fixed
 ### Deprecated
   * Passing entire `config` into `initSequelize()`; pass exclusively the `db` object that conforms to `RumbleshipDatabaseOptions` shape.
-### Security
-
 
 ## [7.0.3] -- 2020-05-13
 

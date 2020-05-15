@@ -36,7 +36,7 @@ export declare const ConvictDatabaseSchema: {
     database: {
         doc: string;
         format: StringConstructor;
-        default: string;
+        default: undefined;
         env: string;
     };
     dialect: {
@@ -55,7 +55,7 @@ export declare const ConvictDatabaseSchema: {
         maxPreparedStatements: {
             doc: string;
             format: NumberConstructor;
-            default: undefined;
+            default: number;
             env: string;
         };
     };
