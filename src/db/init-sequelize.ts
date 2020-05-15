@@ -71,7 +71,7 @@ export async function initSequelize(
       pool,
       logging: loggingFun,
       define,
-      dialectOptions: { socketPath }
+      dialectOptions: { socketPath, maxPreparedStatements: 10 }
     };
   } else {
     options = {
