@@ -1,4 +1,4 @@
-import { Sequelize, Model, ModelCtor, SequelizeOptions } from 'sequelize-typescript';
+import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 import { Oid } from '@rumbleship/oid';
 import { RumbleshipDatabaseOptions } from './db.convict';
 
@@ -60,10 +60,9 @@ export async function initSequelize(
   const force = opt?.force ?? false;
   const dbSuffix = opt?.dbSuffix ?? '';
   const { database, username, password, dialect, host, port, pool, define } = config;
-  const { socketPath, ...dialectOptions } = config.dialectOptions;
   const db = database + '_' + dbSuffix;
 
-  const options: SequelizeOptions = {
+  const options: RumbleshipDatabaseOptions = {
     database: db,
     username,
     password,
@@ -71,21 +70,31 @@ export async function initSequelize(
     pool,
     logging: loggingFun,
     define,
-    dialectOptions
+    dialectOptions: {}
   };
+  const { socketPath, ...dialectOptions } = config.dialectOptions;
+  // mysql2 does not like undefined values in `dialectOptions`, so only set them if present.
+  for (const [option, value] of Object.entries(dialectOptions)) {
+    if (value) {
+      Reflect.set(options.dialectOptions, option, value);
+    }
+  }
+  // `socketPath` requires special treatment; its presence changes how we set `host` and `port`
   if (socketPath) {
-    Reflect.set(options.dialectOptions!, 'socketPath', socketPath);
+    options.dialectOptions.socketPath = socketPath;
   } else {
     options.host = host;
     options.port = port;
   }
 
-  if (['test', 'development'].includes(process.env.NODE_ENV as string) && dbSuffix.length) {
-    options.database = '';
-    const temporarySequelize = new Sequelize(options);
-    await temporarySequelize.query(`DROP DATABASE IF EXISTS ${db};`);
-    await temporarySequelize.query(`CREATE DATABASE ${db};`);
-    options.database = db;
+  if (config.dialectOptions) {
+    if (['test', 'development'].includes(process.env.NODE_ENV as string) && dbSuffix.length) {
+      options.database = '';
+      const temporarySequelize = new Sequelize(options);
+      await temporarySequelize.query(`DROP DATABASE IF EXISTS ${db};`);
+      await temporarySequelize.query(`CREATE DATABASE ${db};`);
+      options.database = db;
+    }
   }
   theSequelizeInstance = new Sequelize(options);
   theDbModels.push(...dbModels);
