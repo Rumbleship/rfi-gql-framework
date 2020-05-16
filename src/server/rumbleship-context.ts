@@ -4,7 +4,7 @@ import { RFIFactory } from '@rumbleship/service-factory-map';
 import { Authorizer, Scopes, createAuthHeader } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import uuid = require('uuid');
-import { getSequelizeInstance } from 'src/db';
+import { getSequelizeInstance } from '../db';
 
 export interface RumbleshipContextOptionsPlain {
   config: object;
