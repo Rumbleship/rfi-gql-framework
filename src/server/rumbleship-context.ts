@@ -187,7 +187,7 @@ export class RumbleshipContext implements Context {
       const db_vars_honeycomb = {};
       for (const text_row of db_variables) {
         const { Variable_name, Value } = text_row;
-        Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Value);
+        Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Number(Value));
       }
       this.beeline.addContext(db_vars_honeycomb);
       if (this.trace) {
