@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * `ctx.release()` now async; collects and sends interesting mysql variables to trace on close
 ### Fixed
 ### Deprecated
 ### Security

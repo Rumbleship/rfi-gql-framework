@@ -32,10 +32,10 @@ export declare class RumbleshipContext implements Context {
     private static ActiveContexts;
     static addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext;
     static initialize(serviceFactories: Map<string, RFIFactory<any>>, addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext): void;
-    static releaseAllContexts(): void;
+    static releaseAllContexts(): Promise<void>;
     static make(filename: string, options: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
     constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: object, marshalled_trace?: string, linked_span?: HoneycombSpan);
-    release(): void;
+    release(): Promise<void>;
 }
 /** @deprecated ? */
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;

@@ -4,6 +4,7 @@ import { RFIFactory } from '@rumbleship/service-factory-map';
 import { Authorizer, Scopes, createAuthHeader } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import uuid = require('uuid');
+import { getSequelizeInstance } from 'src/db';
 
 export interface RumbleshipContextOptionsPlain {
   config: object;
@@ -105,9 +106,9 @@ export class RumbleshipContext implements Context {
     this.addSequelizeServicesToContext = addSequelizeServicesToContext;
     this.initialized = true;
   }
-  static releaseAllContexts() {
+  static async releaseAllContexts() {
     for (const ctx of RumbleshipContext.ActiveContexts.values()) {
-      ctx.release();
+      setImmediate(() => ctx.release());
     }
   }
   static make(
@@ -174,12 +175,28 @@ export class RumbleshipContext implements Context {
     }
   }
 
-  release() {
-    if (this.trace) {
-      this.beeline.finishTrace(this.trace);
+  async release() {
+    interface TextRow {
+      Variable_name: string;
+      Value: string;
     }
-    this.logger.debug(`RELEASE SERVICE CONTEXT: ${this.id}`);
-    this.container.reset();
+    try {
+      const [db_variables]: TextRow[][] = ((await getSequelizeInstance()?.query(
+        "SHOW GLOBAL STATUS LIKE 'com_stmt%';"
+      )) ?? [[]]) as TextRow[][];
+      const db_vars_honeycomb = {};
+      for (const text_row of db_variables) {
+        const { Variable_name, Value } = text_row;
+        Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Value);
+      }
+      this.beeline.addContext(db_vars_honeycomb);
+      if (this.trace) {
+        this.beeline.finishTrace(this.trace);
+      }
+    } finally {
+      this.logger.debug(`RELEASE SERVICE CONTEXT: ${this.id}`);
+      this.container.reset();
+    }
   }
 }
 /** @deprecated ? */
@@ -204,9 +221,9 @@ export function withRumbleshipContext<T>(
       ((value as unknown) as Promise<T>)
         .then(resolve)
         .catch(reject)
-        .finally(() => ctx.release());
+        .finally(() => setImmediate(() => ctx.release()));
     } else {
-      ctx.release();
+      setImmediate(() => ctx.release());
       resolve(value);
     }
   });
