@@ -193,6 +193,8 @@ export class RumbleshipContext implements Context {
       if (this.trace) {
         this.beeline.finishTrace(this.trace);
       }
+    } catch (error) {
+      this.logger.error(error);
     } finally {
       this.logger.debug(`RELEASE SERVICE CONTEXT: ${this.id}`);
       this.container.reset();
