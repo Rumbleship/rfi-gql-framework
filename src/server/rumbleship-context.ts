@@ -183,7 +183,8 @@ export class RumbleshipContext implements Context {
     try {
       const queries = [
         "SHOW GLOBAL STATUS LIKE 'com_stmt%';",
-        "SHOW GLOBAL STATUS LIKE 'prepared_stmt_count'"
+        "SHOW GLOBAL STATUS LIKE 'prepared_stmt_count';",
+        "SHOW GLOBAL VARIABLES LIKE 'max_prepared_stmt_count';"
       ];
       const db_vars_honeycomb = {};
       for (const query of queries) {
