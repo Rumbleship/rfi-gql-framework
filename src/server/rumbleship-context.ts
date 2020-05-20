@@ -181,13 +181,19 @@ export class RumbleshipContext implements Context {
       Value: string;
     }
     try {
-      const [db_variables]: TextRow[][] = ((await getSequelizeInstance()?.query(
-        "SHOW GLOBAL STATUS LIKE 'com_stmt%';"
-      )) ?? [[]]) as TextRow[][];
+      const queries = [
+        "SHOW GLOBAL STATUS LIKE 'com_stmt%';",
+        "SHOW GLOBAL STATUS LIKE 'prepared_stmt_count'"
+      ];
       const db_vars_honeycomb = {};
-      for (const text_row of db_variables) {
-        const { Variable_name, Value } = text_row;
-        Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Number(Value));
+      for (const query of queries) {
+        const [db_variables]: TextRow[][] = ((await getSequelizeInstance()?.query(query)) ?? [
+          []
+        ]) as TextRow[][];
+        for (const text_row of db_variables) {
+          const { Variable_name, Value } = text_row;
+          Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Number(Value));
+        }
       }
       this.beeline.addContext(db_vars_honeycomb);
       if (this.trace) {

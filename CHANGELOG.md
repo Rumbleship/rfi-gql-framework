@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Context.realease() queries for `prepared_stmt_count` as well
 ### Removed
 ### Changed
 ### Fixed
