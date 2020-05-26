@@ -42,7 +42,7 @@ export interface NodeServiceOptions {
   action?: Actions;
 }
 
-export interface NodeService<T> {
+export interface NodeService<T extends Node<T>> {
   getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
   nodeType(): string;
   getContext(): RumbleshipContext;
