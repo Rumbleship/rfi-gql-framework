@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [7.0.9] -- 2020-05-20
+
+### Added
+  * Context.realease() queries for `prepared_stmt_count` as well
+
+## [7.0.8] -- 2020-05-18
+
+### Fixed
+  * If error in `context.release()` swallow and log
+
 ## [7.0.7] -- 2020-05-16
 
 ### Fixed
