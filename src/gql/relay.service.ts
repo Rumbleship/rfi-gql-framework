@@ -1,10 +1,11 @@
-import { Order } from 'sequelize';
 import { RumbleshipContext } from './../server/rumbleship-context';
 import { Oid } from '@rumbleship/oid';
 // tslint:disable-next-line: no-circular-imports
 import { Connection, Edge, Node } from './index';
 import { ClassType } from '../helpers/classtype';
 import { Actions } from '@rumbleship/acl';
+import { DateRange } from './daterange.type';
+import { RelayOrderBy } from './relay_order_by.type';
 
 export interface NodeServiceTransaction {
   commit(): Promise<void>;
@@ -27,6 +28,7 @@ export enum NodeServiceTransactionType {
   EXCLUSIVE = 'EXCLUSIVE'
 }
 
+export type OrderByDirection = 'ASC' | 'DESC';
 /**
  * paranoid?: boolean; Include 'deleted' records
  * transaction?: NodeServiceTransaction;
@@ -57,10 +59,30 @@ export interface NodeService<T extends Node<T>> {
   endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
 
+/**
+ * Defines the standard orderby pagination and timestamp filters
+ */
+export interface RelayFilterBase<T> {
+  // keys to order returned collection by
+  order_by?: RelayOrderBy<T>;
+  // pagination
+  after?: string;
+  before?: string;
+  first?: number;
+  last?: number;
+  // timestamps
+  created_at?: Date;
+  created_between?: DateRange;
+  updated_at?: Date;
+  updated_between?: DateRange;
+  deleted_at?: Date;
+  deleted_between?: DateRange;
+}
+
 export interface RelayService<
   TApi extends Node<TApi>,
   TConnection extends Connection<TApi>,
-  TFilter,
+  TFilter extends RelayFilterBase<TApi>,
   TInput,
   TUpdate
 > extends NodeService<TApi> {
@@ -82,12 +104,11 @@ export interface RelayService<
   >(
     source: TApi,
     assoc_key: string,
-    filterBy: any,
+    filterBy: RelayFilterBase<TAssocApi>,
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
     assocConnectionClass: ClassType<TAssocConnection>,
-    options?: NodeServiceOptions,
-    order?: Order
+    options?: NodeServiceOptions
   ): Promise<TAssocConnection>;
   getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,

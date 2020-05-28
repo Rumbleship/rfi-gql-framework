@@ -10,7 +10,8 @@ import {
   NodeServiceLock,
   NodeServiceTransaction,
   NodeServiceIsolationLevel,
-  NodeServiceTransactionType
+  NodeServiceTransactionType,
+  RelayFilterBase
 } from '../gql';
 // tslint:disable-next-line: no-circular-imports
 import { calculateBeforeAndAfter, calculateLimitAndOffset } from './index';
@@ -27,7 +28,7 @@ import {
 } from './db-to-gql';
 import { RumbleshipContext } from '../server/index';
 import { publishCurrentState } from './gql-pubsub-sequelize-engine';
-import { Transaction, FindOptions, Op, Order, OrderItem } from 'sequelize';
+import { Transaction, FindOptions, Op } from 'sequelize';
 import { findEach } from 'iterable-model';
 import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
 import { createWhereClauseWith } from '../gql/create-where-clause-with';
@@ -39,6 +40,7 @@ import {
   setAuthorizeContext,
   AuthorizeContext
 } from './create-auth-where-clause';
+import { createOrderClause } from './create_order_clause';
 
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,
@@ -401,29 +403,14 @@ export class SequelizeBaseService<
       return undefined;
     }
   }
-  // @WithSpan()
+
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
-    const { after, before, first, last, ...filter } = filterBy as any;
-    /*const filters = [];
-     for (const [k, v] of Object.entries(filterBy)) {
-      filters.push(k);
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters
-    });
-    */
-    // we hold cursors as base64 of the offset for this query... not perfect,
-    // but good enough for now
-    // see https://facebook.github.io/relay/graphql/connections.htm#sec-Pagination-algorithm
-    // However... we only support before OR after.
-    //
+    const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
+
+    const orderClause = createOrderClause(order_by);
+
     const connection = new this.connectionClass();
 
-    const id_attribute = this.model.rawAttributes['id'] as any; // sequelize typings are not correct
-    const orderClause: OrderItem[] | undefined = id_attribute ? [['id', 'DESC']] : undefined;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options) ?? {};
@@ -450,21 +437,9 @@ export class SequelizeBaseService<
     return connection;
   }
 
-  // @WithSpan()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
-    /* const filters = [];
-    for (const [k, v] of Object.entries(filterBy)) {
-      filters.push(k);
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters
-    });
-     */
-    // Authorization done in getAll
     const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
+
     if (matched.edges.length) {
       return matched.edges[0].node;
     }
@@ -713,12 +688,6 @@ export class SequelizeBaseService<
     }
   }
 
-  /* <TAssocApi extends Node,
-    TAssocConnection extends Connection<TAssocApi>,
-    TAssocEdge extends Edge<TAssocApi>,
-    TAssocModel
-    > */
-  // @WithSpan()
   async getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
     TAssocConnection extends Connection<TAssocApi>,
@@ -726,24 +695,14 @@ export class SequelizeBaseService<
   >(
     source: TApi,
     assoc_key: string,
-    filterBy: any,
+    filterBy: RelayFilterBase<TAssocApi>,
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
     assocConnectionClass: ClassType<TAssocConnection>,
-    options?: NodeServiceOptions,
-    order?: Order
+    options?: NodeServiceOptions
   ): Promise<TAssocConnection> {
-    /* for (const [k, v] of Object.entries(filterBy)) {
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.association.source`]: source.constructor.name,
-      [`framework.db.service.association.target`]: assoc_key
-    });
-    */
-    const { after, before, first, last, ...filter } = filterBy;
+    const { after, before, first, last, order_by, ...filter } = filterBy;
+    const orderClause = createOrderClause(order_by);
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
     let sourceModel: Model<Model<any>>;
@@ -755,24 +714,22 @@ export class SequelizeBaseService<
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       let findOptions: FindOptions = {
         where: whereClause,
-        order
+        order: orderClause
       };
 
       const countOptions: FindOptions = {
         where: whereClause,
         attributes: [],
-        order
+        order: orderClause
       };
 
       assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
       count = await sourceModel.$count(assoc_key, countOptions);
       assocService.addAuthorizationFilters(findOptions, options ?? {});
-      const orderClause: OrderItem[] = [['id', 'DESC']];
       findOptions = {
         ...findOptions,
         offset: limits.offset,
         limit: limits.limit,
-        order: orderClause,
         ...sequelizeOptions
       };
       const result = await sourceModel.$get(assoc_key as any, findOptions);
