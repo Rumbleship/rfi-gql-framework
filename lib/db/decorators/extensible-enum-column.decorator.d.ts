@@ -4,4 +4,4 @@ import { ModelAttributeColumnOptions } from 'sequelize';
  *
  * We store the raw value as a string, and cast to our TypeScript/GQL Enums on retrieval from DB
  */
-export declare function ExtensibleEnumColumn<T extends object>(target_enum: T, options?: Pick<ModelAttributeColumnOptions, 'allowNull'>): (target: object, property_name: string) => any;
+export declare function ExtensibleEnumColumn<T extends object>(target_enum: T, options?: Pick<ModelAttributeColumnOptions, 'allowNull'> & Pick<ModelAttributeColumnOptions, 'defaultValue'>): (target: object, property_name: string) => any;
