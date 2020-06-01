@@ -11,3 +11,4 @@ export * from './create-auth-where-clause';
 export * from './convert-to-sequelize-date-filters';
 export * from './db.convict';
 export * from './create_order_clause';
+export * from './decorators/extensible-enum-column.decorator';

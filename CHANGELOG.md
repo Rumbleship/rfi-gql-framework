@@ -8,12 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * `defaultValue` to accepted options for `@ExtensibleEnumColumn`
 ### Removed
 ### Changed
 ### Fixed
 ### Deprecated
 ### Security
 
+
+## [7.1.0] -- 2020-05-29
+
+### Added 
+ * `ExtensibleEnumColumn` to de/decorators folder
 
 ## [7.0.9] -- 2020-05-20
 
