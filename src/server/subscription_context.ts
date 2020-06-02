@@ -1,6 +1,7 @@
 import { ConnectionContext } from 'subscriptions-transport-ws';
 import { Authorizer, InvalidJWTError } from '@rumbleship/acl';
 import { RumbleshipContext } from './rumbleship-context';
+import { ClassType } from '../helpers';
 
 export function initializeSubscriptionContext(
   connectionParams: object /** the params passed by the initial websoctect connection request */,
@@ -8,8 +9,8 @@ export function initializeSubscriptionContext(
   context: ConnectionContext /** the context passed in by apollo */,
   injected: {
     accessTokenSecret: string;
-    authenticationErrorClass: typeof Error;
-    rumbleshipContextFactory: typeof RumbleshipContext;
+    authenticationErrorClass: ClassType<Error>;
+    rumbleshipContextFactory: ClassType<RumbleshipContext>;
     config: object; // the global convict configuration object
   }
 ): ConnectionContext {
