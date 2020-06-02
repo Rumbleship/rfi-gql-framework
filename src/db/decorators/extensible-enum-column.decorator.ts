@@ -7,7 +7,8 @@ import { ModelAttributeColumnOptions } from 'sequelize';
  */
 export function ExtensibleEnumColumn<T extends object>(
   target_enum: T,
-  options: Pick<ModelAttributeColumnOptions, 'allowNull'> = {}
+  options: Pick<ModelAttributeColumnOptions, 'allowNull'> &
+    Pick<ModelAttributeColumnOptions, 'defaultValue'> = {}
 ) {
   if (!Reflect.get(target_enum, 'UNKNOWN')) {
     throw new Error(
