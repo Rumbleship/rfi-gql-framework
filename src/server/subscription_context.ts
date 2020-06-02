@@ -10,7 +10,7 @@ export function initializeSubscriptionContext(
   injected: {
     accessTokenSecret: string;
     authenticationErrorClass: ClassType<Error>;
-    rumbleshipContextFactory: ClassType<RumbleshipContext>;
+    rumbleshipContextFactory: typeof RumbleshipContext;
     config: object; // the global convict configuration object
   }
 ): ConnectionContext {
