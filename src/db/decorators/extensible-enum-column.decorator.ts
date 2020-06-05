@@ -4,6 +4,8 @@ import { ModelAttributeColumnOptions } from 'sequelize';
  * Inspired by Plaid's API that considers adding values to Enums as non-breaking changes.
  *
  * We store the raw value as a string, and cast to our TypeScript/GQL Enums on retrieval from DB
+ *
+ * If the raw value includes spaces, we replace them with `_` on retrieval from the db
  */
 export function ExtensibleEnumColumn<T extends object>(
   target_enum: T,
@@ -19,10 +21,11 @@ export function ExtensibleEnumColumn<T extends object>(
     const column_options = {
       type: DataType.STRING,
       get(this: any): T | undefined {
-        const val = this.getDataValue(property_name);
-        if (options.allowNull && !val) {
+        const raw = this.getDataValue(property_name);
+        if (options.allowNull && !raw) {
           return undefined;
         }
+        const val = raw.replace(/ /g, '_');
         if (val in target_enum) {
           return (val as unknown) as T;
         }
