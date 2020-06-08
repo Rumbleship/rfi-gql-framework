@@ -29,7 +29,7 @@
     "@google-cloud/debug-agent": "^4.2.2",
     "@google-cloud/error-reporting": "^1.1.3",
     "@google-cloud/logging-winston": "3.0.5",
-    "@grpc/grpc-js": "^0.6.15",
+    
     "@hapi/good": "^8.1.1",
     "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.2.0",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#3.0.0",
@@ -79,7 +79,6 @@
   "peerDependencies": {
     "@axelspringer/graphql-google-pubsub": "^2.0.0",
     "@google-cloud/pubsub": "^1.1.6",
-    "@grpc/grpc-js": "^0.6.15",
     "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.0.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#3.0.0",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.0",
