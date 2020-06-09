@@ -8,10 +8,13 @@ import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
 import { publishPayload } from './publishing';
 import { uniqueSubscriptionNamePart, RfiSubscriptionOptions } from './helper';
 import { NotificationOf } from '../gql/node-notification';
-import { status } from '@grpc/grpc-js';
+
 import { RfiPubSubConfig } from './pub_sub_config';
 import { hostname } from 'os';
 
+// We pull this out as this is defined deep in pubsub and using the grpc-js package directly really messes up
+// the dependancies for google pub-sub
+const TOPIC_ALREADY_EXISTS = 6;
 export interface PubEngine extends PubSubEngine {
   publisher_version: string;
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
@@ -125,7 +128,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
       try {
         await this.pubSubClient.createTopic(topicName);
       } catch (e) {
-        if (!(e.code === status.ALREADY_EXISTS)) {
+        if (!(e.code === TOPIC_ALREADY_EXISTS)) {
           // It can be created during a race condition,
           // so only rethrow if it is another error
           throw e;

@@ -285,7 +285,8 @@ export class SequelizeBaseService<
               return;
             }
             throw new Error(
-              'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
+              `SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an AuthorizeContext added to the findOptions.: 
+                 on ${modelClass.name}}`
             );
           }
         });
