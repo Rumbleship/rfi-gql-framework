@@ -279,11 +279,20 @@ export class SequelizeBaseService<
         modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
           const authorizeContext = getAuthorizeContext(findOptions);
           if (!authorizeContext) {
+            // we can get some finds as part of an update (eg Model.add()), in which case
+            // we check to see if the overall transaction has been authorized as the findOptions are
+            // created deep in the sequelize framework
+            const transaction = Reflect.get(findOptions, 'transaction');
+            if (transaction && getAuthorizeContext(transaction)) {
+              return;
+            }
+
             // Sequelize loses our auth context tracker on reload, so we add an (UGLY)
             // explicit override for that case
             if (Reflect.get(findOptions, 'reloadAuthSkip')) {
               return;
             }
+
             throw new Error(
               `SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an AuthorizeContext added to the findOptions.: 
                  on ${modelClass.name}}`
