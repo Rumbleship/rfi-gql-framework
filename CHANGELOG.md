@@ -8,13 +8,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-  * `defaultValue` to accepted options for `@ExtensibleEnumColumn`
 ### Removed
 ### Changed
 ### Fixed
 ### Deprecated
 ### Security
 
+
+## [7.1.2] -- 2020-06-05
+
+### Changed
+  * `@ExtensibleEnumColumn` replaces spaces in enum values with underscores
+
+## [7.1.1] -- 2020-06-02
+
+### Added
+  * `defaultValue` to accepted options for `@ExtensibleEnumColumn`
+### Fixed
+  * `Array.isArray(foo)` instead of `foo instanceof Array`
 
 ## [7.1.0] -- 2020-05-29
 

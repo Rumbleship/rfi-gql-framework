@@ -743,7 +743,7 @@ export class SequelizeBaseService<
         ...sequelizeOptions
       };
       const result = await sourceModel.$get(assoc_key as any, findOptions);
-      result instanceof Array ? (associated = result) : (associated = [result]);
+      Array.isArray(result) ? (associated = result) : (associated = [result]);
     } else {
       throw new Error(`Invalid ${source.constructor.name}`);
     }
