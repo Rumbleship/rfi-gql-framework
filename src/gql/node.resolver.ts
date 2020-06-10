@@ -1,3 +1,4 @@
+import { AddToTrace } from '@rumbleship/o11y';
 import { Service, Inject } from 'typedi';
 import {
   Resolver,
@@ -15,10 +16,11 @@ import {
   PubSub
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
+// tslint:disable-next-line: no-circular-imports
 import { Node, RelayResolver } from './index';
 import { NodeService } from './relay.service';
 import { NodeNotification, NotificationOf, NODE_CHANGE_NOTIFICATION } from './node-notification';
-import { createPayloadUsingOid, RawPayload } from '../pubsub/helper';
+import { RawPayload, createPayload } from '../pubsub/helper';
 
 // we make a specific concreate type here for the concrete general Node notification
 @ObjectType()
@@ -44,6 +46,7 @@ export class NodeResolver implements RelayResolver {
   ) {}
   // to conform with the Relay Connection spec
   // this is the generic resolver givin an ID, it can always resolcve to one of the domain objects..
+  @AddToTrace()
   @Query(returns => Node, { nullable: true })
   async node(@Arg('id', type => ID) oidString: string, @Ctx() ctx: any): Promise<Node<any> | null> {
     const oid = new Oid(oidString);
@@ -53,6 +56,8 @@ export class NodeResolver implements RelayResolver {
     }
     throw Error('Invalid OID. Scope:' + scope);
   }
+
+  @AddToTrace()
   @Mutation(returns => Boolean)
   publishLastKnownState(
     @Arg('id', type => ID) oidString: string,
@@ -66,6 +71,8 @@ export class NodeResolver implements RelayResolver {
     }
     return true;
   }
+
+  @AddToTrace()
   @Subscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
     topics: `${NODE_CHANGE_NOTIFICATION}`,
@@ -79,7 +86,7 @@ export class NodeResolver implements RelayResolver {
 
     if (scope in this.nodeServices) {
       const service = Reflect.get(this.nodeServices, scope);
-      return createPayloadUsingOid(rawPayload, service, ClassGqlNodeNotification);
+      return createPayload(rawPayload, service, ClassGqlNodeNotification);
     }
     throw Error('Invalid OID. Scope: ' + scope);
   }

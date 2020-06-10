@@ -1,8 +1,8 @@
+import { Model } from 'sequelize-typescript';
 import { hostname } from 'os';
-import { Model } from 'sequelize';
 import { Oid } from '@rumbleship/oid';
 
-import { NodeNotification } from '../gql/node-notification';
+import { NodeNotification, Node } from '../gql';
 import { ClassType } from './../helpers/classtype';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
@@ -41,13 +41,45 @@ interface StrPayloadCreator {
   getOne(id: string): Promise<any>;
 }
 
+export interface PayloadCreator {
+  getOne(id: Oid | string): Promise<Node<any>>;
+}
 export interface RawPayload {
   data: { toString(): string };
+}
+
+export async function createPayload(
+  raw: RawPayload,
+  resolver: PayloadCreator,
+  notification_cls_type: ClassType<any>
+) {
+  const received = JSON.parse(raw.data.toString());
+  const id: string = (() => {
+    switch (typeof received.oid) {
+      case 'string':
+        return received.oid;
+      case 'object':
+        return new Oid(received.oid).toString();
+      case 'undefined':
+      default:
+        throw new Error('Cannot create payload without an id');
+    }
+  })();
+
+  const node = await resolver.getOne(id);
+  const gql_node_notification: NodeNotification<any> = new notification_cls_type(
+    received.action,
+    node
+  );
+  return gql_node_notification;
 }
 
 // Ideally we could use this as a commonMessageHandler for
 // graphql-google-pubsub but as notificationClsType is seemingly defined at
 // runtime, we can't use that patttern here
+/**
+ * @deprecated in favor of combined `createPayload()`
+ */
 export async function createPayloadUsingStr(
   rawPayload: RawPayload,
   resolver: StrPayloadCreator,
@@ -60,6 +92,9 @@ export async function createPayloadUsingStr(
   return gqlNodeNotification;
 }
 
+/**
+ * @deprecated in favor of combined `createPayload()`
+ */
 export async function createPayloadUsingOid(
   rawPayload: RawPayload,
   resolver: OIDPayloadCreator,

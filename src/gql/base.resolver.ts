@@ -16,7 +16,7 @@ import { RelayService, Node, Connection } from './index';
 import { RumbleshipContext } from './../server/rumbleship-context';
 import { ClassType } from './../helpers/classtype';
 import { NodeNotification, NODE_CHANGE_NOTIFICATION } from './node-notification';
-import { createPayloadUsingStr, RawPayload } from '../pubsub/helper';
+import { createPayload, RawPayload } from '../pubsub/helper';
 import { AddToTrace } from '@rumbleship/o11y';
 
 export class GQLBaseResolver<
@@ -103,7 +103,7 @@ export function createBaseResolver<
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       return this.ctx.beeline.bindFunctionToTrace(() =>
-        createPayloadUsingStr(rawPayload, this, notificationClsType)
+        createPayload(rawPayload, this, notificationClsType)
       )();
     }
   }
@@ -151,7 +151,7 @@ export function createReadOnlyBaseResolver<
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       return this.ctx.beeline.bindFunctionToTrace(() =>
-        createPayloadUsingStr(rawPayload, this, notificationClsType)
+        createPayload(rawPayload, this, notificationClsType)
       )();
     }
   }
