@@ -48,22 +48,37 @@ interface StrPayloadCreator {
   getOne(id: string): Promise<any>;
 }
 
-interface PayloadCreator {
-  // This should be `RumbleshipContext` but that causes circular dependency issues
+interface Resolver {
   ctx: { beeline: RumbleshipBeeline };
+}
+interface Service {
+  getContext: () => { beeline: RumbleshipBeeline };
+}
+
+interface GetOne {
   getOne(id: Oid | string): Promise<Node<any>>;
 }
+
+// type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+//   { [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>> };
+
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+  { [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>> }[Keys];
+
+type ServiceOrResolver = GetOne & RequireAtLeastOne<Service & Resolver>;
+
 export interface RawPayload {
   data: { toString(): string };
 }
 
 export async function createPayload(
   raw: RawPayload,
-  resolver: PayloadCreator,
+  invoker: ServiceOrResolver,
   NotificationType: ClassType<NodeNotification<any>>
 ) {
-  return resolver.ctx.beeline.bindFunctionToTrace(async () => {
-    return resolver.ctx.beeline.withSpan({ name: 'createPayload' }, async _span => {
+  const ctx = invoker.ctx ?? invoker.getContext?.apply(invoker)!;
+  return ctx.beeline.bindFunctionToTrace(async () => {
+    return ctx.beeline.withSpan({ name: 'createPayload' }, async _span => {
       const received = JSON.parse(raw.data.toString());
       const id: string = (() => {
         switch (typeof received.oid) {
@@ -76,8 +91,8 @@ export async function createPayload(
             throw new Error('Cannot create payload without an id');
         }
       })();
-      const node = await resolver.getOne(id);
-      resolver.ctx.beeline.addContext({ 'node.id': id, 'payload.action': received.action });
+      const node = await invoker.getOne(id);
+      ctx.beeline.addContext({ 'node.id': id, 'payload.action': received.action });
       const gql_node_notification: NodeNotification<any> = new NotificationType(
         received.action,
         node
