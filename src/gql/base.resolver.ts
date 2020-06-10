@@ -102,7 +102,9 @@ export function createBaseResolver<
       nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      return createPayloadUsingStr(rawPayload, this, notificationClsType);
+      return this.ctx.beeline.bindFunctionToTrace(() =>
+        createPayloadUsingStr(rawPayload, this, notificationClsType)
+      )();
     }
   }
   return BaseResolver;
@@ -148,7 +150,9 @@ export function createReadOnlyBaseResolver<
       nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      return createPayloadUsingStr(rawPayload, this, notificationClsType);
+      return this.ctx.beeline.bindFunctionToTrace(() =>
+        createPayloadUsingStr(rawPayload, this, notificationClsType)
+      )();
     }
   }
   return BaseResolver;
