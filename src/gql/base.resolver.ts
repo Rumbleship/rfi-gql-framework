@@ -94,7 +94,6 @@ export function createBaseResolver<
       return super.update(input);
     }
 
-    @AddToTrace()
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
