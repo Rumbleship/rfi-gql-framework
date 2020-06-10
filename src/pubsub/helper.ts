@@ -1,6 +1,6 @@
-import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { Model } from 'sequelize-typescript';
 import { hostname } from 'os';
+import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
 
 import { NodeNotification, Node } from '../gql';
@@ -60,27 +60,30 @@ export interface RawPayload {
 export async function createPayload(
   raw: RawPayload,
   resolver: PayloadCreator,
-  notification_cls_type: ClassType<any>
+  NotificationType: ClassType<NodeNotification<any>>
 ) {
   return resolver.ctx.beeline.bindFunctionToTrace(async () => {
-    const received = JSON.parse(raw.data.toString());
-    const id: string = (() => {
-      switch (typeof received.oid) {
-        case 'string':
-          return received.oid;
-        case 'object':
-          return new Oid(received.oid).toString();
-        case 'undefined':
-        default:
-          throw new Error('Cannot create payload without an id');
-      }
-    })();
-    const node = await resolver.getOne(id);
-    const gql_node_notification: NodeNotification<any> = new notification_cls_type(
-      received.action,
-      node
-    );
-    return gql_node_notification;
+    return resolver.ctx.beeline.withSpan({ name: 'createPayload' }, async _span => {
+      const received = JSON.parse(raw.data.toString());
+      const id: string = (() => {
+        switch (typeof received.oid) {
+          case 'string':
+            return received.oid;
+          case 'object':
+            return new Oid(received.oid).toString();
+          case 'undefined':
+          default:
+            throw new Error('Cannot create payload without an id');
+        }
+      })();
+      const node = await resolver.getOne(id);
+      resolver.ctx.beeline.addContext({ 'node.id': id, 'payload.action': received.action });
+      const gql_node_notification: NodeNotification<any> = new NotificationType(
+        received.action,
+        node
+      );
+      return gql_node_notification;
+    });
   })();
 }
 

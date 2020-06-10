@@ -1,3 +1,4 @@
+import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
 import { NodeNotification, Node } from '../gql';
 import { ClassType } from './../helpers/classtype';
@@ -6,13 +7,22 @@ export interface RfiSubscriptionOptions {
     serviceName?: string;
 }
 export declare function uniqueSubscriptionNamePart(topicName: string, subscriptionOptions?: RfiSubscriptionOptions): string;
+/**
+ * @deprecated in favor of consolidated `PayloadCreator` interface
+ */
 interface OIDPayloadCreator {
     getOne(id: Oid): Promise<any>;
 }
+/**
+ * @deprecated in favor of consolidated `PayloadCreator` interface
+ */
 interface StrPayloadCreator {
     getOne(id: string): Promise<any>;
 }
-export interface PayloadCreator {
+interface PayloadCreator {
+    ctx: {
+        beeline: RumbleshipBeeline;
+    };
     getOne(id: Oid | string): Promise<Node<any>>;
 }
 export interface RawPayload {
@@ -20,7 +30,7 @@ export interface RawPayload {
         toString(): string;
     };
 }
-export declare function createPayload(raw: RawPayload, resolver: PayloadCreator, notification_cls_type: ClassType<any>): Promise<NodeNotification<any>>;
+export declare function createPayload(raw: RawPayload, resolver: PayloadCreator, NotificationType: ClassType<NodeNotification<any>>): Promise<NodeNotification<any>>;
 /**
  * @deprecated in favor of combined `createPayload()`
  */
