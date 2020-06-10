@@ -11,7 +11,6 @@ import { NotificationOf } from '../gql/node-notification';
 import { status } from '@grpc/grpc-js';
 import { RfiPubSubConfig } from './pub_sub_config';
 import { hostname } from 'os';
-
 export interface PubEngine extends PubSubEngine {
   publisher_version: string;
   publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
@@ -102,11 +101,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     );
     await P.map(mySubscriptions, async subscription => {
       const { name } = subscription as any;
-      // tslint:disable-next-line: no-console
-      console.log(`Deleting subscription: ${name}`);
       await this.pubSubClient.subscription(name).delete();
-      // tslint:disable-next-line: no-console
-      console.log(`\tDeleted subscription: ${name}`);
     });
   }
 
