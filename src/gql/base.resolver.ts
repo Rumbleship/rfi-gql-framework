@@ -7,7 +7,8 @@ import {
   ID,
   Subscription,
   Root,
-  Authorized
+  Authorized,
+  Ctx
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
 import { Scopes } from '@rumbleship/acl';
@@ -101,8 +102,11 @@ export function createBaseResolver<
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true
     })
-    async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      return this.ctx.beeline.bindFunctionToTrace(() =>
+    async onChange(
+      @Ctx() ctx: RumbleshipContext,
+      @Root() rawPayload: RawPayload
+    ): Promise<NodeNotification<TApi>> {
+      return ctx.beeline.bindFunctionToTrace(() =>
         createPayloadUsingStr(rawPayload, this, notificationClsType)
       )();
     }
