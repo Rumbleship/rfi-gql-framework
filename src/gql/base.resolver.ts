@@ -142,7 +142,6 @@ export function createReadOnlyBaseResolver<
       return super.getOne(id);
     }
 
-    @AddToTrace()
     @Authorized(defaultScope)
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
@@ -150,9 +149,7 @@ export function createReadOnlyBaseResolver<
       nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      return this.ctx.beeline.bindFunctionToTrace(() =>
-        createPayload(rawPayload, this, notificationClsType)
-      )();
+      return createPayload(rawPayload, this, notificationClsType);
     }
   }
   return BaseResolver;
