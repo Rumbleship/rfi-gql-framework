@@ -1,4 +1,3 @@
-import { RumbleshipContext } from './../server/rumbleship-context';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Service, Inject } from 'typedi';
 import {
@@ -63,7 +62,7 @@ export class NodeResolver implements RelayResolver {
   publishLastKnownState(
     @Arg('id', type => ID) oidString: string,
     @PubSub() pubSub: PubSubEngine,
-    @Ctx() ctx: RumbleshipContext
+    @Ctx() ctx: any
   ): boolean {
     const oid = new Oid(oidString);
     const { scope } = oid.unwrap();
