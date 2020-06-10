@@ -1,3 +1,4 @@
+import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { Model } from 'sequelize-typescript';
 import { hostname } from 'os';
 import { Oid } from '@rumbleship/oid';
@@ -33,15 +34,23 @@ export function uniqueSubscriptionNamePart(
   }
 }
 
+/**
+ * @deprecated in favor of consolidated `PayloadCreator` interface
+ */
 interface OIDPayloadCreator {
   getOne(id: Oid): Promise<any>;
 }
 
+/**
+ * @deprecated in favor of consolidated `PayloadCreator` interface
+ */
 interface StrPayloadCreator {
   getOne(id: string): Promise<any>;
 }
 
-export interface PayloadCreator {
+interface PayloadCreator {
+  // This should be `RumbleshipContext` but that causes circular dependency issues
+  ctx: { beeline: RumbleshipBeeline };
   getOne(id: Oid | string): Promise<Node<any>>;
 }
 export interface RawPayload {
@@ -53,30 +62,28 @@ export async function createPayload(
   resolver: PayloadCreator,
   notification_cls_type: ClassType<any>
 ) {
-  const received = JSON.parse(raw.data.toString());
-  const id: string = (() => {
-    switch (typeof received.oid) {
-      case 'string':
-        return received.oid;
-      case 'object':
-        return new Oid(received.oid).toString();
-      case 'undefined':
-      default:
-        throw new Error('Cannot create payload without an id');
-    }
+  return resolver.ctx.beeline.bindFunctionToTrace(async () => {
+    const received = JSON.parse(raw.data.toString());
+    const id: string = (() => {
+      switch (typeof received.oid) {
+        case 'string':
+          return received.oid;
+        case 'object':
+          return new Oid(received.oid).toString();
+        case 'undefined':
+        default:
+          throw new Error('Cannot create payload without an id');
+      }
+    })();
+    const node = await resolver.getOne(id);
+    const gql_node_notification: NodeNotification<any> = new notification_cls_type(
+      received.action,
+      node
+    );
+    return gql_node_notification;
   })();
-
-  const node = await resolver.getOne(id);
-  const gql_node_notification: NodeNotification<any> = new notification_cls_type(
-    received.action,
-    node
-  );
-  return gql_node_notification;
 }
 
-// Ideally we could use this as a commonMessageHandler for
-// graphql-google-pubsub but as notificationClsType is seemingly defined at
-// runtime, we can't use that patttern here
 /**
  * @deprecated in favor of combined `createPayload()`
  */
@@ -85,6 +92,10 @@ export async function createPayloadUsingStr(
   resolver: StrPayloadCreator,
   notificationClsType: ClassType<any>
 ): Promise<NodeNotification<any>> {
+  // tslint:disable-next-line: no-console
+  console.warn(
+    '`pubsub_helper.createPayloadUsingStr` is deprecated; use generic `createPayload` instead'
+  );
   const recieved = JSON.parse(rawPayload.data.toString());
   const strOid = recieved?.oid;
   const node: Model = await resolver.getOne(strOid);
@@ -100,6 +111,10 @@ export async function createPayloadUsingOid(
   resolver: OIDPayloadCreator,
   notificationClsType: ClassType<any>
 ): Promise<NodeNotification<any>> {
+  // tslint:disable-next-line: no-console
+  console.warn(
+    '`pubsub_helper.createPayloadUsingOid` is deprecated; use generic `createPayload` instead'
+  );
   const recieved = JSON.parse(rawPayload.data.toString());
   const strOid = recieved?.oid;
   const oid: Oid = new Oid(strOid);

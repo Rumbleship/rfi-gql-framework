@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * `createPayload` to replace `[createPayloadWithStr, createPayloadWithOid]`
 ### Removed
 ### Changed
+  * bind the retrieval of node generation of payload for notifications to current trace
 ### Fixed
-  * Bind base resolveronChange fn to the current trace
 ### Deprecated
+  * `createPayloadWithStr`, `createPayloadWithOid` in favor of plain `createPayload`
 ### Security
 
 
