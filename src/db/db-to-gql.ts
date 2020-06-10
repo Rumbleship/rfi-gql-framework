@@ -84,7 +84,8 @@ export function dbToGql<T extends Node<T>, V extends Model<V>>(
   // store for future use
   Reflect.set(obj, modelKey, from);
   Reflect.set(from, apiKey, obj);
-  return { ...obj, ...modelAsPlain };
+  // tslint:disable-next-line: prefer-object-spread
+  return Object.assign(obj, modelAsPlain);
 }
 
 export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = true): Promise<T> {
