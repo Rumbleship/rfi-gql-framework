@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Assign framework-expected attributes (_service, id, etc) *before* assigning implementation-derived attributes (which may expect _service, id, etc to be defined) when converting from db to gql
 ### Fixed
 ### Deprecated
 ### Security
