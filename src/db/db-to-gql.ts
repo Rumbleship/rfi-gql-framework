@@ -74,7 +74,7 @@ export function dbToGql<T extends Node<T>, V extends Model<V>>(
   if (apiKey in from) {
     return Reflect.get(from, apiKey);
   }
-  const obj: T = Object.assign(new to(), modelAsPlain);
+  const obj = new to();
   const oid = Oid.Create(
     oidScope ? oidScope : obj.constructor['name'],
     modelAsPlain.uuid ? modelAsPlain.uuid : modelAsPlain.id
@@ -84,7 +84,7 @@ export function dbToGql<T extends Node<T>, V extends Model<V>>(
   // store for future use
   Reflect.set(obj, modelKey, from);
   Reflect.set(from, apiKey, obj);
-  return obj;
+  return { ...obj, ...modelAsPlain };
 }
 
 export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = true): Promise<T> {
