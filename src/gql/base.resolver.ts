@@ -148,7 +148,9 @@ export function createReadOnlyBaseResolver<
       nullable: true
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
-      return createPayload(rawPayload, this, notificationClsType);
+      return this.ctx.beeline.bindFunctionToTrace(() =>
+        createPayload(rawPayload, this, notificationClsType)
+      )();
     }
   }
   return BaseResolver;
