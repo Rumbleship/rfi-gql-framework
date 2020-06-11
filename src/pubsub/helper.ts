@@ -1,13 +1,10 @@
-import { Connection } from './../gql/connection.type';
-import { BaseResolverInterface } from './../../lib/gql/base-resolver.interface.d';
-import { RelayService } from './../gql/relay.service';
 import { Model } from 'sequelize-typescript';
 import { hostname } from 'os';
 import { Oid } from '@rumbleship/oid';
 
-import { NodeNotification, Node } from '../gql';
+import { NodeNotification } from '../gql';
 import { ClassType } from './../helpers/classtype';
-import { RequireAtLeastOne } from 'src/interfaces';
+import { BaseResolverInterface } from '../gql/base-resolver.interface';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
 // but ideally would be here instead. It does not work for an unknown reason,
@@ -51,20 +48,16 @@ interface StrPayloadCreator {
   getOne(id: string): Promise<any>;
 }
 
-interface GetOne {
-  getOne(id: Oid | string): Promise<Node<any>>;
-}
-type ServiceOrResolver<
-  TApi extends Node<TApi> = Node<any>,
-  TConnection extends Connection<TApi> = Connection<TApi>,
-  TFilter = any,
-  TInput = any,
-  TUpdate = any
-> = GetOne &
-  RequireAtLeastOne<
-    RelayService<TApi, TConnection, TFilter, TInput, TUpdate> &
-      BaseResolverInterface<TApi, TConnection, TFilter, TInput, TUpdate>
-  >;
+// type ServiceOrResolver<
+//   TApi extends Node<TApi> = Node<any>,
+//   TConnection extends Connection<TApi> = Connection<TApi>,
+//   TFilter = any,
+//   TInput = any,
+//   TUpdate = any
+// > = RequireAtLeastOne<
+//   RelayService<TApi, TConnection, TFilter, TInput, TUpdate> &
+//     BaseResolverInterface<TApi, TConnection, TFilter, TInput, TUpdate>
+// >;
 
 export interface RawPayload {
   data: { toString(): string };
@@ -72,10 +65,10 @@ export interface RawPayload {
 
 export async function createPayload(
   raw: RawPayload,
-  invoker: ServiceOrResolver,
+  invoker: BaseResolverInterface<any, any, any, any, any>,
   NotificationType: ClassType<NodeNotification<any>>
 ) {
-  const ctx = invoker.ctx ?? invoker.getContext?.apply(invoker)!;
+  const ctx = invoker.ctx; // ?? invoker.getContext?.apply(invoker)!;
   return ctx.beeline.bindFunctionToTrace(async () => {
     return ctx.beeline.withSpan({ name: 'createPayload' }, async _span => {
       const received = JSON.parse(raw.data.toString());
@@ -84,9 +77,9 @@ export async function createPayload(
         // ((AT RUNTIME)) whether the invoker was a Resolver (which expects a String) or if it was a Service
         // (which expects an Oid object). Workaround to consider: make the constructor of `Oid` accept
         // a string or an Oid, and just return the Oid object if so...
-        if ('getAssociated' in invoker) {
-          return invoker.getOne(new Oid(received.id));
-        }
+        // if ('getAssociated' in invoker) {
+        //   return invoker.getOne(new Oid(received.id));
+        // }
         return invoker.getOne(received.id);
       })();
       ctx.beeline.addContext({ 'node.id': node.id.toString(), 'payload.action': received.action });

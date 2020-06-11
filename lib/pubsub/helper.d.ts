@@ -1,7 +1,7 @@
-import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
-import { NodeNotification, Node } from '../gql';
+import { NodeNotification } from '../gql';
 import { ClassType } from './../helpers/classtype';
+import { BaseResolverInterface } from '../gql/base-resolver.interface';
 export interface RfiSubscriptionOptions {
     asService?: boolean;
     serviceName?: string;
@@ -19,29 +19,12 @@ interface OIDPayloadCreator {
 interface StrPayloadCreator {
     getOne(id: string): Promise<any>;
 }
-interface Resolver {
-    ctx: {
-        beeline: RumbleshipBeeline;
-    };
-}
-interface Service {
-    getContext: () => {
-        beeline: RumbleshipBeeline;
-    };
-}
-interface GetOne {
-    getOne(id: Oid | string): Promise<Node<any>>;
-}
-declare type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> & {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
-}[Keys];
-declare type ServiceOrResolver = GetOne & RequireAtLeastOne<Service & Resolver>;
 export interface RawPayload {
     data: {
         toString(): string;
     };
 }
-export declare function createPayload(raw: RawPayload, invoker: ServiceOrResolver, NotificationType: ClassType<NodeNotification<any>>): Promise<NodeNotification<any>>;
+export declare function createPayload(raw: RawPayload, invoker: BaseResolverInterface<any, any, any, any, any>, NotificationType: ClassType<NodeNotification<any>>): Promise<NodeNotification<any>>;
 /**
  * @deprecated in favor of combined `createPayload()`
  */
