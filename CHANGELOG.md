@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [7.1.4] -- 2020-06-10
+
+### Removed
+  * `deleting | deleted subscription` logging
+
+## [7.1.3] -- 2020-06-10
+
+### Changed
+  * Assign framework-expected attributes (_service, id, etc) *before* assigning implementation-derived attributes (which may expect _service, id, etc to be defined) when converting from db to gql
+
 ## [7.1.2] -- 2020-06-05
 
 ### Changed
