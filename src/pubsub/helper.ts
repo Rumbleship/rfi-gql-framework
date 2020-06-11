@@ -80,7 +80,7 @@ export async function createPayload(
         // if ('getAssociated' in invoker) {
         //   return invoker.getOne(new Oid(received.id));
         // }
-        return invoker.getOne(received.id);
+        return invoker.getOne(received.oid);
       })();
       ctx.beeline.addContext({ 'node.id': node.id.toString(), 'payload.action': received.action });
       const gql_node_notification: NodeNotification<any> = new NotificationType(
