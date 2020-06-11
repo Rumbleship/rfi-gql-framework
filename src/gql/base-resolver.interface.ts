@@ -1,7 +1,7 @@
 import { Connection } from './connection.type';
 import { RumbleshipContext } from './../server/rumbleship-context';
 import { Node } from './node.interface';
-export interface BaseReadOnlyResolverInterface<
+export interface BaseReadableResolverInterface<
   TApi extends Node<TApi>,
   TConnection extends Connection<TApi>,
   TFilter
@@ -23,6 +23,5 @@ export interface BaseResolverInterface<
   TInput,
   TUpdate
 >
-  extends BaseReadOnlyResolverInterface<TApi, TConnection, TFilter>,
+  extends BaseReadableResolverInterface<TApi, TConnection, TFilter>,
     BaseWritableResolverInterface<TApi, TInput, TUpdate> {}
-
