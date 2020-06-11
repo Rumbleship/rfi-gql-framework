@@ -1,18 +1,13 @@
+import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { Oid } from '@rumbleship/oid';
-import { Connection, Edge, Node, RelayService, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType } from '../gql';
+import { Connection, Edge, Node, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType } from '../gql';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../helpers/classtype';
 import { GqlSingleTableInheritanceFactory } from './db-to-gql';
 import { RumbleshipContext } from '../server/index';
 import { Transaction, FindOptions, Order } from 'sequelize';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
-export interface SequelizeBaseServiceInterface<TApi extends Node<TApi> = any, TModel extends Model<TModel> = any, TConnection extends Connection<TApi> = any, TFilter = any, TInput = any, TUpdate = any> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
-    dbModel(): ModelClass<TModel> & typeof Model;
-    gqlFromDbModel(dao: object): TApi;
-    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>, forCountQuery?: boolean): object;
-}
 export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
-declare type ModelClass<T> = new (values?: any, options?: any) => T;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate> {
     protected relayClass: ClassType<TApi>;
     protected edgeClass: ClassType<TEdge>;
@@ -156,4 +151,3 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
     private makeEdge;
 }
-export {};

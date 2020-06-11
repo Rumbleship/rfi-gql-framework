@@ -1,10 +1,13 @@
+import { Connection } from './../gql/connection.type';
+import { BaseResolverInterface } from './../../lib/gql/base-resolver.interface.d';
+import { RelayService } from './../gql/relay.service';
 import { Model } from 'sequelize-typescript';
 import { hostname } from 'os';
-import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
 
 import { NodeNotification, Node } from '../gql';
 import { ClassType } from './../helpers/classtype';
+import { RequireAtLeastOne } from 'src/interfaces';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
 // but ideally would be here instead. It does not work for an unknown reason,
@@ -48,24 +51,20 @@ interface StrPayloadCreator {
   getOne(id: string): Promise<any>;
 }
 
-interface Resolver {
-  ctx: { beeline: RumbleshipBeeline };
-}
-interface Service {
-  getContext: () => { beeline: RumbleshipBeeline };
-}
-
 interface GetOne {
   getOne(id: Oid | string): Promise<Node<any>>;
 }
-
-// type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
-//   { [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>> };
-
-type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
-  { [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>> }[Keys];
-
-type ServiceOrResolver = GetOne & RequireAtLeastOne<Service & Resolver>;
+type ServiceOrResolver<
+  TApi extends Node<TApi> = Node<any>,
+  TConnection extends Connection<TApi> = Connection<TApi>,
+  TFilter = any,
+  TInput = any,
+  TUpdate = any
+> = GetOne &
+  RequireAtLeastOne<
+    RelayService<TApi, TConnection, TFilter, TInput, TUpdate> &
+      BaseResolverInterface<TApi, TConnection, TFilter, TInput, TUpdate>
+  >;
 
 export interface RawPayload {
   data: { toString(): string };
@@ -80,19 +79,17 @@ export async function createPayload(
   return ctx.beeline.bindFunctionToTrace(async () => {
     return ctx.beeline.withSpan({ name: 'createPayload' }, async _span => {
       const received = JSON.parse(raw.data.toString());
-      const id: string = (() => {
-        switch (typeof received.oid) {
-          case 'string':
-            return received.oid;
-          case 'object':
-            return new Oid(received.oid).toString();
-          case 'undefined':
-          default:
-            throw new Error('Cannot create payload without an id');
+      const node = await (() => {
+        // This is awful, ugly, and all sorts of terrible. But I don't have a better way to distinguish
+        // ((AT RUNTIME)) whether the invoker was a Resolver (which expects a String) or if it was a Service
+        // (which expects an Oid object). Workaround to consider: make the constructor of `Oid` accept
+        // a string or an Oid, and just return the Oid object if so...
+        if ('getAssociated' in invoker) {
+          return invoker.getOne(new Oid(received.id));
         }
+        return invoker.getOne(received.id);
       })();
-      const node = await invoker.getOne(id);
-      ctx.beeline.addContext({ 'node.id': id, 'payload.action': received.action });
+      ctx.beeline.addContext({ 'node.id': node.id.toString(), 'payload.action': received.action });
       const gql_node_notification: NodeNotification<any> = new NotificationType(
         received.action,
         node

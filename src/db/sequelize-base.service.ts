@@ -1,10 +1,10 @@
+import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { Service } from 'typedi';
 import { Oid } from '@rumbleship/oid';
 import {
   Connection,
   Edge,
   Node,
-  RelayService,
   NodeService,
   NodeServiceOptions,
   NodeServiceLock,
@@ -40,23 +40,6 @@ import {
   AuthorizeContext
 } from './create-auth-where-clause';
 
-export interface SequelizeBaseServiceInterface<
-  TApi extends Node<TApi> = any,
-  TModel extends Model<TModel> = any,
-  TConnection extends Connection<TApi> = any,
-  TFilter = any,
-  TInput = any,
-  TUpdate = any
-> extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
-  dbModel(): ModelClass<TModel> & typeof Model;
-  gqlFromDbModel(dao: object): TApi;
-  addAuthorizationFilters(
-    findOptions: object,
-    nodeServiceOptions: NodeServiceOptions,
-    authorizableClass?: ClassType<any>,
-    forCountQuery?: boolean
-  ): object;
-}
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
   TModel extends Model<TModel>,
@@ -68,7 +51,7 @@ export function getSequelizeServiceInterfaceFor<
 >(service: V) {
   return (service as unknown) as SequelizeBaseServiceInterface;
 }
-type ModelClass<T> = new (values?: any, options?: any) => T;
+
 @Service()
 export class SequelizeBaseService<
   TApi extends Node<TApi>,

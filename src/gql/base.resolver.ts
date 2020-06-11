@@ -1,3 +1,4 @@
+import { BaseResolverInterface } from './base-resolver.interface';
 import {
   Resolver,
   Query,
@@ -25,13 +26,13 @@ export class GQLBaseResolver<
   TFilter,
   TInput,
   TUpdate
-> {
+> implements BaseResolverInterface<TApi, TConnection, TFilter, TInput, TUpdate> {
   public ctx: RumbleshipContext;
-  constructor(protected service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
+  constructor(public service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
     this.ctx = service.getContext();
     service.nodeType();
   }
-  async getAll(filterBy: TFilter): Promise<TConnection> {
+  async getAll(filterBy: TFilter) {
     return this.service.getAll(filterBy);
   }
   async getOne(id: string): Promise<TApi> {
