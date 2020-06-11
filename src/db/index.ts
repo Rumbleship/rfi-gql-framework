@@ -12,3 +12,4 @@ export * from './create-auth-where-clause';
 export * from './convert-to-sequelize-date-filters';
 export * from './db.convict';
 export * from './decorators/extensible-enum-column.decorator';
+export * from './sequelize-base-service.interface';

@@ -15,6 +15,7 @@ export * from './relay.service';
 export * from './attrib.enum';
 // tslint:disable-next-line: no-circular-imports
 export * from './base.resolver';
+export * from './base-resolver.interface';
 export * from './daterange.type';
 export * from './gql_helpers';
 // tslint:disable-next-line: no-circular-imports

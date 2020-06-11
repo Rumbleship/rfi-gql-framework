@@ -9,6 +9,7 @@ export * from './pagination-query.interface';
 export * from './relay.service';
 export * from './attrib.enum';
 export * from './base.resolver';
+export * from './base-resolver.interface';
 export * from './daterange.type';
 export * from './gql_helpers';
 export * from './node.resolver';
