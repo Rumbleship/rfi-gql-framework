@@ -1,7 +1,7 @@
 import { Oid } from '@rumbleship/oid';
 import { NodeNotification } from '../gql';
 import { ClassType } from './../helpers/classtype';
-import { BaseResolverInterface } from '../gql/base-resolver.interface';
+import { BaseReadableResolverInterface } from '../gql/base-resolver.interface';
 export interface RfiSubscriptionOptions {
     asService?: boolean;
     serviceName?: string;
@@ -24,7 +24,7 @@ export interface RawPayload {
         toString(): string;
     };
 }
-export declare function createPayload(raw: RawPayload, invoker: BaseResolverInterface<any, any, any, any, any>, NotificationType: ClassType<NodeNotification<any>>): Promise<NodeNotification<any>>;
+export declare function createPayload(raw: RawPayload, invoker: BaseReadableResolverInterface<any, any, any>, NotificationType: ClassType<NodeNotification<any>>): Promise<NodeNotification<any>>;
 /**
  * @deprecated in favor of combined `createPayload()`
  */

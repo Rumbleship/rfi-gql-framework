@@ -4,7 +4,7 @@ import { Oid } from '@rumbleship/oid';
 
 import { NodeNotification } from '../gql';
 import { ClassType } from './../helpers/classtype';
-import { BaseResolverInterface } from '../gql/base-resolver.interface';
+import { BaseReadableResolverInterface } from '../gql/base-resolver.interface';
 
 // The commented out currently exists in gql-pubsub-sequelize-engine.ts
 // but ideally would be here instead. It does not work for an unknown reason,
@@ -65,7 +65,7 @@ export interface RawPayload {
 
 export async function createPayload(
   raw: RawPayload,
-  invoker: BaseResolverInterface<any, any, any, any, any>,
+  invoker: BaseReadableResolverInterface<any, any, any>,
   NotificationType: ClassType<NodeNotification<any>>
 ) {
   const ctx = invoker.ctx; // ?? invoker.getContext?.apply(invoker)!;
