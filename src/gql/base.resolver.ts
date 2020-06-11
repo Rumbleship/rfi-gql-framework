@@ -1,4 +1,4 @@
-import { BaseResolverInterface } from './base-resolver.interface';
+import { BaseResolverInterface, BaseReadOnlyResolverInterface } from './base-resolver.interface';
 import {
   Resolver,
   Query,
@@ -65,7 +65,8 @@ export function createBaseResolver<
 ): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, TInput, TUpdate>> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
-  class BaseResolver extends GQLBaseResolver<TApi, TConnection, TFilter, TInput, TUpdate> {
+  class BaseResolver extends GQLBaseResolver<TApi, TConnection, TFilter, TInput, TUpdate>
+    implements BaseResolverInterface<TApi, TConnection, TFilter, TInput, TUpdate> {
     constructor(service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>) {
       super(service);
     }
@@ -123,7 +124,8 @@ export function createReadOnlyBaseResolver<
 ): ClassType<GQLBaseResolver<TApi, TConnection, TFilter, any, any>> {
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Resolver({ isAbstract: true })
-  class BaseResolver extends GQLBaseResolver<TApi, TConnection, TFilter, any, any> {
+  class BaseResolver extends GQLBaseResolver<TApi, TConnection, TFilter, any, any>
+    implements BaseReadOnlyResolverInterface<TApi, TConnection, TFilter> {
     constructor(service: RelayService<TApi, TConnection, TFilter, any, any>) {
       super(service);
     }
