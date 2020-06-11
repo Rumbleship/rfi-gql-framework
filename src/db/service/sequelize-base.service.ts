@@ -4,7 +4,7 @@ import { Model } from 'sequelize-typescript';
 import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
-import { findEach } from 'iterable-model';
+import { modelIterator } from '@rumbleship/iterable-model-sequelize';
 import {
   Connection,
   Edge,
@@ -478,12 +478,10 @@ export class SequelizeBaseService<
       ...sequelizeOptions
     };
     this.addAuthorizationFilters(findOptions, options ?? {});
-
-    const modelFindEach = findEach.bind(this.model);
-    return modelFindEach(findOptions, (model: TModel) => {
-      const apiModel = this.gqlFromDbModel(model);
-      return apply(apiModel, options);
-    });
+    for await (const instance of modelIterator(this.model, findOptions)) {
+      const apiModel = this.gqlFromDbModel(instance as any);
+      await apply(apiModel, options);
+    }
   }
 
   @AddToTrace()
