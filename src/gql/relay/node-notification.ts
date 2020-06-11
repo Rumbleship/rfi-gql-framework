@@ -17,4 +17,3 @@ export abstract class NodeNotification<T extends Node<T>> {
     this.sequence = Date.now();
   }
 }
-
