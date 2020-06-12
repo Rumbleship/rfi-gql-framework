@@ -254,6 +254,52 @@ export class SequelizeBaseService<
     return findOptions;
   }
 
+
+
+  
+  async addAuthorizationFiltersAndWrapWithTransaction<T>(
+    options: {
+      opts: NodeServiceOptions;
+      authorizableClass?: ClassType<any>;
+    },
+    theFunctionToWrap: (sequelizeOptions: { transaction?: Transaction }) => Promise<T>
+  ) {
+    const { opts, authorizableClass } = options;
+    let transactionCreated: boolean = false;
+    if (!opts.transaction) {
+      opts.transaction = await this.newTransaction({
+        isolation: NodeServiceIsolationLevel.READ_COMMITTED,
+        autocommit: false
+      });
+      opts.lockLevel = NodeServiceLock.SHARE;
+
+      transactionCreated = true;
+    }
+    setAuthorizeContext(opts.transaction, {});
+    const sequelizeOptions = this.addAuthorizationFilters(
+      {
+        ...this.convertServiceOptionsToSequelizeOptions(opts)
+      },
+      opts,
+      authorizableClass
+    );
+    try {
+      return await theFunctionToWrap(sequelizeOptions);
+    } catch (e) {
+      this.ctx.logger.error(e.stack);
+      if (transactionCreated && opts.transaction) {
+        await this.endTransaction(opts.transaction, 'rollback');
+        opts.transaction = undefined;
+      }
+      throw e;
+    } finally {
+      if (transactionCreated && opts.transaction) {
+        await this.endTransaction(opts.transaction, 'commit');
+      }
+    }
+  }
+
+
   /**
    * This should be called ONLY by the service contructor and adds the authorization check
    * to the sequelize Model Class.
