@@ -6,8 +6,9 @@ export class RelayOrderBy<T> {
 }
 
 export const RelayOrderByGQL = new GraphQLScalarType({
-  name: 'DateRange',
-  description: ' Defines a date range to filter: {from:String, to:String}',
+  name: 'OrderBy',
+  description:
+    'Specify the sorting order query should return: { "keys": [["attrib1", "DESC"], ["attrib2", "ASC"]] } where attribn is the name of an attribute in the returned Object',
   parseValue(value: string) {
     return deserialize(RelayOrderBy, value); // value from the client input variables
   },
