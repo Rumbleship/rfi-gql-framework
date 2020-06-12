@@ -74,6 +74,12 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param nodeServiceOptions
      */
     protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<any>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions, forCountQuery?: boolean): FindOptions;
+    addAuthorizationFiltersAndWrapWithTransaction<T>(options: {
+        opts: NodeServiceOptions;
+        authorizableClass?: ClassType<any>;
+    }, theFunctionToWrap: (sequelizeOptions: {
+        transaction?: Transaction;
+    }) => Promise<T>): Promise<T>;
     /**
      * This should be called ONLY by the service contructor and adds the authorization check
      * to the sequelize Model Class.

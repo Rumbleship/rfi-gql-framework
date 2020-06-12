@@ -254,9 +254,6 @@ export class SequelizeBaseService<
     return findOptions;
   }
 
-
-
-  
   async addAuthorizationFiltersAndWrapWithTransaction<T>(
     options: {
       opts: NodeServiceOptions;
@@ -298,7 +295,6 @@ export class SequelizeBaseService<
       }
     }
   }
-
 
   /**
    * This should be called ONLY by the service contructor and adds the authorization check
