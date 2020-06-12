@@ -32,7 +32,7 @@ import {
   AuthIncludeEntry
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
-import {  calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
+import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
