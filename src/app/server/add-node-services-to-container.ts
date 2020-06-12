@@ -1,5 +1,5 @@
 import { ContainerInstance } from 'typedi';
-import { NodeService } from '../../gql';
+import { NodeService } from '../../gql/relay';
 
 export function addNodeServicesToContainer(container: ContainerInstance, nodeServices: object) {
   container.set('nodeServices', nodeServices);

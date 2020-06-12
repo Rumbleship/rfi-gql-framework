@@ -1,4 +1,4 @@
-import { RumbleshipContext } from '../../app/';
+import { RumbleshipContext } from '../../app/rumbleship-context';
 import { Node, Connection } from '../relay';
 export interface BaseReadableResolverInterface<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter> {
     ctx: RumbleshipContext;

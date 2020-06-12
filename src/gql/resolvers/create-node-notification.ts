@@ -1,6 +1,6 @@
-import { BaseReadableResolverInterface } from './base-resolver.interface';
 import { hostname } from 'os';
 import { ClassType } from '../../helpers';
+import { BaseReadableResolverInterface } from './base-resolver.interface';
 import { Node, NodeNotification } from '../relay';
 
 export interface RfiSubscriptionOptions {

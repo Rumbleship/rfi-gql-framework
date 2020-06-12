@@ -1,6 +1,6 @@
 import { Model } from 'sequelize-typescript';
 import { ModelDelta, NotificationOf } from './../../gql';
-import { RfiPubSubEngine } from '../../app';
+import { RfiPubSubEngine } from '../../app/server/rfi-pub-sub-engine.interface';
 export interface Payload {
     publisher_version: string;
     oid: string;

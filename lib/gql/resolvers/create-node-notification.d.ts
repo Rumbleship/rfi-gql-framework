@@ -1,5 +1,5 @@
-import { BaseReadableResolverInterface } from './base-resolver.interface';
 import { ClassType } from '../../helpers';
+import { BaseReadableResolverInterface } from './base-resolver.interface';
 import { Node, NodeNotification } from '../relay';
 export interface RfiSubscriptionOptions {
     asService?: boolean;

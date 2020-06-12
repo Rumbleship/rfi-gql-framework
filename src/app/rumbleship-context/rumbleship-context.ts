@@ -5,7 +5,7 @@ import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { logging } from '@rumbleship/spyglass';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
-import { getSequelizeInstance } from '../server';
+import { getSequelizeInstance } from '../server/init-sequelize';
 
 export interface RumbleshipContextOptionsPlain {
   config: object;

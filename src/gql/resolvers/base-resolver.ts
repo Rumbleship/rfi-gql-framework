@@ -12,7 +12,7 @@ import {
   Root,
   Authorized
 } from 'type-graphql';
-import { RumbleshipContext } from '../../app';
+import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ClassType } from '../../helpers';
 import {
   Node,

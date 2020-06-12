@@ -1,5 +1,5 @@
 import { Scopes } from '@rumbleship/acl';
-import { RumbleshipContext } from '../../app';
+import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ClassType } from '../../helpers';
 import { Node, Connection, RelayService, NodeNotification } from '../relay';
 import { BaseResolverInterface } from './base-resolver.interface';

@@ -1,28 +1,13 @@
 import * as P from 'bluebird';
-import { PubSubEngine } from 'type-graphql';
 import { Model } from 'sequelize-typescript';
-
 import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
-
 import { status } from '@grpc/grpc-js';
 import { hostname } from 'os';
 import { NotificationOf, RfiSubscriptionOptions, uniqueSubscriptionNamePart } from '../../gql';
-import { publishModelChange } from '../../db';
+import { publishModelChange } from '../../db/service/publish-model-change';
 import { RfiPubSubConfig } from '../config';
 import { DbModelAndOidScope } from './init-sequelize';
-
-export interface PubEngine extends PubSubEngine {
-  publisher_version: string;
-  publishPayload(notificationType: NotificationOf, model: Model, deltas: any[]): void;
-  subscribe(
-    triggerName: string,
-    onMessage: (message: string) => null,
-    options?: RfiSubscriptionOptions
-  ): Promise<number>;
-  unsubscribeAll(): void;
-}
-
-export type RfiPubSubEngine = PubEngine & PubSubEngine;
+import { RfiPubSubEngine } from './rfi-pub-sub-engine.interface';
 
 export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;

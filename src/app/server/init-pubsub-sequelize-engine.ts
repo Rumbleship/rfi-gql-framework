@@ -1,7 +1,7 @@
 import { CreateOptions, UpdateOptions } from 'sequelize';
 import { Model, Sequelize } from 'sequelize-typescript';
-import { RfiPubSubEngine } from './rfi-pub-sub-engine';
-import { NotificationOf, ModelDelta } from '../../gql';
+import { RfiPubSubEngine } from './rfi-pub-sub-engine.interface';
+import { NotificationOf, ModelDelta } from '../../gql/relay';
 
 /**
  *

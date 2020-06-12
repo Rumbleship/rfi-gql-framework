@@ -1,10 +1,10 @@
 import { Model } from 'sequelize-typescript';
 import { ModelDelta, NotificationOf, NODE_CHANGE_NOTIFICATION } from './../../gql';
-import { getOidFor, RfiPubSubEngine, getScopeFor } from '../../app';
-
-// Cannot access app level config for debug logging
-// import { logging } from '@rumbleship/spyglass';
-// const logger = logging.getLogger({});
+// These imports from specific submodules of app/server break pattern of "import from index"
+// because of circular references. Should be addressed by rolling most of `publish-model-change` into
+// the root `PubSubEngine` definition
+import { getOidFor, getScopeFor } from '../../app/server/init-sequelize';
+import { RfiPubSubEngine } from '../../app/server/rfi-pub-sub-engine.interface';
 
 export interface Payload {
   publisher_version: string;
