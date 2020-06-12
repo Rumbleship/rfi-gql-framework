@@ -60,9 +60,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
    * @description Attaches global model hooks, respecting transactions, to th
    */
   public linkToSequelize(sequelize: Sequelize) {
-    const hookCb = (notification_of: NotificationOf) => {
+    const hookCb = (pubSub: RfiPubSub, notification_of: NotificationOf) => {
       return function publisherHook(
-        this: RfiPubSub,
         sequelize_instance: SequelizeModel<any, any>,
         options: CreateOptions | UpdateOptions
       ) {
@@ -76,16 +75,16 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
         if (options && options.transaction) {
           const context_id = getContextId(options.transaction);
           options.transaction.afterCommit(t => {
-            this.publishModelChange(notification_of, instance, deltas, context_id);
+            pubSub.publishModelChange(notification_of, instance, deltas, context_id);
           });
         } else {
-          this.publishModelChange(notification_of, instance, deltas);
+          pubSub.publishModelChange(notification_of, instance, deltas);
         }
       };
     };
 
-    sequelize.afterCreate(hookCb(NotificationOf.CREATED));
-    sequelize.afterUpdate(hookCb(NotificationOf.UPDATED));
+    sequelize.afterCreate(hookCb(this, NotificationOf.CREATED));
+    sequelize.afterUpdate(hookCb(this, NotificationOf.UPDATED));
     // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
   }
 
