@@ -522,8 +522,7 @@ export class SequelizeBaseService<
 
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
-      // throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
-      throw new RFIAuthError();
+      throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
     return this.gqlFromDbModel(instance as any);
   }
