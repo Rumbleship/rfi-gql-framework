@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+### Removed
+### Changed
+### Fixed
+### Deprecated
+### Security
+
+
+## [8.0.0] -- 2020-06-12
+
+### Added
   * `createPayload` to replace `[createPayloadWithStr, createPayloadWithOid]`
   * peer dependency on `@rumbleship/iterable-model-sequelize`
 ### Removed
@@ -18,10 +28,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * Huge filestructure refactor
   * `AddToTrace()` throughout base resolvers and services
   * Implementation of `findEach` now uses generators
-### Fixed
-### Deprecated
-### Security
-
 
 ## [7.1.4] -- 2020-06-10
 
