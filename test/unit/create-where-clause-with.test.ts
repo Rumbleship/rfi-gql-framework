@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Oid } from '@rumbleship/oid';
-import { createWhereClauseWith } from '../../gql/create-where-clause-with';
+import { createWhereClauseWith } from '../../src';
 
 test('That an oid can be reconstructed from a persisted value', () => {
   const PAYMENT_REQUEST = 'PaymentRequest';
