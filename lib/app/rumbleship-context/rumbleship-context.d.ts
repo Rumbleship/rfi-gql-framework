@@ -32,3 +32,6 @@ export declare class RumbleshipContext implements Context {
 }
 /** @deprecated ? */
 export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
+export declare const RumbleshipContextIdKey = "_@RumbleshipContextId";
+export declare function setContextId(target: object, context_id: string): object;
+export declare function getContextId(target: object): string | undefined;

@@ -17,7 +17,7 @@ import {
   NodeServiceTransactionType
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
-import { RumbleshipContext, publishCurrentState } from '../../app/';
+import { RumbleshipContext, setContextId } from '../../app/';
 import {
   GqlSingleTableInheritanceFactory,
   getAuthorizeContext,
@@ -32,7 +32,7 @@ import {
   AuthIncludeEntry
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
-import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
+import {  calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -340,6 +340,7 @@ export class SequelizeBaseService<
       autocommit: params.autocommit,
       type: params.type as any
     });
+    setContextId(txn, this.ctx.id);
     this.ctx.logger.addMetadata({
       txn: { id: (txn as any).id, options: (txn as any).options }
     });
@@ -524,20 +525,6 @@ export class SequelizeBaseService<
       throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
     return this.gqlFromDbModel(instance as any);
-  }
-
-  async publishLastKnownState(oid: Oid): Promise<void> {
-    const { id } = oid.unwrap();
-
-    const findOptions: FindOptions = {
-      where: { id }
-    };
-    this.addAuthorizationFilters(findOptions, {});
-    const instance = await this.model.findOne(findOptions);
-    if (!instance) {
-      throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
-    }
-    publishCurrentState(instance);
   }
 
   /**

@@ -233,3 +233,12 @@ export function withRumbleshipContext<T>(
 function isPromise(p: any) {
   return p && typeof p.then === 'function';
 }
+
+export const RumbleshipContextIdKey = '_@RumbleshipContextId';
+export function setContextId(target: object, context_id: string) {
+  Reflect.set(target, RumbleshipContextIdKey, context_id);
+  return target;
+}
+export function getContextId(target: object): string | undefined {
+  return Reflect.get(target, RumbleshipContextIdKey);
+}
