@@ -88,11 +88,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
   }
 
-  public getMarshalledTraceContext(trace_id: string): string {
-    return this.beeline_cls.bindFunctionToTrace(
-      () => this.beeline_cls.marshalTraceContext(this.beeline_cls.getTraceContext()),
-      trace_id
-    )();
+  public getMarshalledTraceContext(context_id: string): string {
+    return this.beeline_cls.marshalTraceContext(this.beeline_cls.getTraceContext(context_id));
   }
 
   public async publish(triggerName: string, payload: any): Promise<void> {
