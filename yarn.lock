@@ -638,7 +638,7 @@
 
 "@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#dev":
   version "3.1.4"
-  resolved "git+ssh://git@github.com/rumbleship/observability.git#d087c97193aa000e5545c8fbe2ccd2cc15cd06c4"
+  resolved "git+ssh://git@github.com/rumbleship/observability.git#b65b8c3dcaad6a49ff2ff079357033a8db912406"
 
 "@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
   version "4.0.2"

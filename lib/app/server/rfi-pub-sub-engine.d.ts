@@ -10,8 +10,8 @@ export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     protected topicPrefix: string;
     publisher_version: string;
     protected subscription_ids: number[];
-    protected beeline_cls: ClassType<RumbleshipBeeline>;
-    constructor(publisher_version: string, config: RfiPubSubConfig, beeline: ClassType<RumbleshipBeeline>);
+    protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
+    constructor(publisher_version: string, config: RfiPubSubConfig, beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline);
     static validatePubSubConfig(config: RfiPubSubConfig): void;
     /**
      *

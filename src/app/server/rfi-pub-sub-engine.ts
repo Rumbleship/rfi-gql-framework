@@ -21,11 +21,11 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;
   public publisher_version: string;
   protected subscription_ids: number[];
-  protected beeline_cls: ClassType<RumbleshipBeeline>;
+  protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
   constructor(
     publisher_version: string,
     config: RfiPubSubConfig,
-    beeline: ClassType<RumbleshipBeeline>
+    beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
   ) {
     RfiPubSub.validatePubSubConfig(config);
     const { topicPrefix, keyFilename } = config;
@@ -89,8 +89,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   }
 
   public getMarshalledTraceContext(trace_id: string): string {
-    return this.beeline_cls.prototype.bindFuntionToTrace(
-      () => this.beeline_cls.prototype.getContext(),
+    return this.beeline_cls.bindFunctionToTrace(
+      () => this.beeline_cls.marshalTraceContext(this.beeline_cls.getTraceContext()),
       trace_id
     )();
   }
