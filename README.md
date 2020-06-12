@@ -1,2 +1,5 @@
 # @rumbleship/gql
 Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
+
+
+# TODO Explain the filestructure!
