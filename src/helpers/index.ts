@@ -1,3 +1,4 @@
 export * from './base64';
-export * from './enumAsStrings';
 export * from './classtype';
+export * from './enum-as-srings';
+export * from './merge-types';
