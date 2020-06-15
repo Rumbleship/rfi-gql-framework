@@ -5,6 +5,6 @@ import { withTimeStampsFilter } from './with_timestamps_filter';
 
 export class Empty {}
 
-export function withDefaultFilter<TBase extends ClassType<any>>(Base: TBase) {
+export function withOrderByPaginationTimeStampsFilter<TBase extends ClassType<any>>(Base: TBase) {
   return withOrderByFilter(withPaginationFilter(withTimeStampsFilter(Base ? Base : Empty)));
 }

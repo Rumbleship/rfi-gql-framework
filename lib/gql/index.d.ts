@@ -16,5 +16,6 @@ export * from './node-notification';
 export * from './create-where-clause-with';
 export * from './with_pagination_filter';
 export * from './with_timestamps';
-export * from './with_default_filter';
+export * from './with_timestamps_filter';
+export * from './with_order_by_pagination_timestamps_filter';
 export * from './with_order_by_filter';
