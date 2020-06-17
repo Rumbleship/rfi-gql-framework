@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
   * dependency on `@google/grpc-js`
 ### Changed
+  * Peer dependency is `@rumbleship/o11#4.0.0`
 ### Fixed
 ### Deprecated
 ### Security

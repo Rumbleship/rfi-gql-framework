@@ -636,9 +636,9 @@
   dependencies:
     convict "^5.2.0"
 
-"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#dev":
-  version "3.1.4"
-  resolved "git+ssh://git@github.com/rumbleship/observability.git#d318b51d7f3ccde54281e7972701426458310109"
+"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#4.0.0":
+  version "4.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/observability.git#dfd1ae33a28b395f704f7e495eb3817b31d930b9"
 
 "@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
   version "4.0.2"
