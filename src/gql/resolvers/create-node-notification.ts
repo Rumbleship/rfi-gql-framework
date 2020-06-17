@@ -32,7 +32,7 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
     return ctx.beeline.withAsyncSpan({ name: 'createPayload' }, async _span => {
       const received = JSON.parse(raw.data.toString());
       ctx.beeline.addTraceContext({
-        'node.id': received.oid.toString(),
+        'relay.node.id': received.oid.toString(),
         'payload.action': received.action
       });
       const node = await resolver.getOne(received.oid);
