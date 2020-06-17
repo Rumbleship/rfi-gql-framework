@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-  * Propagate trace context over the pub/sub bus.
+  * Propagate trace context over the pub/sub bus
+  * Generic traceContext added for `node.id`, various filters inside `SequelizeBaseService`
 ### Removed
   * dependency on `@google/grpc-js`
 ### Changed

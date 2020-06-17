@@ -17,6 +17,9 @@ import { RfiPubSubEngine, Payload } from './rfi-pub-sub-engine.interface';
 
 import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
 import { getContextId } from '../rumbleship-context';
+/**
+ * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
+ */
 export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;
   public publisher_version: string;

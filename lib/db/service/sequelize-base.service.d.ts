@@ -86,6 +86,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     gqlFromDbModel(dbModel: TModel): TApi;
     dbModel(): ModelClass<TModel> & typeof Model;
     getContext(): RumbleshipContext;
+    private addTraceContext;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     getServiceForDbModel(dbClass: Model): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
     newTransaction(params: {

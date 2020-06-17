@@ -308,6 +308,21 @@ export class SequelizeBaseService<
     return this.ctx;
   }
 
+  private addTraceContext(filterBy: TFilter): void {
+    const { after, before, first, last, ...filter } = filterBy as any;
+    this.ctx.beeline.addTraceContext({
+      'db.service.pagination.after': after,
+      'db.service.pagination.before': before,
+      'db.service.pagination.first': first,
+      'db.service.pagination.last': last
+    });
+    for (const [k, v] of Object.entries(filter)) {
+      this.ctx.beeline.addTraceContext({
+        [`db.service.filter.${k}`]: v
+      });
+    }
+  }
+
   getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V {
     const name = typeof cls === 'string' ? cls : cls.name;
     if (name in this.nodeServices) {
@@ -340,6 +355,12 @@ export class SequelizeBaseService<
       autocommit: params.autocommit,
       type: params.type as any
     });
+    this.ctx.beeline.addTraceContext({
+      'db.transaction.isolationLevel': params.isolation,
+      'db.transaction.autocommit': params.autocommit,
+      'db.transaction.type': params.type,
+      'db.transaction.id': (txn as any).id
+    });
     setContextId(txn, this.ctx.id);
     this.ctx.logger.addMetadata({
       txn: { id: (txn as any).id, options: (txn as any).options }
@@ -353,6 +374,7 @@ export class SequelizeBaseService<
     transaction: NodeServiceTransaction,
     action: 'commit' | 'rollback'
   ): Promise<void> {
+    this.ctx.beeline.addContext({ 'db.transaction.end': action });
     switch (action) {
       case 'commit':
         this.ctx.logger.info('transaction_commit');
@@ -384,18 +406,9 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
+    this.addTraceContext(filterBy);
     const { after, before, first, last, ...filter } = filterBy as any;
-    /*const filters = [];
-     for (const [k, v] of Object.entries(filterBy)) {
-      filters.push(k);
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters
-    });
-    */
+    // const filters = [];
     // we hold cursors as base64 of the offset for this query... not perfect,
     // but good enough for now
     // see https://facebook.github.io/relay/graphql/connections.htm#sec-Pagination-algorithm
@@ -433,17 +446,8 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
-    /* const filters = [];
-    for (const [k, v] of Object.entries(filterBy)) {
-      filters.push(k);
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters
-    });
-     */
+    this.addTraceContext(filterBy);
+    // const filters = [];
     // Authorization done in getAll
     const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
     if (matched.edges.length) {
@@ -459,17 +463,8 @@ export class SequelizeBaseService<
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
-    /* const filters = [];
-    for (const [k, v] of Object.entries(filterBy)) {
-      filters.push(k);
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters
-    }); */
-
+    this.addTraceContext(filterBy);
+    // const filters = [];
     const { after, before, first, last, ...filter } = filterBy as any;
 
     const whereClause = createWhereClauseWith(filter);
@@ -487,17 +482,8 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async count(filterBy: any, options?: NodeServiceOptions) {
-    /* const filters = [];
-    for (const [k, v] of Object.entries(filterBy)) {
-      filters.push(k);
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.filters`]: filters
-    });
-     */
+    this.addTraceContext(filterBy);
+    // const filters = [];
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     filterBy = createWhereClauseWith(filterBy);
     const findOptions: FindOptions = {
@@ -510,8 +496,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
-    /* this.ctx.rfiBeeline.addContext({ 'framework.db.service.target': oid.oid });
-     */
+    this.ctx.beeline.addTraceContext({ 'node.id': oid.toString() });
     const { id } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const findOptions: FindOptions = {
@@ -549,7 +534,9 @@ export class SequelizeBaseService<
     ) {
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(createInput as any, sequelizeOptions);
-      return this.gqlFromDbModel(instance as any);
+      const node = this.gqlFromDbModel(instance as any);
+      this.ctx.beeline.addTraceContext({ 'node.id': node.id.toString() });
+      return node;
     }
     this.ctx.logger.info('sequelize_base_service_authorization_denied');
     throw new RFIAuthError();
@@ -621,6 +608,7 @@ export class SequelizeBaseService<
     if (!oid) {
       throw new Error(`Invalid ${this.relayClass.name}: No id`);
     }
+    this.ctx.beeline.addTraceContext({ 'node.id': oid.toString() });
     delete (updateInput as any).id;
     const { id: dbId } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
@@ -698,16 +686,11 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions,
     order?: Order
   ): Promise<TAssocConnection> {
-    /* for (const [k, v] of Object.entries(filterBy)) {
-      this.ctx.rfiBeeline.addContext({
-        [`framework.db.service.filter.${k}`]: v
-      });
-    }
-    this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.association.source`]: source.constructor.name,
-      [`framework.db.service.association.target`]: assoc_key
+    this.addTraceContext(filterBy);
+    this.ctx.beeline.addTraceContext({
+      'db.service.association.source': source,
+      'db.service.association.target': assoc_key
     });
-    */
     const { after, before, first, last, ...filter } = filterBy;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
@@ -769,11 +752,10 @@ export class SequelizeBaseService<
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
   ): Promise<TAssocApi | undefined> {
-    /* this.ctx.rfiBeeline.addContext({
-      [`framework.db.service.association.source`]: source.constructor.name,
-      [`framework.db.service.association.target`]: assoc_key
+    this.ctx.beeline.addContext({
+      [`db.service.association.source`]: source.constructor.name,
+      [`db.service.association.target`]: assoc_key
     });
-    */
     let associatedModel;
     if (assoc_key in source) {
       associatedModel = Reflect.get(source, assoc_key);
