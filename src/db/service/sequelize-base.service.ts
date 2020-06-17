@@ -496,7 +496,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
-    this.ctx.beeline.addTraceContext({ 'node.id': oid.toString() });
+    this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
     const { id } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const findOptions: FindOptions = {
@@ -535,7 +535,7 @@ export class SequelizeBaseService<
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(createInput as any, sequelizeOptions);
       const node = this.gqlFromDbModel(instance as any);
-      this.ctx.beeline.addTraceContext({ 'node.id': node.id.toString() });
+      this.ctx.beeline.addTraceContext({ 'relay.node.id': node.id.toString() });
       return node;
     }
     this.ctx.logger.info('sequelize_base_service_authorization_denied');
@@ -608,7 +608,7 @@ export class SequelizeBaseService<
     if (!oid) {
       throw new Error(`Invalid ${this.relayClass.name}: No id`);
     }
-    this.ctx.beeline.addTraceContext({ 'node.id': oid.toString() });
+    this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
     delete (updateInput as any).id;
     const { id: dbId } = oid.unwrap();
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
