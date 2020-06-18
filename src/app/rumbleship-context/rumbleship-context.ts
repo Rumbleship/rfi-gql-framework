@@ -162,6 +162,7 @@ export class RumbleshipContext implements Context {
       hydrated_trace.parentSpanId,
       hydrated_trace.dataset
     );
+    this.beeline.addTraceContext(initial_trace_metadata);
     if (linked_span) {
       this.beeline.linkToSpan(linked_span!);
     }
