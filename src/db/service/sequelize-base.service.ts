@@ -688,7 +688,7 @@ export class SequelizeBaseService<
   ): Promise<TAssocConnection> {
     this.addTraceContext(filterBy);
     this.ctx.beeline.addTraceContext({
-      'db.service.association.source': source,
+      'db.service.association.source': source.id.toString(),
       'db.service.association.target': assoc_key
     });
     const { after, before, first, last, ...filter } = filterBy;
