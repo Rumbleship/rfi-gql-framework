@@ -648,9 +648,9 @@
   version "0.0.2"
   resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#864fb3fa6b29132b599e798ed788f28803b2468c"
 
-"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.3":
-  version "3.1.3"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#b8e253f227ce82dede996423a0b2cf282ebf1aca"
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.4":
+  version "3.1.4"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#10775c0249e99e2d738b0805213787c909d2c43e"
 
 "@sindresorhus/is@^1.0.0":
   version "1.2.0"

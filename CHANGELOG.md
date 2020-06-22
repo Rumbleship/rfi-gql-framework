@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * Generic traceContext added for `node.id`, various filters inside `SequelizeBaseService`
 ### Removed
   * dependency on `@google/grpc-js`
+  * SpyglassLogger interface from exports
 ### Changed
   * Peer dependency is `@rumbleship/o11#4.0.0`
 ### Fixed
