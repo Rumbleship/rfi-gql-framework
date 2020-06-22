@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * dependency on `@google/grpc-js`
   * SpyglassLogger interface from exports
 ### Changed
-  * Peer dependency is `@rumbleship/o11#4.0.0`
+  * Peer dependency is `@rumbleship/o11y#4.0.1`
+  * Subscription-related interface called `Payload` now called `NodeChangePayload`, inherits from generic `Payload`
 ### Fixed
 ### Deprecated
 ### Security

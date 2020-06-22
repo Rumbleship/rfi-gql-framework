@@ -13,7 +13,7 @@ import {
 } from '../../gql';
 import { RfiPubSubConfig } from '../config';
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
-import { RfiPubSubEngine, Payload } from './rfi-pub-sub-engine.interface';
+import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
 
 import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
 import { getContextId } from '../rumbleship-context';
@@ -140,7 +140,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     deltas: ModelDelta[],
     context_id?: string
   ): void {
-    const rval = payloadFromModel(model) as Payload;
+    const rval = payloadFromModel(model) as NodeChangePayload;
     rval.action = notification;
     rval.deltas = deltas;
     rval.publisher_version = this.publisher_version;

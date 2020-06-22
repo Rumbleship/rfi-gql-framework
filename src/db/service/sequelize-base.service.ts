@@ -374,7 +374,7 @@ export class SequelizeBaseService<
     transaction: NodeServiceTransaction,
     action: 'commit' | 'rollback'
   ): Promise<void> {
-    this.ctx.beeline.addContext({ 'db.transaction.end': action });
+    this.ctx.beeline.addTraceContext({ 'db.transaction.end': action });
     switch (action) {
       case 'commit':
         this.ctx.logger.info('transaction_commit');
@@ -752,7 +752,7 @@ export class SequelizeBaseService<
     assocApiClass: ClassType<TAssocApi>,
     options?: NodeServiceOptions
   ): Promise<TAssocApi | undefined> {
-    this.ctx.beeline.addContext({
+    this.ctx.beeline.addTraceContext({
       [`db.service.association.source`]: source.constructor.name,
       [`db.service.association.target`]: assoc_key
     });

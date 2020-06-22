@@ -17,10 +17,15 @@ export interface PubEngine extends PubSubEngine {
 export type RfiPubSubEngine = PubEngine & PubSubEngine;
 
 export interface Payload {
+  marshalled_trace?: string;
+  // the discriminator
+  d?: string;
+}
+export interface NodeChangePayload extends Payload {
+  d?: 'node-change';
   publisher_version: string;
   oid: string;
   id: string;
   action: string;
   deltas: ModelDelta[];
-  marshalled_trace?: string;
 }
