@@ -636,9 +636,9 @@
   dependencies:
     convict "^5.2.0"
 
-"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#4.0.0":
-  version "4.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/observability.git#dfd1ae33a28b395f704f7e495eb3817b31d930b9"
+"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#4.0.1":
+  version "4.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/observability.git#0f37f8155ceacad212f3b4baafd3486b70d10fd0"
 
 "@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
   version "4.0.2"
@@ -648,9 +648,9 @@
   version "0.0.2"
   resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#864fb3fa6b29132b599e798ed788f28803b2468c"
 
-"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.4":
-  version "3.1.4"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#10775c0249e99e2d738b0805213787c909d2c43e"
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.5":
+  version "3.1.5"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#985d0ce82b9d0db25c67fc7bfad9e0a52e346d7d"
 
 "@sindresorhus/is@^1.0.0":
   version "1.2.0"
