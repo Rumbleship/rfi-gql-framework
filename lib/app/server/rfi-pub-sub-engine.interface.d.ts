@@ -10,11 +10,28 @@ export interface PubEngine extends PubSubEngine {
     unsubscribeAll(): void;
 }
 export declare type RfiPubSubEngine = PubEngine & PubSubEngine;
-export interface Payload {
+/**
+ * @note `d` is optional because not all payloads coming in are guaranteed to have it
+ * until we release this code.
+ * @chore to make `d` required: https://www.pivotaltracker.com/story/show/173474911
+ */
+export interface Payload<Discriminator = string> {
+    marshalled_trace?: string;
+    discriminator?: Discriminator;
+}
+export interface NodeChangePayload extends Payload<'node-change'> {
     publisher_version: string;
     oid: string;
     id: string;
     action: string;
     deltas: ModelDelta[];
-    marshalled_trace?: string;
+}
+export interface SubscriptionCommandPayload extends Payload<'sub-command'> {
+    command: SubscriptionCommand;
+    google_app_version: string;
+}
+export declare enum SubscriptionCommand {
+    SUBSCRIPTION_START_VERSION = "SUBSCRIPTION_START_VERSION",
+    SUBSCRIPTION_STOP_VERSION = "SUBSCRIPTION_STOP_VERSION",
+    SUBSCRIPTION_RUN_VERSION = "SUBSCRIPTION_RUN_VERSION"
 }

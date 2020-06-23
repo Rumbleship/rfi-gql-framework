@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
   * Propagate trace context over the pub/sub bus
   * Generic traceContext added for `node.id`, various filters inside `SequelizeBaseService`
+  * Definition of the `SubscriptionCommandPayload`, inherits from generic `Payload`
 ### Removed
   * dependency on `@google/grpc-js`
   * SpyglassLogger interface from exports
