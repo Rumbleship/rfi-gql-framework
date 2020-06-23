@@ -313,7 +313,7 @@
     p-defer "^3.0.0"
     protobufjs "^6.8.1"
 
-"@grpc/grpc-js@^0.6.12", "@grpc/grpc-js@^0.6.15":
+"@grpc/grpc-js@^0.6.12":
   version "0.6.15"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-0.6.15.tgz#534d1051ddced4e5e5849212789dd64014214dd4"
   integrity sha512-BFK5YMu8JILedibo0nr3NYM0ZC5hCZuXtzk10wEUp3d3pH11PjdvTfN1yEJ0VsfBY5Gtp3WOQ+t7Byq0NzH/iQ==
@@ -636,9 +636,9 @@
   dependencies:
     convict "^5.2.0"
 
-"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#3.1.4":
-  version "3.1.4"
-  resolved "git+ssh://git@github.com/rumbleship/observability.git#97da390600e076ddde08151139a29beb88dd1f02"
+"@rumbleship/o11y@git+ssh://git@github.com/rumbleship/observability.git#4.0.1":
+  version "4.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/observability.git#0f37f8155ceacad212f3b4baafd3486b70d10fd0"
 
 "@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
   version "4.0.2"
@@ -648,9 +648,9 @@
   version "0.0.2"
   resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#864fb3fa6b29132b599e798ed788f28803b2468c"
 
-"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.3":
-  version "3.1.3"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#b8e253f227ce82dede996423a0b2cf282ebf1aca"
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#3.1.5":
+  version "3.1.5"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#985d0ce82b9d0db25c67fc7bfad9e0a52e346d7d"
 
 "@sindresorhus/is@^1.0.0":
   version "1.2.0"

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * Propagate trace context over the pub/sub bus
+  * Generic traceContext added for `node.id`, various filters inside `SequelizeBaseService`
+  * Definition of the `SubscriptionCommandPayload`, inherits from generic `Payload`
+### Removed
+  * dependency on `@google/grpc-js`
+  * SpyglassLogger interface from exports
+### Changed
+  * Peer dependency is `@rumbleship/o11y#4.0.1`
+  * Subscription-related interface called `Payload` now called `NodeChangePayload`, inherits from generic `Payload`
+### Fixed
+### Deprecated
+### Security
+
+
 ## [8.0.0] -- 2020-06-12
 
 ### Added

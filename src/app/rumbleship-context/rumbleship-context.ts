@@ -162,6 +162,7 @@ export class RumbleshipContext implements Context {
       hydrated_trace.parentSpanId,
       hydrated_trace.dataset
     );
+    this.beeline.addTraceContext(initial_trace_metadata);
     if (linked_span) {
       this.beeline.linkToSpan(linked_span!);
     }
@@ -232,4 +233,13 @@ export function withRumbleshipContext<T>(
 
 function isPromise(p: any) {
   return p && typeof p.then === 'function';
+}
+
+export const RumbleshipContextIdKey = '_@RumbleshipContextId';
+export function setContextId(target: object, context_id: string) {
+  Reflect.set(target, RumbleshipContextIdKey, context_id);
+  return target;
+}
+export function getContextId(target: object): string | undefined {
+  return Reflect.get(target, RumbleshipContextIdKey);
 }
