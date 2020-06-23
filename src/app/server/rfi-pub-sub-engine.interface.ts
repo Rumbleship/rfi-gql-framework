@@ -16,16 +16,21 @@ export interface PubEngine extends PubSubEngine {
 
 export type RfiPubSubEngine = PubEngine & PubSubEngine;
 
-/**
- * @note `d` is optional because not all payloads coming in are guaranteed to have it
- * until we release this code.
- * @chore to make `d` required: https://www.pivotaltracker.com/story/show/173474911
- */
-export interface Payload<Discriminator = string> {
-  marshalled_trace?: string;
-  discriminator?: Discriminator;
+export enum PayloadTypes {
+  NODE_CHANGE = 'NODE_CHANGE',
+  SUBSCRIPTION_COMMAND = 'SUBSCRIPTION_COMMAND'
 }
-export interface NodeChangePayload extends Payload<'node-change'> {
+
+/**
+ * @note `type` is optional because not all payloads coming in are guaranteed to have it
+ * until we release this code.
+ * @chore to make `type` required: https://www.pivotaltracker.com/story/show/173474911
+ */
+export interface Payload<T extends PayloadTypes> {
+  marshalled_trace?: string;
+  type?: T;
+}
+export interface NodeChangePayload extends Payload<PayloadTypes.NODE_CHANGE> {
   publisher_version: string;
   oid: string;
   id: string;
@@ -33,7 +38,7 @@ export interface NodeChangePayload extends Payload<'node-change'> {
   deltas: ModelDelta[];
 }
 
-export interface SubscriptionCommandPayload extends Payload<'sub-command'> {
+export interface SubscriptionCommandPayload extends Payload<PayloadTypes.SUBSCRIPTION_COMMAND> {
   command: SubscriptionCommand;
   google_app_version: string;
 }
