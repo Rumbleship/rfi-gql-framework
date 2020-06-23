@@ -86,6 +86,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     gqlFromDbModel(dbModel: TModel): TApi;
     dbModel(): ModelClass<TModel> & typeof Model;
     getContext(): RumbleshipContext;
+    private addTraceContext;
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     getServiceForDbModel(dbClass: Model): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
     newTransaction(params: {
@@ -104,7 +105,6 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
     count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
-    publishLastKnownState(oid: Oid): Promise<void>;
     /**
      * Authorization on create is against the createInput object OR via the resolver
      * implementation that then overides the default check through skipAuthorization set on
