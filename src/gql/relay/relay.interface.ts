@@ -1,10 +1,11 @@
 import { InterfaceType, Field, ID } from 'type-graphql';
-import { Order } from 'sequelize';
 import { Actions } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ClassType } from '../../helpers';
 import { PageInfo } from './page-info.type';
+import { DateRange } from '../scalars/daterange.scalar';
+import { RelayOrderBy } from '../scalars/relay-order-by.scalar';
 
 export interface NodeServiceTransaction {
   commit(): Promise<void>;
@@ -26,12 +27,12 @@ export enum NodeServiceTransactionType {
   IMMEDIATE = 'IMMEDIATE',
   EXCLUSIVE = 'EXCLUSIVE'
 }
-@InterfaceType()
+@InterfaceType({ isAbstract: true })
 export abstract class Node<T> {
   @Field(type => ID)
   id!: Oid;
 
-  _service!: NodeService<T>;
+  _service!: NodeService<Node<T>>;
 }
 
 export abstract class Edge<T extends Node<T>> {
@@ -72,7 +73,7 @@ export interface NodeServiceOptions {
   action?: Actions;
 }
 
-export interface NodeService<T> {
+export interface NodeService<T extends Node<T>> {
   getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
   nodeType(): string;
   getContext(): RumbleshipContext;
@@ -86,10 +87,30 @@ export interface NodeService<T> {
   endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
 
+/**
+ * Defines the standard orderby pagination and timestamp filters
+ */
+export interface RelayFilterBase<T> {
+  // keys to order returned collection by
+  order_by?: RelayOrderBy<T>;
+  // pagination
+  after?: string;
+  before?: string;
+  first?: number;
+  last?: number;
+  // timestamps
+  created_at?: Date;
+  created_between?: DateRange;
+  updated_at?: Date;
+  updated_between?: DateRange;
+  deleted_at?: Date;
+  deleted_between?: DateRange;
+}
+
 export interface RelayService<
   TApi extends Node<TApi>,
   TConnection extends Connection<TApi>,
-  TFilter,
+  TFilter extends RelayFilterBase<TApi>,
   TInput,
   TUpdate
 > extends NodeService<TApi> {
@@ -111,12 +132,11 @@ export interface RelayService<
   >(
     source: TApi,
     assoc_key: string,
-    filterBy: any,
+    filterBy: RelayFilterBase<TAssocApi>,
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
     assocConnectionClass: ClassType<TAssocConnection>,
-    options?: NodeServiceOptions,
-    order?: Order
+    options?: NodeServiceOptions
   ): Promise<TAssocConnection>;
   getAssociated<TAssocApi extends Node<TAssocApi>>(
     source: TApi,
