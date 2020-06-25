@@ -20,6 +20,7 @@ import { RFIAuthChecker } from './middleware';
 import { goodRfi } from './plugins';
 import { RfiPubSub } from './rfi-pub-sub-engine';
 import { root_route, health_check_route } from './routes';
+import { DateRange, DateRangeGQL } from '../../gql';
 
 export interface ConvictServerConfig {
   serverOptions: Hapi.ServerOptions;
@@ -121,6 +122,7 @@ export async function initServer(
 
   const default_schema_options: Omit<BuildSchemaOptions, 'resolvers'> = {
     authChecker: RFIAuthChecker,
+    scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
     globalMiddlewares: [HoneycombMiddleware],
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
