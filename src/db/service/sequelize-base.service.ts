@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { Transaction, FindOptions, Op, Order, OrderItem } from 'sequelize';
+import { Transaction, FindOptions, Op } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
@@ -14,7 +14,8 @@ import {
   NodeServiceLock,
   NodeServiceTransaction,
   NodeServiceIsolationLevel,
-  NodeServiceTransactionType
+  NodeServiceTransactionType,
+  RelayFilterBase
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
 import { RumbleshipContext, setContextId } from '../../app/';
@@ -29,7 +30,8 @@ import {
   createWhereClauseWith,
   modelKey,
   reloadNodeFromModel,
-  AuthIncludeEntry
+  AuthIncludeEntry,
+  createOrderClause
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
@@ -254,16 +256,64 @@ export class SequelizeBaseService<
         modelClass.addHook('beforeFind', (findOptions: FindOptions): void => {
           const authorizeContext = getAuthorizeContext(findOptions);
           if (!authorizeContext) {
-            // Sequelize loses our auth context tracker on reload, so we add an (UGLY)
-            // explicit override for that case
+            // we can get some finds as part of an update (eg Model.add()), in which case
+            // we check to see if the overall transaction has been authorized as the findOptions are
+            // created deep in the sequelize framework
+            const transaction = Reflect.get(findOptions, 'transaction');
+            if (transaction && getAuthorizeContext(transaction)) {
+              return;
+            }
             if (Reflect.get(findOptions, 'reloadAuthSkip')) {
               return;
             }
             throw new Error(
-              'SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an authorizeService passed in. See SequelizeBaseService'
+              `SERIOUS PROGRAMING ERROR. All Sequelize queries MUST have an AuthorizeContext added to the findOptions 
+                (${modelClass.name}})`
             );
           }
         });
+      }
+    }
+  }
+
+  async addAuthorizationFiltersAndWrapWithTransaction<T>(
+    options: {
+      opts: NodeServiceOptions;
+      authorizableClass?: ClassType<any>;
+    },
+    theFunctionToWrap: (sequelizeOptions: { transaction?: Transaction }) => Promise<T>
+  ) {
+    const { opts, authorizableClass } = options;
+    let transactionCreated: boolean = false;
+    if (!opts.transaction) {
+      opts.transaction = await this.newTransaction({
+        isolation: NodeServiceIsolationLevel.READ_COMMITTED,
+        autocommit: false
+      });
+      opts.lockLevel = NodeServiceLock.SHARE;
+
+      transactionCreated = true;
+    }
+    setAuthorizeContext(opts.transaction, {});
+    const sequelizeOptions = this.addAuthorizationFilters(
+      {
+        ...this.convertServiceOptionsToSequelizeOptions(opts)
+      },
+      opts,
+      authorizableClass
+    );
+    try {
+      return await theFunctionToWrap(sequelizeOptions);
+    } catch (e) {
+      this.ctx.logger.error(e.stack);
+      if (transactionCreated && opts.transaction) {
+        await this.endTransaction(opts.transaction, 'rollback');
+        opts.transaction = undefined;
+      }
+      throw e;
+    } finally {
+      if (transactionCreated && opts.transaction) {
+        await this.endTransaction(opts.transaction, 'commit');
       }
     }
   }
@@ -308,7 +358,7 @@ export class SequelizeBaseService<
     return this.ctx;
   }
 
-  private addTraceContext(filterBy: TFilter): void {
+  private addTraceContext(filterBy: RelayFilterBase<any>): void {
     const { after, before, first, last, ...filter } = filterBy as any;
     this.ctx.beeline.addTraceContext({
       'db.service.pagination.after': after,
@@ -407,7 +457,9 @@ export class SequelizeBaseService<
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     this.addTraceContext(filterBy);
-    const { after, before, first, last, ...filter } = filterBy as any;
+    const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
+
+    const orderClause = createOrderClause(order_by);
     // const filters = [];
     // we hold cursors as base64 of the offset for this query... not perfect,
     // but good enough for now
@@ -416,8 +468,6 @@ export class SequelizeBaseService<
     //
     const connection = new this.connectionClass();
 
-    const id_attribute = this.model.rawAttributes['id'] as any; // sequelize typings are not correct
-    const orderClause: OrderItem[] | undefined = id_attribute ? [['id', 'DESC']] : undefined;
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options) ?? {};
@@ -447,7 +497,6 @@ export class SequelizeBaseService<
   @AddToTrace()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
     this.addTraceContext(filterBy);
-    // const filters = [];
     // Authorization done in getAll
     const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
     if (matched.edges.length) {
@@ -666,11 +715,6 @@ export class SequelizeBaseService<
     }
   }
 
-  /* <TAssocApi extends Node,
-    TAssocConnection extends Connection<TAssocApi>,
-    TAssocEdge extends Edge<TAssocApi>,
-    TAssocModel
-    > */
   @AddToTrace()
   async getAssociatedMany<
     TAssocApi extends Node<TAssocApi>,
@@ -679,19 +723,20 @@ export class SequelizeBaseService<
   >(
     source: TApi,
     assoc_key: string,
-    filterBy: any,
+    filterBy: RelayFilterBase<TAssocApi>,
     assocApiClass: ClassType<TAssocApi>,
     assocEdgeClass: ClassType<TAssocEdge>,
     assocConnectionClass: ClassType<TAssocConnection>,
-    options?: NodeServiceOptions,
-    order?: Order
+    options?: NodeServiceOptions
   ): Promise<TAssocConnection> {
     this.addTraceContext(filterBy);
     this.ctx.beeline.addTraceContext({
       'db.service.association.source': source.id.toString(),
       'db.service.association.target': assoc_key
     });
-    const { after, before, first, last, ...filter } = filterBy;
+    const { after, before, first, last, order_by, ...filter } = filterBy;
+    const orderClause = createOrderClause(order_by);
+
     const limits = calculateLimitAndOffset(after, first, before, last);
     const whereClause = createWhereClauseWith(filter);
     let sourceModel: Model<Model<any>>;
@@ -703,19 +748,18 @@ export class SequelizeBaseService<
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       let findOptions: FindOptions = {
         where: whereClause,
-        order
+        order: orderClause
       };
 
       const countOptions: FindOptions = {
         where: whereClause,
         attributes: [],
-        order
+        order: orderClause
       };
 
       assocService.addAuthorizationFilters(countOptions, options ?? {}, undefined, true);
       count = await sourceModel.$count(assoc_key, countOptions);
       assocService.addAuthorizationFilters(findOptions, options ?? {});
-      const orderClause: OrderItem[] = [['id', 'DESC']];
       findOptions = {
         ...findOptions,
         offset: limits.offset,
