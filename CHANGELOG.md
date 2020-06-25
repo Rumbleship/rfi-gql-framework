@@ -5,10 +5,8 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [9.0.0] -- 2020-06-25
 
-### Added
-### Removed
 ### Changed
   * IMPORTANT. Apps using this lib MUST upgrade there dependancies to these versions:
     "class-transformer": "^0.2.3",
@@ -18,10 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     "type-graphql": "1.0.0rc.2",
     "typescript": "^3.9.4",
 
-
-### Fixed
-### Deprecated
-### Security
 
 
 ## [8.1.0] -- 2020-06-23
