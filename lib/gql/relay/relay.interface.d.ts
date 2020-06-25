@@ -1,9 +1,10 @@
-import { Order } from 'sequelize';
 import { Actions } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ClassType } from '../../helpers';
 import { PageInfo } from './page-info.type';
+import { DateRange } from '../scalars/daterange.scalar';
+import { RelayOrderBy } from '../scalars/relay-order-by.scalar';
 export interface NodeServiceTransaction {
     commit(): Promise<void>;
     rollback(): Promise<void>;
@@ -26,7 +27,7 @@ export declare enum NodeServiceTransactionType {
 }
 export declare abstract class Node<T> {
     id: Oid;
-    _service: NodeService<T>;
+    _service: NodeService<Node<T>>;
 }
 export declare abstract class Edge<T extends Node<T>> {
     node: T;
@@ -51,7 +52,7 @@ export interface NodeServiceOptions {
     skipAuthorizationCheck?: boolean;
     action?: Actions;
 }
-export interface NodeService<T> {
+export interface NodeService<T extends Node<T>> {
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<T>;
     nodeType(): string;
     getContext(): RumbleshipContext;
@@ -64,7 +65,23 @@ export interface NodeService<T> {
     }): Promise<NodeServiceTransaction>;
     endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
 }
-export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> extends NodeService<TApi> {
+/**
+ * Defines the standard orderby pagination and timestamp filters
+ */
+export interface RelayFilterBase<T> {
+    order_by?: RelayOrderBy<T>;
+    after?: string;
+    before?: string;
+    first?: number;
+    last?: number;
+    created_at?: Date;
+    created_between?: DateRange;
+    updated_at?: Date;
+    updated_between?: DateRange;
+    deleted_at?: Date;
+    deleted_between?: DateRange;
+}
+export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter extends RelayFilterBase<TApi>, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined>;
@@ -72,6 +89,6 @@ export interface RelayService<TApi extends Node<TApi>, TConnection extends Conne
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     create(data: TInput, options?: NodeServiceOptions): Promise<TApi>;
     update(data: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
-    getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions, order?: Order): Promise<TAssocConnection>;
+    getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: RelayFilterBase<TAssocApi>, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
 }

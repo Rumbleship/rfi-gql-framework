@@ -1,8 +1,8 @@
-import { Transaction, FindOptions, Order } from 'sequelize';
+import { Transaction, FindOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
-import { Connection, Edge, Node, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType } from '../../gql';
+import { Connection, Edge, Node, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType, RelayFilterBase } from '../../gql';
 import { ClassType } from '../../helpers';
 import { RumbleshipContext } from '../../app/';
 import { GqlSingleTableInheritanceFactory } from '../transformers';
@@ -76,6 +76,12 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param modelClass
      */
     static addAuthCheckHook(modelClass: typeof Model): void;
+    addAuthorizationFiltersAndWrapWithTransaction<T>(options: {
+        opts: NodeServiceOptions;
+        authorizableClass?: ClassType<any>;
+    }, theFunctionToWrap: (sequelizeOptions: {
+        transaction?: Transaction;
+    }) => Promise<T>): Promise<T>;
     setServiceRegister(services: any): void;
     nodeType(): string;
     /**
@@ -147,7 +153,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
      */
     update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
-    getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: any, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions, order?: Order): Promise<TAssocConnection>;
+    getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: RelayFilterBase<TAssocApi>, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
     private makeEdge;
 }
