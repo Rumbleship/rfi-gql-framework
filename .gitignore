@@ -4,7 +4,7 @@ node_modules.*/
 yarn-error.log
 package-lock.json
 logs/*.log
-
+test_out
 .DS_Store
 
 # Deployment artifacts
