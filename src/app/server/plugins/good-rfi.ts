@@ -14,8 +14,8 @@ export const goodRfi = {
         request: ['headers'],
         response: ['headers']
       },
-      ops: false,
-      ...server_config
+      ops: false
+      // ...server_config
     };
 
     return server.register([{ plugin: require('@hapi/good'), options }]);
