@@ -44,7 +44,7 @@ export interface ConvictServerConfig {
 
 export async function initServer(
   config: ConvictServerConfig,
-  InjectedBeeline: typeof RumbleshipBeeline & RumbleshipBeeline,
+  InjectedBeeline: typeof RumbleshipBeeline,
   injected_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
