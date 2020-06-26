@@ -15,7 +15,6 @@ import {
 } from '@rumbleship/apollo-server-hapi';
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
-import { ServiceFactories, ServiceFactoryMap } from '@rumbleship/service-factory-map';
 import { spyglassHapiPlugin, logging } from '@rumbleship/spyglass';
 import { RumbleshipBeeline, HoneycombMiddleware, addGaeVersionDataToTrace } from '@rumbleship/o11y';
 import { RumbleshipContext } from './../rumbleship-context';
@@ -55,7 +54,7 @@ export async function initServer(
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
-  onContainer: (context: RumbleshipContext, ServiceFactories: ServiceFactoryMap) => void,
+  onContainer: (context: RumbleshipContext) => void,
   onInitialized: (server: Hapi.Server) => Promise<void> = (_server: Hapi.Server) =>
     Promise.resolve(),
   dbOptions?: {
@@ -207,7 +206,7 @@ export async function initServer(
       if (container && onContainer) {
         // Hook to to allow Banking to continue inject/hook up its old services when the context is built.
         // Probably shouldnt use this for anything else.
-        onContainer(rumbleship_context, ServiceFactories);
+        onContainer(rumbleship_context);
       }
       return rumbleship_context;
     },
