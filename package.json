@@ -109,8 +109,8 @@
     "typedi": "^0.8.0"
   },
   "dependencies": {
-    "@rumbleship/context-control": "git+ssh://git@github.com/rumbleship/context-control.git#1.1.1",
     "@rumbleship/apollo-server-hapi": "git+ssh://git@github.com/rumbleship/apollo-server-hapi#dev",
+    "@rumbleship/context-control": "git+ssh://git@github.com/rumbleship/context-control.git#dev",
     "hapi-request-id-header": "git+ssh://git@github.com/rumbleship/hapi-request-id-header.git#master",
     "hapi-require-https": "^3.0.1"
   }
