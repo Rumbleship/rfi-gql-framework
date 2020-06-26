@@ -22,6 +22,9 @@ import { RfiPubSub } from './rfi-pub-sub-engine';
 import { root_route, health_check_route } from './routes';
 import { DateRange, DateRangeGQL } from '../../gql';
 
+import hapiRequireHttps = require('hapi-require-https');
+import hapiRequestIdHeader = require('hapi-request-id-header');
+
 export interface ConvictServerConfig {
   serverOptions: Hapi.ServerOptions;
   db: RumbleshipDatabaseOptions;
@@ -54,8 +57,8 @@ export async function initServer(
   const serverLogger = logging.getLogger({ filename: __filename, config });
   const serverOptions: Hapi.ServerOptions = config.serverOptions;
   const default_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
-    { plugin: require('hapi-require-https') },
-    { plugin: require('hapi-request-id-header'), options: { persist: true } },
+    { plugin: hapiRequireHttps },
+    { plugin: hapiRequestIdHeader, options: { persist: true } },
     { plugin: spyglassHapiPlugin, options: { config } },
     { plugin: goodRfi }, // Winston and good logging a la RFI style - see spyglass
     {
