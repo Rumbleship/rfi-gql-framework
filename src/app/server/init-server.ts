@@ -38,7 +38,7 @@ export interface ConvictServerConfig {
 
 export async function initServer(
   config: ConvictServerConfig,
-  injected_plugins: Array<Hapi.Plugin<any>>,
+  injected_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
@@ -53,8 +53,8 @@ export async function initServer(
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger({ filename: __filename, config });
   const serverOptions: Hapi.ServerOptions = config.serverOptions;
-  const default_plugins: Array<Hapi.Plugin<any>> = [
-    ...require('hapi-require-https'),
+  const default_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
+    { plugin: require('hapi-require-https') },
     { plugin: require('hapi-request-id-header'), options: { persist: true } },
     { plugin: spyglassHapiPlugin, options: { config } },
     { plugin: goodRfi }, // Winston and good logging a la RFI style - see spyglass
@@ -66,19 +66,6 @@ export async function initServer(
         global_container: Container
       }
     }
-    // This should be injected by caller; not all services will need it.
-    // {
-    //   plugin: new RumbleshipVendorWebhookAuth(),
-    //   options: {
-    //     schemes: [
-    //       {
-    //         name: 'plaid',
-    //         plaid_factory: ServiceFactories.get('plaidClientFactory'),
-    //         enable_tracing: true
-    //       }
-    //     ]
-    //   }
-    // }
   ];
   const plugins = [...default_plugins, ...injected_plugins];
   if (serverOptions.routes) {
