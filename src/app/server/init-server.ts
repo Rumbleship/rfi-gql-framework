@@ -52,8 +52,10 @@ export async function initServer(
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
   onContainer: (context: RumbleshipContext, ServiceFactories: ServiceFactoryMap) => void,
-  onInitialized: (server: Hapi.Server) => Promise<void> = (_server: Hapi.Server) =>
-    Promise.resolve(),
+  onInitialized: (server: Hapi.Server, pubSub: RfiPubSub) => Promise<void> = (
+    _server: Hapi.Server,
+    _pubSub: RfiPubSub
+  ) => Promise.resolve(),
   dbOptions?: {
     force: boolean;
     dbSuffix?: string;
@@ -247,6 +249,6 @@ export async function initServer(
     );
     return h.continue;
   });
-  await onInitialized(server);
+  await onInitialized(server, pubSub);
   return server;
 }
