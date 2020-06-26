@@ -28,6 +28,9 @@ import hapiRequestIdHeader = require('hapi-request-id-header');
 export interface ConvictServerConfig {
   serverOptions: Hapi.ServerOptions;
   db: RumbleshipDatabaseOptions;
+  logging: {
+    level: 'emerg' | 'alert' | 'crit' | 'error' | 'warning' | 'notice' | 'info' | 'debug';
+  };
   microservices: {
     alpha: { [index: string]: any } & { accessTokenSecret: string };
     mediator: { [index: string]: any };
@@ -60,7 +63,7 @@ export async function initServer(
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
     { plugin: spyglassHapiPlugin, options: { config } },
-    { plugin: goodRfi }, // Winston and good logging a la RFI style - see spyglass
+    { plugin: goodRfi, options: { ...config.logging } }, // Winston and good logging a la RFI style - see spyglass
     {
       plugin: RumbleshipContextControl,
       options: {

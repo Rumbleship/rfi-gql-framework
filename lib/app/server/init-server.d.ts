@@ -7,6 +7,9 @@ import { DbModelAndOidScope } from './init-sequelize';
 export interface ConvictServerConfig {
     serverOptions: Hapi.ServerOptions;
     db: RumbleshipDatabaseOptions;
+    logging: {
+        level: 'emerg' | 'alert' | 'crit' | 'error' | 'warning' | 'notice' | 'info' | 'debug';
+    };
     microservices: {
         alpha: {
             [index: string]: any;

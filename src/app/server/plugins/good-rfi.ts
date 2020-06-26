@@ -3,12 +3,12 @@ import { SpyglassGoodReporter } from '@rumbleship/spyglass';
 
 export const goodRfi = {
   name: 'good-rfi',
-  async register(server: Hapi.Server, options: any): Promise<void> {
+  async register(server: Hapi.Server, options: object): Promise<void> {
     options = {
       reporters: {
         // We don't use any of the options that SpyglassGoodReporter accepts -- just pass
         // an the empty object
-        winston: [new SpyglassGoodReporter({})]
+        winston: [new SpyglassGoodReporter(options)]
       },
       includes: {
         request: ['headers'],
