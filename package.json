@@ -38,6 +38,7 @@
     "@rumbleship/iterable-model-sequelize": "git+ssh://git@github.com/rumbleship/iterable-model-sequelize#0.1.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#4.0.1",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.2",
+    "@rumbleship/service-factory-map": "git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.3",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.5",
     "@types/bluebird": "^3.5.26",
     "@types/graphql": "^14.1.0",
@@ -90,6 +91,7 @@
     "@rumbleship/iterable-model-sequelize": "git+ssh://git@github.com/rumbleship/iterable-model-sequelize#0.1.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#4.0.1",
     "@rumbleship/oid": "git+ssh://git@github.com/rumbleship/oid#4.0.0",
+    "@rumbleship/service-factory-map": "git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.1",
     "@rumbleship/spyglass": "git+ssh://git@github.com/rumbleship/spyglass.git#3.1.5",
     "bluebird": "^3.5.1",
     "class-transformer": "^0.2.3",
@@ -109,7 +111,6 @@
   "dependencies": {
     "@rumbleship/apollo-server-hapi": "git+ssh://git@github.com/rumbleship/apollo-server-hapi#dev",
     "@rumbleship/context-control": "git+ssh://git@github.com/rumbleship/context-control.git#1.2.2",
-    "@rumbleship/service-factory-map": "git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.3",
     "hapi-request-id-header": "git+ssh://git@github.com/rumbleship/hapi-request-id-header.git#master",
     "hapi-require-https": "^3.0.1"
   }
