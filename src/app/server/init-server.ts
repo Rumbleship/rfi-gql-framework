@@ -1,3 +1,4 @@
+import { LogErrorMiddlewareFn } from './middleware/error.middleware';
 import 'reflect-metadata';
 import * as Hapi from '@hapi/hapi';
 import * as Boom from '@hapi/boom';
@@ -5,14 +6,14 @@ import * as Hoek from '@hapi/hoek';
 import Container from 'typedi';
 import { buildSchema, BuildSchemaOptions } from 'type-graphql';
 import { ConnectionContext } from 'subscriptions-transport-ws';
-import { printSchema } from 'graphql';
+import { printSchema, GraphQLError, GraphQLFormattedError } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError } from '@rumbleship/apollo-server-hapi';
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
 import { ServiceFactories } from '@rumbleship/service-factory-map';
-import { spyglassHapiPlugin, logging } from '@rumbleship/spyglass';
+import { spyglassHapiPlugin, logging, SpyglassLogger } from '@rumbleship/spyglass';
 import { RumbleshipBeeline, HoneycombMiddleware, addGaeVersionDataToTrace } from '@rumbleship/o11y';
 import { RumbleshipContext } from './../rumbleship-context';
 import { initSequelize, DbModelAndOidScope } from './init-sequelize';
@@ -42,6 +43,14 @@ export interface ConvictServerConfig {
   PubSubConfig: RfiPubSubConfig;
 }
 
+function defaultFormatError(
+  this: { serverLogger: SpyglassLogger },
+  error: GraphQLError
+): GraphQLFormattedError {
+  this.serverLogger.error(error.originalError ? error.originalError.stack : error.stack);
+  return error;
+}
+
 export async function initServer(
   config: ConvictServerConfig,
   InjectedBeeline: typeof RumbleshipBeeline,
@@ -49,6 +58,7 @@ export async function initServer(
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
+  formatError: (error: GraphQLError) => GraphQLFormattedError = defaultFormatError,
   onContainer: (context: RumbleshipContext, ServiceFactories: Map<any, any>) => void,
   onInitialized: (server: Hapi.Server) => Promise<void> = (_server: Hapi.Server) =>
     Promise.resolve(),
@@ -117,7 +127,7 @@ export async function initServer(
   const default_schema_options: Omit<BuildSchemaOptions, 'resolvers'> = {
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
-    globalMiddlewares: [HoneycombMiddleware],
+    globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };
@@ -135,16 +145,9 @@ export async function initServer(
   }
 
   pubSub.linkToSequelize(sequelize);
-  // linkSequelizeToPubSubEngine(pubSub, sequelize);
-  // per request dependancy injection is accomplished by using the
-  // typedi container that was created by the per-request-di-container plugin
-  // the plugin will take care of resetting it after request is serviced
   const apolloServer = new ApolloServer({
     schema,
-    formatError: (error: any) => {
-      serverLogger.error(error.originalError ? error.originalError.stack : error.stack);
-      return error;
-    },
+    formatError: formatError.bind({ serverLogger }),
     introspection: true,
     subscriptions: {
       onConnect: (connectionParams, webSocket, context: ConnectionContext) => {
