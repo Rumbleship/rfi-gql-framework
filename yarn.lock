@@ -979,13 +979,14 @@
   dependencies:
     jsonwebtoken "^8.5.1"
 
-"@rumbleship/apollo-server-hapi@git+ssh://git@github.com/rumbleship/apollo-server-hapi#0.1.0":
+"@rumbleship/apollo-server-hapi@git+ssh://git@github.com/rumbleship/apollo-server-hapi#dev":
   version "0.1.0"
-  resolved "git+ssh://git@github.com/rumbleship/apollo-server-hapi#dfe8ebdb36d3ce22e3b40523a8fe66c9c9c7b6b1"
+  resolved "git+ssh://git@github.com/rumbleship/apollo-server-hapi#452de923d555e90df75210cad03bae9c50a607eb"
   dependencies:
     "@apollographql/graphql-playground-html" "^1.6.24"
     accept "^3.1.3"
     apollo-server-core "^2.13.1"
+    apollo-server-plugin-base "^0.9.0"
     graphql-subscriptions "^1.0.0"
     graphql-tools "^4.0.0"
     graphql-upload "^10.0.0"

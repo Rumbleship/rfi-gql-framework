@@ -9,7 +9,11 @@ import { ConnectionContext } from 'subscriptions-transport-ws';
 import { printSchema, GraphQLError, GraphQLFormattedError } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
-import { ApolloServer, AuthenticationError } from '@rumbleship/apollo-server-hapi';
+import {
+  ApolloServer,
+  AuthenticationError,
+  ApolloServerPlugin
+} from '@rumbleship/apollo-server-hapi';
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
 import { ServiceFactories } from '@rumbleship/service-factory-map';
@@ -54,7 +58,8 @@ function defaultFormatError(
 export async function initServer(
   config: ConvictServerConfig,
   InjectedBeeline: typeof RumbleshipBeeline,
-  injected_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
+  injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
+  injected_apollo_plugins: ApolloServerPlugin[] = [],
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
@@ -84,7 +89,7 @@ export async function initServer(
       }
     }
   ];
-  const plugins = [...default_plugins, ...injected_plugins];
+  const plugins = [...default_plugins, ...injected_hapi_plugins];
   if (serverOptions.routes) {
     serverOptions.routes.validate = {
       failAction: (request: Hapi.Request, h: Hapi.ResponseToolkit, err: any) => {
@@ -213,7 +218,8 @@ export async function initServer(
         onContainer(rumbleship_context, ServiceFactories);
       }
       return rumbleship_context;
-    }
+    },
+    plugins: injected_apollo_plugins
   });
   await apolloServer.applyMiddleware({
     app: server

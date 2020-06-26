@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import * as Hapi from '@hapi/hapi';
 import { BuildSchemaOptions } from 'type-graphql';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import { ApolloServerPlugin } from '@rumbleship/apollo-server-hapi';
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { RumbleshipContext } from './../rumbleship-context';
@@ -35,7 +36,7 @@ export interface ConvictServerConfig {
     };
     PubSubConfig: RfiPubSubConfig;
 }
-export declare function initServer(config: ConvictServerConfig, InjectedBeeline: typeof RumbleshipBeeline, injected_plugins: Array<Hapi.ServerRegisterPluginObject<any>>, injected_models: DbModelAndOidScope[], injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>, injected_routes: Hapi.ServerRoute[] | undefined, formatError: ((error: GraphQLError) => GraphQLFormattedError) | undefined, onContainer: (context: RumbleshipContext, ServiceFactories: Map<any, any>) => void, onInitialized?: (server: Hapi.Server) => Promise<void>, dbOptions?: {
+export declare function initServer(config: ConvictServerConfig, InjectedBeeline: typeof RumbleshipBeeline, injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>, injected_apollo_plugins: ApolloServerPlugin<Record<string, any>>[] | undefined, injected_models: DbModelAndOidScope[], injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>, injected_routes: Hapi.ServerRoute[] | undefined, formatError: ((error: GraphQLError) => GraphQLFormattedError) | undefined, onContainer: (context: RumbleshipContext, ServiceFactories: Map<any, any>) => void, onInitialized?: (server: Hapi.Server) => Promise<void>, dbOptions?: {
     force: boolean;
     dbSuffix?: string;
 }): Promise<Hapi.Server>;
