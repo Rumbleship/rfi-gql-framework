@@ -1,4 +1,3 @@
-import { LogErrorMiddlewareFn } from './middleware/error.middleware';
 import 'reflect-metadata';
 import * as Hapi from '@hapi/hapi';
 import * as Boom from '@hapi/boom';
@@ -6,7 +5,7 @@ import * as Hoek from '@hapi/hoek';
 import Container from 'typedi';
 import { buildSchema, BuildSchemaOptions } from 'type-graphql';
 import { ConnectionContext } from 'subscriptions-transport-ws';
-import { printSchema, GraphQLError, GraphQLFormattedError } from 'graphql';
+import { printSchema } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import {
@@ -17,12 +16,13 @@ import {
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
 import { ServiceFactories } from '@rumbleship/service-factory-map';
-import { spyglassHapiPlugin, logging, SpyglassLogger } from '@rumbleship/spyglass';
+import { spyglassHapiPlugin, logging } from '@rumbleship/spyglass';
 import { RumbleshipBeeline, HoneycombMiddleware, addGaeVersionDataToTrace } from '@rumbleship/o11y';
 import { RumbleshipContext } from './../rumbleship-context';
 import { initSequelize, DbModelAndOidScope } from './init-sequelize';
-import { RFIAuthChecker } from './middleware';
-import { goodRfi } from './plugins';
+import { RFIAuthChecker, LogErrorMiddlewareFn } from './middleware';
+
+import { goodRfi, logErrorsPlugin } from './plugins';
 import { RfiPubSub } from './rfi-pub-sub-engine';
 import { root_route, health_check_route } from './routes';
 import { DateRange, DateRangeGQL } from '../../gql';
@@ -47,14 +47,6 @@ export interface ConvictServerConfig {
   PubSubConfig: RfiPubSubConfig;
 }
 
-function defaultFormatError(
-  this: { serverLogger: SpyglassLogger },
-  error: GraphQLError
-): GraphQLFormattedError {
-  this.serverLogger.error(error.originalError ? error.originalError.stack : error.stack);
-  return error;
-}
-
 export async function initServer(
   config: ConvictServerConfig,
   InjectedBeeline: typeof RumbleshipBeeline,
@@ -63,7 +55,6 @@ export async function initServer(
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
-  formatError: (error: GraphQLError) => GraphQLFormattedError = defaultFormatError,
   onContainer: (context: RumbleshipContext, ServiceFactories: Map<any, any>) => void,
   onInitialized: (server: Hapi.Server) => Promise<void> = (_server: Hapi.Server) =>
     Promise.resolve(),
@@ -75,7 +66,7 @@ export async function initServer(
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger({ filename: __filename, config });
   const serverOptions: Hapi.ServerOptions = config.serverOptions;
-  const default_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
+  const default_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
     { plugin: spyglassHapiPlugin, options: { config } },
@@ -89,7 +80,9 @@ export async function initServer(
       }
     }
   ];
-  const plugins = [...default_plugins, ...injected_hapi_plugins];
+  const hapi_plugins = [...default_hapi_plugins, ...injected_hapi_plugins];
+  const default_apollo_plugins = [logErrorsPlugin];
+  const apollo_plugins = [...default_apollo_plugins, ...injected_apollo_plugins];
   if (serverOptions.routes) {
     serverOptions.routes.validate = {
       failAction: (request: Hapi.Request, h: Hapi.ResponseToolkit, err: any) => {
@@ -152,7 +145,6 @@ export async function initServer(
   pubSub.linkToSequelize(sequelize);
   const apolloServer = new ApolloServer({
     schema,
-    formatError: formatError.bind({ serverLogger }),
     introspection: true,
     subscriptions: {
       onConnect: (connectionParams, webSocket, context: ConnectionContext) => {
@@ -219,13 +211,13 @@ export async function initServer(
       }
       return rumbleship_context;
     },
-    plugins: injected_apollo_plugins
+    plugins: apollo_plugins
   });
   await apolloServer.applyMiddleware({
     app: server
   });
   apolloServer.installSubscriptionHandlers(server.listener);
-  await server.register(plugins);
+  await server.register(hapi_plugins);
   await server.route([root_route, health_check_route, ...injected_routes]);
 
   server.ext('onRequest', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
