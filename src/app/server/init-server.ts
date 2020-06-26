@@ -44,6 +44,7 @@ export interface ConvictServerConfig {
 
 export async function initServer(
   config: ConvictServerConfig,
+  InjectedBeeline: typeof RumbleshipBeeline & RumbleshipBeeline,
   injected_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
@@ -88,7 +89,7 @@ export async function initServer(
       }
     };
   }
-  const server: Hapi.Server = RumbleshipBeeline.shimFromInstrumentation(
+  const server: Hapi.Server = InjectedBeeline.shimFromInstrumentation(
     new Hapi.Server(serverOptions)
   );
   const sequelize = await initSequelize(
@@ -99,7 +100,7 @@ export async function initServer(
   );
   await sequelize.authenticate();
 
-  const pubSub = new RfiPubSub(config.gae_version, config.PubSubConfig, RumbleshipBeeline);
+  const pubSub = new RfiPubSub(config.gae_version, config.PubSubConfig, InjectedBeeline);
   if (config.PubSubConfig.resetHostedSubscriptions) {
     try {
       await pubSub.deleteCurrentSubscriptionsMatchingPrefix();
