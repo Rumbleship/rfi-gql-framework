@@ -990,6 +990,10 @@
     graphql-tools "^4.0.0"
     graphql-upload "^10.0.0"
 
+"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#0.0.1":
+  version "0.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/config.git#5b9c079cf3753e725b8cd72460aeb40940361a74"
+
 "@rumbleship/context-control@git+ssh://git@github.com/rumbleship/context-control.git#1.1.1":
   version "1.1.1"
   resolved "git+ssh://git@github.com/rumbleship/context-control.git#ef67a99cb76137987167b40ba7b21528aaff4d87"
