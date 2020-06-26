@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import * as Hapi from '@hapi/hapi';
 import { BuildSchemaOptions } from 'type-graphql';
-import { ApolloServerPlugin } from '@rumbleship/apollo-server-hapi';
+import { Config } from '@rumbleship/apollo-server-hapi';
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { ServiceFactoryMap } from '@rumbleship/service-factory-map';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
@@ -36,7 +36,7 @@ export interface ConvictServerConfig {
     };
     PubSubConfig: RfiPubSubConfig;
 }
-export declare function initServer(config: ConvictServerConfig, InjectedBeeline: typeof RumbleshipBeeline, injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>, injected_apollo_plugins: ApolloServerPlugin<Record<string, any>>[] | undefined, injected_models: DbModelAndOidScope[], injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>, injected_routes: Hapi.ServerRoute[] | undefined, onContainer: (context: RumbleshipContext, ServiceFactories: ServiceFactoryMap) => void, onInitialized?: (server: Hapi.Server) => Promise<void>, dbOptions?: {
+export declare function initServer(config: ConvictServerConfig, InjectedBeeline: typeof RumbleshipBeeline, injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>, injected_apollo_server_options: Pick<Config, "plugins" | "uploads"> | undefined, injected_models: DbModelAndOidScope[], injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>, injected_routes: Hapi.ServerRoute[] | undefined, onContainer: (context: RumbleshipContext, ServiceFactories: ServiceFactoryMap) => void, onInitialized?: (server: Hapi.Server) => Promise<void>, dbOptions?: {
     force: boolean;
     dbSuffix?: string;
 }): Promise<Hapi.Server>;

@@ -8,11 +8,7 @@ import { ConnectionContext } from 'subscriptions-transport-ws';
 import { printSchema } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
-import {
-  ApolloServer,
-  AuthenticationError,
-  ApolloServerPlugin
-} from '@rumbleship/apollo-server-hapi';
+import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
 import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
 import { ServiceFactories, ServiceFactoryMap } from '@rumbleship/service-factory-map';
@@ -51,7 +47,7 @@ export async function initServer(
   config: ConvictServerConfig,
   InjectedBeeline: typeof RumbleshipBeeline,
   injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
-  injected_apollo_plugins: ApolloServerPlugin[] = [],
+  injected_apollo_server_options: Pick<Config, 'plugins' | 'uploads'> = {},
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
   injected_routes: Hapi.ServerRoute[] = [],
@@ -81,8 +77,14 @@ export async function initServer(
     }
   ];
   const hapi_plugins = [...default_hapi_plugins, ...injected_hapi_plugins];
-  const default_apollo_plugins = [logErrorsPlugin];
-  const apollo_plugins = [...default_apollo_plugins, ...injected_apollo_plugins];
+
+  // We support injection of upload details and plugins.
+  const default_apollo_server_options: Pick<Config, 'plugins' | 'uploads'> = {
+    plugins: [logErrorsPlugin],
+    uploads: undefined
+  };
+  const apollo_options = Hoek.merge(default_apollo_server_options, injected_apollo_server_options);
+
   if (serverOptions.routes) {
     serverOptions.routes.validate = {
       failAction: (request: Hapi.Request, h: Hapi.ResponseToolkit, error: any) => {
@@ -225,7 +227,7 @@ export async function initServer(
       }
       return rumbleship_context;
     },
-    plugins: apollo_plugins
+    ...apollo_options
   });
   await apolloServer.applyMiddleware({
     app: server
