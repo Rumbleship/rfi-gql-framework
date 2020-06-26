@@ -63,7 +63,7 @@ export async function initServer(
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
     { plugin: spyglassHapiPlugin, options: { config } },
-    { plugin: goodRfi, options: { ...config.logging } }, // Winston and good logging a la RFI style - see spyglass
+    { plugin: goodRfi, options: config }, // Winston and good logging a la RFI style - see spyglass
     {
       plugin: RumbleshipContextControl,
       options: {
