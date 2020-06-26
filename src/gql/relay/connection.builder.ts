@@ -11,7 +11,12 @@ import { Node, Edge, Connection } from './relay.interface';
 // isnt good enogth with generics ( ie the abstract edges cant be decorated successfully as a
 // graphQL field)...but we can still pull up common beviours to this abstract
 // class
-
+/**
+ * @deprecated in favour of @see buildConnetionClass
+ * @param TClass
+ * @param TEdgeClass
+ * @param attribType
+ */
 export function GQLConnection<T extends Node<T>, TEdge extends Edge<T>>(
   TClass: ClassType<T>,
   TEdgeClass: ClassType<TEdge>,

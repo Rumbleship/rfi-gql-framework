@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * buildEdgeClass() and buildConnectionClass()
+      creates base classes for graphql Relay Connection and Edges. Supports using graphql Interface class for the creation of the schema, and using the concrete class for the typescript implementation
 ### Removed
 ### Changed
 ### Fixed
 ### Deprecated
+  * GQLEdge and GQLConnection in favour of buildEdgeClass() and buildConnectionClass()
 ### Security
 
 
