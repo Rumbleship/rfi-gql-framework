@@ -1,9 +1,9 @@
 import { Model, Sequelize } from 'sequelize-typescript';
 import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
+import { RfiPubSubConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
 import { ModelDelta, NotificationOf, RfiSubscriptionOptions } from '../../gql';
-import { RfiPubSubConfig } from '../config';
 import { DbModelAndOidScope } from './init-sequelize';
 import { RfiPubSubEngine } from './rfi-pub-sub-engine.interface';
 /**

@@ -2,6 +2,7 @@ import * as P from 'bluebird';
 import { Model, Sequelize } from 'sequelize-typescript';
 import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
 import { hostname } from 'os';
+import { RfiPubSubConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
 import {
@@ -11,7 +12,6 @@ import {
   uniqueSubscriptionNamePart,
   NODE_CHANGE_NOTIFICATION
 } from '../../gql';
-import { RfiPubSubConfig } from '../config';
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
 import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
 

@@ -1,6 +1,6 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
+import { RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { Oid } from '@rumbleship/oid';
-import { RumbleshipDatabaseOptions } from '../config/db.convict';
 
 let theSequelizeInstance: Sequelize | null;
 /**
