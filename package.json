@@ -99,7 +99,6 @@
     "graphql": "^15.0.0",
     "hashids": "^1.2.2",
     "honeycomb-beeline": "git+ssh://git@github.com/rumbleship/beeline-nodejs.git#master",
-    "iterable-model": "git+ssh://git@github.com/rumbleship/iterable-model.git#master",
     "mysql2": "^1.6.5",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.8.5",
