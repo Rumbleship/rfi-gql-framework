@@ -17,6 +17,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [9.1.0] -- 2020-06-26
+
+### Added
+  * buildEdgeClass() and buildConnectionClass()
+      creates base classes for graphql Relay Connection and Edges. Supports using graphql Interface class for the creation of the schema, and using the concrete class for the typescript implementation
+### Deprecated
+  * GQLEdge and GQLConnection in favour of buildEdgeClass() and buildConnectionClass()
+
+## [9.0.1] -- 2020-06-25
+
+### Added
+  * SequelizeBase.addAuthorizationFiltersAndWrapWithTransaction<T>(...)
+    For use in create and update methods in subclasses of a service where multiple entities across multiple tables need to be updated.
+  * RelayOrderBy scalar for use in filters to specify the return order for Gql Queries
+  * interface RelayFilterBase<T> as base for TFiltter in RelayService interface
+      This defines all of the (optional) fields for pagination, timestamps, and orderBy
+  * createOrderClause() as helper to construct an sequelize order clasue using the RelayOrderBy
+  * mixins to be used when defining a Filter for a Relay object:
+      withOrderByFilter(),withPaginationFilter(), withTimestampsFilter()
+  * mixin to be used with a Relayclass to add the standard Timestamp fields:
+      created_at, deleted_at and updated_at
+
+### Removed
+  * accidental duplication of convert-to-sequelize-date-filters.ts and create-where-clause-with.ts
+  * incorrect use of sequelize Order class in API for SequelizeBase service
+
+### Changed
+  * addAuthCheckHook to also check for an authorized transaction
+
 ## [9.0.0] -- 2020-06-25
 
 ### Changed

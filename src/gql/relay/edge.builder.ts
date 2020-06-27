@@ -4,6 +4,11 @@ import { AttribType } from './attrib.enum';
 import { Node, Edge } from './relay.interface';
 import { GqlBaseAttribs } from './base-attribs.builder';
 
+/**
+ * @deprecated in favour of @see buildEdgeClass
+ * @param TEdge
+ * @param attribType
+ */
 export function GQLEdge<T extends Node<T>>(
   TEdge: ClassType<T>,
   attribType: AttribType = AttribType.Obj
