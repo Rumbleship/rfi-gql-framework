@@ -150,8 +150,10 @@ export async function initServer(
   const schema_options = Hoek.merge(default_schema_options, injected_schema_options);
   const schema = await buildSchema(schema_options).catch(err => {
     serverLogger.error(err.stack);
-    for (const detail of err.details) {
-      serverLogger.error(detail.stack);
+    if (err.details && Array.isArray(err.details)) {
+      for (const detail of err.details) {
+        serverLogger.error(detail.stack);
+      }
     }
     throw err;
   });
