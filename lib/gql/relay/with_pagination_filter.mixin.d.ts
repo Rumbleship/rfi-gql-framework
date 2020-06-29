@@ -1,5 +1,5 @@
 import { ClassType } from '../../helpers/classtype';
-export declare function withPaginationFilter<TBase extends ClassType<any>>(Base: TBase): {
+export declare function withPaginationFilter<TFilterBase extends ClassType<any>>(Base: TFilterBase): {
     new (...args: any[]): {
         [x: string]: any;
         first?: number | undefined;
@@ -8,4 +8,4 @@ export declare function withPaginationFilter<TBase extends ClassType<any>>(Base:
         before?: string | undefined;
         id?: string | undefined;
     };
-} & TBase;
+} & TFilterBase;

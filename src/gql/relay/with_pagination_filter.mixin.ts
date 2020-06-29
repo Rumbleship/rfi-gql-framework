@@ -2,7 +2,7 @@ import { ClassType } from '../../helpers/classtype';
 import { ArgsType, Field, Int, ID } from 'type-graphql';
 import { Min } from 'class-validator';
 
-export function withPaginationFilter<TBase extends ClassType<any>>(Base: TBase) {
+export function withPaginationFilter<TFilterBase extends ClassType<any>>(Base: TFilterBase) {
   @ArgsType()
   class ConnectionFilter extends Base {
     @Field(type => Int, { nullable: true })
