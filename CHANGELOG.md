@@ -5,17 +5,12 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [9.2.1] -- 2020-06-29
 
-### Added
-### Removed
 ### Changed
   * Filter mixin generic types better named
 ### Fixed
   * Only log err.details on schema gen if it exists as array
-### Deprecated
-### Security
-
 
 ## [9.2.0] -- 2020-06-27
 
