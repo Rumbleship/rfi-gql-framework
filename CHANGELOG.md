@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
   * Filter mixin generic types better named
 ### Fixed
+  * Only log err.details on schema gen if it exists as array
 ### Deprecated
 ### Security
 
