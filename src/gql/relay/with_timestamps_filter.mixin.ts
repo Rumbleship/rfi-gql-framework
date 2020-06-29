@@ -2,7 +2,7 @@ import { ClassType } from '../../helpers/classtype';
 import { ArgsType, Field } from 'type-graphql';
 import { DateRangeGQL, DateRange } from '../scalars/daterange.scalar';
 
-export function withTimeStampsFilter<TBase extends ClassType<any>>(Base: TBase) {
+export function withTimeStampsFilter<TFilterBase extends ClassType<any>>(Base: TFilterBase) {
   @ArgsType()
   class TimeStampsFilter extends Base {
     @Field(type => Date, { nullable: true })
