@@ -5,7 +5,6 @@ import { RFIFactory } from '@rumbleship/service-factory-map';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
 import { ISharedSchema } from '@rumbleship/config';
 export interface RumbleshipContextOptionsPlain {
-    config: ISharedSchema;
     id?: string;
     authorizer?: Authorizer;
     logger?: SpyglassLogger;
@@ -24,15 +23,15 @@ export declare class RumbleshipContext implements Context {
     private static initialized;
     private static _serviceFactories;
     private static ActiveContexts;
+    private static config;
     static addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext;
-    static initialize(serviceFactories: Map<string, RFIFactory<any>>, addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext): void;
+    static initialize(serviceFactories: Map<string, RFIFactory<any>>, addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext, config: ISharedSchema): void;
     static releaseAllContexts(): Promise<void>;
     static make(filename: string, options: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
+    static withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
     constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: object, marshalled_trace?: string, linked_span?: HoneycombSpan);
     release(): Promise<void>;
 }
-/** @deprecated ? */
-export declare function withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
 export declare const RumbleshipContextIdKey = "_@RumbleshipContextId";
 export declare function setContextId(target: object, context_id: string): object;
 export declare function getContextId(target: object): string | undefined;

@@ -45,7 +45,7 @@ export async function initServer(
   }
 ): Promise<Hapi.Server> {
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
-  const serverLogger = logging.getLogger({ filename: __filename, config });
+  const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
   const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
   const default_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
     { plugin: hapiRequireHttps },
@@ -176,7 +176,6 @@ export async function initServer(
           }
           const rumbleship_context = rumbleshipContextFactory.make(__filename, {
             authorizer,
-            config,
             initial_trace_metadata: {
               subscription: true
             }
