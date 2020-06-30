@@ -2,7 +2,7 @@ import * as P from 'bluebird';
 import { Model, Sequelize } from 'sequelize-typescript';
 import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
 import { hostname } from 'os';
-import { RfiPubSubConfig } from '@rumbleship/config';
+import { IPubSubConfig, IGcpAuthConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
 import {
@@ -27,34 +27,34 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
   constructor(
     publisher_version: string,
-    config: RfiPubSubConfig,
+    config: IPubSubConfig,
+    auth: IGcpAuthConfig,
     beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
   ) {
-    RfiPubSub.validatePubSubConfig(config);
-    const { topicPrefix, keyFilename } = config;
-    super(keyFilename === `/dev/null` ? {} : config, uniqueSubscriptionNamePart);
-    this.topicPrefix = topicPrefix;
+    // RfiPubSub.validatePubSubConfig(config);
+    super(auth, uniqueSubscriptionNamePart);
+    this.topicPrefix = config.topicPrefix;
     this.publisher_version = publisher_version;
     this.beeline_cls = beeline;
     this.subscription_ids = [];
   }
 
-  static validatePubSubConfig(config: RfiPubSubConfig) {
-    if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
-      if (['test', 'development'].includes(config.topicPrefix)) {
-        /**
-         * Each instance of a dev environment (which really means each instance of the database)
-         * e.g. when running locally needs to have a prefix for the topics so they dont clash with others
-         * as we share a development queue in GCP pub sub
-         *
-         * Alternatively, use an emulator!
-         */
-        throw new Error(
-          'PubSubConfig.topicPrefix MUST be set to a non-clashing value i.e your username.: See @rumbleship/gql: RfiPubSub'
-        );
-      }
-    }
-  }
+  // static validatePubSubConfig(config: RfiPubSubConfig) {
+  //   if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
+  //     if (['test', 'development'].includes(config.topicPrefix)) {
+  //       /**
+  //        * Each instance of a dev environment (which really means each instance of the database)
+  //        * e.g. when running locally needs to have a prefix for the topics so they dont clash with others
+  //        * as we share a development queue in GCP pub sub
+  //        *
+  //        * Alternatively, use an emulator!
+  //        */
+  //       throw new Error(
+  //         'PubSubConfig.topicPrefix MUST be set to a non-clashing value i.e your username.: See @rumbleship/gql: RfiPubSub'
+  //       );
+  //     }
+  //   }
+  // }
 
   /**
    *

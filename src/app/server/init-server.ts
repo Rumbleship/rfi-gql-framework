@@ -9,7 +9,7 @@ import { printSchema } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
-import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
+import { ISharedSchema } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
 import { ServiceFactories, ServiceFactoryMap } from '@rumbleship/service-factory-map';
 import { spyglassHapiPlugin, logging } from '@rumbleship/spyglass';
@@ -26,25 +26,8 @@ import { DateRange, DateRangeGQL } from '../../gql';
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
-export interface ConvictServerConfig {
-  serverOptions: Hapi.ServerOptions;
-  db: RumbleshipDatabaseOptions;
-  logging: {
-    level: 'emerg' | 'alert' | 'crit' | 'error' | 'warning' | 'notice' | 'info' | 'debug';
-  };
-  microservices: {
-    alpha: { [index: string]: any } & { accessTokenSecret: string };
-    mediator: { [index: string]: any };
-    banking: { [index: string]: any };
-    arbiter: { [index: string]: any };
-  };
-  gae_version: string;
-  graphQl: { printSchemaOnStartup: string; schemaPrintFile: string };
-  PubSubConfig: RfiPubSubConfig;
-}
-
 export async function initServer(
-  config: ConvictServerConfig,
+  config: ISharedSchema,
   InjectedBeeline: typeof RumbleshipBeeline,
   injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
   injected_apollo_server_options: Pick<Config, 'plugins' | 'uploads'> = {},
@@ -73,7 +56,7 @@ export async function initServer(
       plugin: RumbleshipContextControl,
       options: {
         injected_config: config,
-        authorizer_secret: config.microservices.alpha.accessTokenSecret,
+        authorizer_secret: config.internalAuthConfig.access_token_secret,
         global_container: Container
       }
     }
@@ -126,7 +109,12 @@ export async function initServer(
   );
   await sequelize.authenticate();
 
-  const pubSub = new RfiPubSub(config.gae_version, config.PubSubConfig, InjectedBeeline);
+  const pubSub = new RfiPubSub(
+    config.gae_version,
+    config.PubSubConfig,
+    config.gcp.auth,
+    InjectedBeeline
+  );
   if (config.PubSubConfig.resetHostedSubscriptions) {
     try {
       await pubSub.deleteCurrentSubscriptionsMatchingPrefix();
@@ -173,7 +161,7 @@ export async function initServer(
         if (bearer_token) {
           const authorizer = (() => {
             try {
-              return new Authorizer(bearer_token, config.microservices.alpha.accessTokenSecret);
+              return new Authorizer(bearer_token, config.internalAuthConfig.access_token_secret);
             } catch (error) {
               if (error instanceof InvalidJWTError) {
                 throw new AuthenticationError(error.message);

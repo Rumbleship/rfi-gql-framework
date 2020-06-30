@@ -1,6 +1,6 @@
 import { Model, Sequelize } from 'sequelize-typescript';
 import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
-import { RfiPubSubConfig } from '@rumbleship/config';
+import { IPubSubConfig, IGcpAuthConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
 import { ModelDelta, NotificationOf, RfiSubscriptionOptions } from '../../gql';
@@ -14,8 +14,7 @@ export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     publisher_version: string;
     protected subscription_ids: number[];
     protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
-    constructor(publisher_version: string, config: RfiPubSubConfig, beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline);
-    static validatePubSubConfig(config: RfiPubSubConfig): void;
+    constructor(publisher_version: string, config: IPubSubConfig, auth: IGcpAuthConfig, beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline);
     /**
      *
      * @param {Sequelize } sequelize
