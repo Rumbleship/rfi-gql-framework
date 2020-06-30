@@ -56,7 +56,7 @@ export async function initServer(
       plugin: RumbleshipContextControl,
       options: {
         injected_config: config,
-        authorizer_secret: config.internalAuthConfig.access_token_secret,
+        authorizer_secret: config.serviceUser.access_token_secret,
         global_container: Container
       }
     }
@@ -161,7 +161,7 @@ export async function initServer(
         if (bearer_token) {
           const authorizer = (() => {
             try {
-              return new Authorizer(bearer_token, config.internalAuthConfig.access_token_secret);
+              return new Authorizer(bearer_token, config.access_token.secret);
             } catch (error) {
               if (error instanceof InvalidJWTError) {
                 throw new AuthenticationError(error.message);
