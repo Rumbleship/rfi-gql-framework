@@ -112,7 +112,7 @@ export async function initServer(
   const pubSub = new RfiPubSub(
     config.Gcp.gaeVersion,
     config.PubSub,
-    config.Gcp.auth,
+    config.Gcp.Auth,
     InjectedBeeline
   );
   if (config.PubSub.resetHostedSubscriptions) {
