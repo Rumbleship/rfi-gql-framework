@@ -6,9 +6,10 @@ import { RFIFactory } from '@rumbleship/service-factory-map';
 import { logging } from '@rumbleship/spyglass';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
 import { getSequelizeInstance } from '../server/init-sequelize';
+import { ISharedSchema } from '@rumbleship/config';
 
 export interface RumbleshipContextOptionsPlain {
-  config: object;
+  config: ISharedSchema;
   id?: string;
   authorizer?: Authorizer;
   logger?: SpyglassLogger;
@@ -24,7 +25,7 @@ class RumbleshipContextOptionsWithDefaults {
   private readonly _authorizer: Authorizer;
   private readonly _id: string;
   private readonly _initial_trace_metadata: object;
-  private readonly _config: object;
+  private readonly _config: ISharedSchema;
   private readonly _marshalled_trace?: string;
   private readonly _linked_span?: HoneycombSpan;
   get authorizer() {
@@ -69,14 +70,14 @@ class RumbleshipContextOptionsWithDefaults {
       new Authorizer(
         createAuthHeader(
           {
-            user: Reflect.get(this.config, 'serviceUser').id,
+            user: this.config.serviceUser.id,
             roles: {},
             scopes: [Scopes.SYSADMIN]
           },
-          Reflect.get(this.config, 'microservices').alpha.accessTokenSecret,
+          this.config.access_token.secret,
           { expiresIn: '5m' }
         ),
-        Reflect.get(this.config, 'microservices').alpha.accessTokenSecret
+        this.config.access_token.secret
       );
     this._authorizer.authenticate();
     this._container = options.container ?? Container.of(this.id);

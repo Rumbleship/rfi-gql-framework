@@ -56,7 +56,7 @@ export async function initServer(
       plugin: RumbleshipContextControl,
       options: {
         injected_config: config,
-        authorizer_secret: config.serviceUser.access_token_secret,
+        authorizer_secret: config.access_token.secret,
         global_container: Container
       }
     }

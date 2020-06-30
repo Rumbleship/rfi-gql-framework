@@ -3,8 +3,9 @@ import { Authorizer } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
+import { ISharedSchema } from '@rumbleship/config';
 export interface RumbleshipContextOptionsPlain {
-    config: object;
+    config: ISharedSchema;
     id?: string;
     authorizer?: Authorizer;
     logger?: SpyglassLogger;
