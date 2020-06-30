@@ -70,14 +70,14 @@ class RumbleshipContextOptionsWithDefaults {
       new Authorizer(
         createAuthHeader(
           {
-            user: this.config.serviceUser.id,
+            user: this.config.ServiceUser.id,
             roles: {},
             scopes: [Scopes.SYSADMIN]
           },
-          this.config.access_token.secret,
+          this.config.AccessToken.secret,
           { expiresIn: '5m' }
         ),
-        this.config.access_token.secret
+        this.config.AccessToken.secret
       );
     this._authorizer.authenticate();
     this._container = options.container ?? Container.of(this.id);

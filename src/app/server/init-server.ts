@@ -46,7 +46,7 @@ export async function initServer(
 ): Promise<Hapi.Server> {
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger({ filename: __filename, config });
-  const serverOptions: Hapi.ServerOptions = config.serverOptions;
+  const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
   const default_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
@@ -56,7 +56,7 @@ export async function initServer(
       plugin: RumbleshipContextControl,
       options: {
         injected_config: config,
-        authorizer_secret: config.access_token.secret,
+        authorizer_secret: config.AccessToken.secret,
         global_container: Container
       }
     }
@@ -102,7 +102,7 @@ export async function initServer(
     new Hapi.Server(serverOptions)
   );
   const sequelize = await initSequelize(
-    config.db,
+    config.Db,
     msg => serverLogger.debug(msg),
     injected_models,
     dbOptions
@@ -110,12 +110,12 @@ export async function initServer(
   await sequelize.authenticate();
 
   const pubSub = new RfiPubSub(
-    config.gae_version,
-    config.PubSubConfig,
-    config.gcp.auth,
+    config.Gcp.gaeVersion,
+    config.PubSub,
+    config.Gcp.auth,
     InjectedBeeline
   );
-  if (config.PubSubConfig.resetHostedSubscriptions) {
+  if (config.PubSub.resetHostedSubscriptions) {
     try {
       await pubSub.deleteCurrentSubscriptionsMatchingPrefix();
     } catch (error) {
@@ -146,8 +146,8 @@ export async function initServer(
     throw err;
   });
   const schemaAsString = printSchema(schema);
-  if (config.graphQl.printSchemaOnStartup) {
-    writeFileSync(config.graphQl.schemaPrintFile, schemaAsString);
+  if (config.GqlSchema.schemaPrintFile) {
+    writeFileSync(config.GqlSchema.schemaPrintFile, schemaAsString);
   }
 
   pubSub.linkToSequelize(sequelize);
@@ -161,7 +161,7 @@ export async function initServer(
         if (bearer_token) {
           const authorizer = (() => {
             try {
-              return new Authorizer(bearer_token, config.access_token.secret);
+              return new Authorizer(bearer_token, config.AccessToken.secret);
             } catch (error) {
               if (error instanceof InvalidJWTError) {
                 throw new AuthenticationError(error.message);
