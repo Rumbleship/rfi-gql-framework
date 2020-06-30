@@ -103,7 +103,7 @@ export class RumbleshipContext implements Context {
   }
   static make(
     filename: string,
-    options: RumbleshipContextOptionsPlain,
+    options: RumbleshipContextOptionsPlain = {},
     factories: Map<string, RFIFactory<any>> = RumbleshipContext._serviceFactories
   ): RumbleshipContext {
     if (!this.initialized) {

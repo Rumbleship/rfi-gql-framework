@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * RumbleshipContext factory must be initialized with the implementing service's rendered config
 ### Removed
 ### Changed
   * Incorporating consolidated configs from @rumbleship/config:
     * Separate auth from config when instantiating a PubSub
+  * Moved `withRumbleshipContext()` to be a static or RumbleshipContext
 ### Fixed
 ### Deprecated
 ### Security
