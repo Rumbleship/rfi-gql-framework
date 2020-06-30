@@ -50,7 +50,10 @@ export async function initServer(
   const default_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
-    { plugin: spyglassHapiPlugin, options: { config } },
+    {
+      plugin: spyglassHapiPlugin,
+      options: { Logging: config.Logging, options: { filename: __filename } }
+    },
     { plugin: goodRfi, options: config }, // Winston and good logging a la RFI style - see spyglass
     {
       plugin: RumbleshipContextControl,
