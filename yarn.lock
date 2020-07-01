@@ -991,9 +991,9 @@
     graphql-tools "^4.0.0"
     graphql-upload "^10.0.0"
 
-"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#chore/centralize":
-  version "0.0.1"
-  resolved "git+ssh://git@github.com/rumbleship/config.git#3f518255d56a1d64063a45bccf560405e71b2939"
+"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#1.0.0":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/config.git#9c6c07f9b411fb92ffa261b7de90cb943628f985"
   dependencies:
     convict-format-with-validator "^6.0.0"
 
@@ -1019,9 +1019,9 @@
   version "0.0.3"
   resolved "git+ssh://git@github.com/rumbleship/service-factory-map.git#f3af81e68f9651e3eb6dd2fbe2db3435c9a26dc5"
 
-"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#chore/config":
-  version "3.1.5"
-  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#cec673c8b828028893ecddd6e74a951eb1582f98"
+"@rumbleship/spyglass@git+ssh://git@github.com/rumbleship/spyglass.git#4.0.0":
+  version "4.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/spyglass.git#ffc4b3bb378525911d19cf11c267282a5631eb0f"
 
 "@sindresorhus/is@^1.0.0":
   version "1.2.0"
