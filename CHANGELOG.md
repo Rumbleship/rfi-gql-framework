@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * RumbleshipContext factory must be initialized with the implementing service's rendered config
+  * Incorporating consolidated configs from @rumbleship/config:
+    * Separate auth from config when instantiating a PubSub
+  * Moved `withRumbleshipContext()` to be a static or RumbleshipContext
+  * Upgraded peers:
+    * @rumbleship/spyglass#4.0.0
+    * @rumbleship/config#1.0.0
 ### Fixed
 ### Deprecated
 ### Security
@@ -261,7 +268,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * Helpers for dev/test implementors of RFIPubSub to enable full reset of hosted env
-    * PubSubConfig.resetHostedSubscriptions -> default:false
+    * PubSub.resetHostedSubscriptions -> default:false
     * `deleteCurrentSubscriptionsMatchingPrefix()`
     * `createSubscriptionsFor(dbModels)`
 

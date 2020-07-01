@@ -9,7 +9,7 @@ import { printSchema } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
-import { RfiPubSubConfig, RumbleshipDatabaseOptions } from '@rumbleship/config';
+import { ISharedSchema } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
 import { ServiceFactories, ServiceFactoryMap } from '@rumbleship/service-factory-map';
 import { spyglassHapiPlugin, logging } from '@rumbleship/spyglass';
@@ -26,25 +26,8 @@ import { DateRange, DateRangeGQL } from '../../gql';
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
-export interface ConvictServerConfig {
-  serverOptions: Hapi.ServerOptions;
-  db: RumbleshipDatabaseOptions;
-  logging: {
-    level: 'emerg' | 'alert' | 'crit' | 'error' | 'warning' | 'notice' | 'info' | 'debug';
-  };
-  microservices: {
-    alpha: { [index: string]: any } & { accessTokenSecret: string };
-    mediator: { [index: string]: any };
-    banking: { [index: string]: any };
-    arbiter: { [index: string]: any };
-  };
-  gae_version: string;
-  graphQl: { printSchemaOnStartup: string; schemaPrintFile: string };
-  PubSubConfig: RfiPubSubConfig;
-}
-
 export async function initServer(
-  config: ConvictServerConfig,
+  config: ISharedSchema,
   InjectedBeeline: typeof RumbleshipBeeline,
   injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
   injected_apollo_server_options: Pick<Config, 'plugins' | 'uploads'> = {},
@@ -62,18 +45,21 @@ export async function initServer(
   }
 ): Promise<Hapi.Server> {
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
-  const serverLogger = logging.getLogger({ filename: __filename, config });
-  const serverOptions: Hapi.ServerOptions = config.serverOptions;
+  const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
+  const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
   const default_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
-    { plugin: spyglassHapiPlugin, options: { config } },
+    {
+      plugin: spyglassHapiPlugin,
+      options: { Logging: config.Logging, options: { filename: __filename } }
+    },
     { plugin: goodRfi, options: config }, // Winston and good logging a la RFI style - see spyglass
     {
       plugin: RumbleshipContextControl,
       options: {
         injected_config: config,
-        authorizer_secret: config.microservices.alpha.accessTokenSecret,
+        authorizer_secret: config.AccessToken.secret,
         global_container: Container
       }
     }
@@ -119,15 +105,20 @@ export async function initServer(
     new Hapi.Server(serverOptions)
   );
   const sequelize = await initSequelize(
-    config.db,
+    config.Db,
     msg => serverLogger.debug(msg),
     injected_models,
     dbOptions
   );
   await sequelize.authenticate();
 
-  const pubSub = new RfiPubSub(config.gae_version, config.PubSubConfig, InjectedBeeline);
-  if (config.PubSubConfig.resetHostedSubscriptions) {
+  const pubSub = new RfiPubSub(
+    config.Gcp.gaeVersion,
+    config.PubSub,
+    config.Gcp.Auth,
+    InjectedBeeline
+  );
+  if (config.PubSub.resetHostedSubscriptions) {
     try {
       await pubSub.deleteCurrentSubscriptionsMatchingPrefix();
     } catch (error) {
@@ -158,8 +149,8 @@ export async function initServer(
     throw err;
   });
   const schemaAsString = printSchema(schema);
-  if (config.graphQl.printSchemaOnStartup) {
-    writeFileSync(config.graphQl.schemaPrintFile, schemaAsString);
+  if (config.GqlSchema.schemaPrintFile) {
+    writeFileSync(config.GqlSchema.schemaPrintFile, schemaAsString);
   }
 
   pubSub.linkToSequelize(sequelize);
@@ -173,7 +164,7 @@ export async function initServer(
         if (bearer_token) {
           const authorizer = (() => {
             try {
-              return new Authorizer(bearer_token, config.microservices.alpha.accessTokenSecret);
+              return new Authorizer(bearer_token, config.AccessToken.secret);
             } catch (error) {
               if (error instanceof InvalidJWTError) {
                 throw new AuthenticationError(error.message);
@@ -188,7 +179,6 @@ export async function initServer(
           }
           const rumbleship_context = rumbleshipContextFactory.make(__filename, {
             authorizer,
-            config,
             initial_trace_metadata: {
               subscription: true
             }
