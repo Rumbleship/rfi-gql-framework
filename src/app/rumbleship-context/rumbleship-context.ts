@@ -6,9 +6,9 @@ import { RFIFactory } from '@rumbleship/service-factory-map';
 import { logging } from '@rumbleship/spyglass';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
 import { getSequelizeInstance } from '../server/init-sequelize';
+import { ISharedSchema } from '@rumbleship/config';
 
 export interface RumbleshipContextOptionsPlain {
-  config: object;
   id?: string;
   authorizer?: Authorizer;
   logger?: SpyglassLogger;
@@ -24,7 +24,6 @@ class RumbleshipContextOptionsWithDefaults {
   private readonly _authorizer: Authorizer;
   private readonly _id: string;
   private readonly _initial_trace_metadata: object;
-  private readonly _config: object;
   private readonly _marshalled_trace?: string;
   private readonly _linked_span?: HoneycombSpan;
   get authorizer() {
@@ -42,17 +41,13 @@ class RumbleshipContextOptionsWithDefaults {
   get logger() {
     return this._logger;
   }
-  get config() {
-    return this._config;
-  }
   get marshalled_trace() {
     return this._marshalled_trace;
   }
   get linked_span() {
     return this._linked_span;
   }
-  constructor(filename: string, options: RumbleshipContextOptionsPlain) {
-    this._config = options.config;
+  constructor(filename: string, options: RumbleshipContextOptionsPlain, config: ISharedSchema) {
     this._id = options.id ?? uuid.v4();
     this._marshalled_trace = options.marshalled_trace;
     this._linked_span = options.linked_span;
@@ -63,20 +58,20 @@ class RumbleshipContextOptionsWithDefaults {
         };
     // remember that for some reason Spyglass takes the entire config object and pulls out its details
     // instead of just expecting what it needs
-    this._logger = options.logger ?? logging.getLogger({ config: this.config, filename });
+    this._logger = options.logger ?? logging.getLogger(config.Logging, { filename });
     this._authorizer =
       options.authorizer ??
       new Authorizer(
         createAuthHeader(
           {
-            user: Reflect.get(this.config, 'serviceUser').id,
+            user: config.ServiceUser.id,
             roles: {},
             scopes: [Scopes.SYSADMIN]
           },
-          Reflect.get(this.config, 'microservices').alpha.accessTokenSecret,
+          config.AccessToken.secret,
           { expiresIn: '5m' }
         ),
-        Reflect.get(this.config, 'microservices').alpha.accessTokenSecret
+        config.AccessToken.secret
       );
     this._authorizer.authenticate();
     this._container = options.container ?? Container.of(this.id);
@@ -89,13 +84,16 @@ export class RumbleshipContext implements Context {
   private static initialized: boolean = false;
   private static _serviceFactories: Map<string, RFIFactory<any>>;
   private static ActiveContexts: Map<string, RumbleshipContext> = new Map();
+  private static config: ISharedSchema;
   static addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext;
   static initialize(
     serviceFactories: Map<string, RFIFactory<any>>,
-    addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext
+    addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext,
+    config: ISharedSchema
   ) {
     this._serviceFactories = serviceFactories;
     this.addSequelizeServicesToContext = addSequelizeServicesToContext;
+    this.config = config;
     this.initialized = true;
   }
   static async releaseAllContexts() {
@@ -105,7 +103,7 @@ export class RumbleshipContext implements Context {
   }
   static make(
     filename: string,
-    options: RumbleshipContextOptionsPlain,
+    options: RumbleshipContextOptionsPlain = {},
     factories: Map<string, RFIFactory<any>> = RumbleshipContext._serviceFactories
   ): RumbleshipContext {
     if (!this.initialized) {
@@ -119,7 +117,7 @@ export class RumbleshipContext implements Context {
       initial_trace_metadata,
       marshalled_trace,
       linked_span
-    } = new RumbleshipContextOptionsWithDefaults(filename, options);
+    } = new RumbleshipContextOptionsWithDefaults(filename, options, this.config);
 
     container.set('logger', logger);
     container.set('authorizer', authorizer);
@@ -143,6 +141,42 @@ export class RumbleshipContext implements Context {
     logger.debug(`NEW SERVICE CONTEXT: ${ctx.id}`);
     const withSequelize = this.addSequelizeServicesToContext(ctx) as RumbleshipContext;
     return withSequelize;
+  }
+
+  static withRumbleshipContext<T>(
+    filename: string,
+    options: RumbleshipContextOptionsPlain,
+    fn: (ctx: RumbleshipContext) => T
+  ): Promise<T> {
+    const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(
+      filename,
+      options,
+      this.config
+    );
+    const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+      filename,
+      options
+    );
+    ctx.trace = ctx.beeline.startTrace(
+      {
+        ...initial_trace_metadata
+      },
+      ctx.id
+    );
+
+    return new Promise((resolve, reject) => {
+      const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx))();
+      if (isPromise(value)) {
+        // tslint:disable-next-line: no-floating-promises
+        ((value as unknown) as Promise<T>)
+          .then(resolve)
+          .catch(reject)
+          .finally(() => setImmediate(() => ctx.release()));
+      } else {
+        setImmediate(() => ctx.release());
+        resolve(value);
+      }
+    });
   }
 
   constructor(
@@ -200,35 +234,6 @@ export class RumbleshipContext implements Context {
       this.container.reset();
     }
   }
-}
-/** @deprecated ? */
-export function withRumbleshipContext<T>(
-  filename: string,
-  options: RumbleshipContextOptionsPlain,
-  fn: (ctx: RumbleshipContext) => T
-): Promise<T> {
-  const { initial_trace_metadata } = new RumbleshipContextOptionsWithDefaults(filename, options);
-  const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(filename, options);
-  ctx.trace = ctx.beeline.startTrace(
-    {
-      ...initial_trace_metadata
-    },
-    ctx.id
-  );
-
-  return new Promise((resolve, reject) => {
-    const value = ctx.beeline.bindFunctionToTrace(() => fn(ctx))();
-    if (isPromise(value)) {
-      // tslint:disable-next-line: no-floating-promises
-      ((value as unknown) as Promise<T>)
-        .then(resolve)
-        .catch(reject)
-        .finally(() => setImmediate(() => ctx.release()));
-    } else {
-      setImmediate(() => ctx.release());
-      resolve(value);
-    }
-  });
 }
 
 function isPromise(p: any) {
