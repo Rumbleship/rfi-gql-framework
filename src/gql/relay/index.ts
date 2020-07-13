@@ -1,3 +1,4 @@
+export * from './alias-deprecated-fields.decorator';
 export * from './attrib.enum';
 export * from './base-attribs.builder';
 export * from './connection.builder';
