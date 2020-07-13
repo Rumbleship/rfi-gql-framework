@@ -1,3 +1,4 @@
+import { RelayFilterBase } from './relay.interface';
 import 'reflect-metadata';
 import { FieldOptions, Field } from 'type-graphql';
 
@@ -82,22 +83,22 @@ export function AliasFromDeprecatedField(
 //   }
 // }
 
-export function StripDeprecatedFieldsFromFilter(): MethodDecorator {
-  return function(
-    this: any,
+export function StripDeprecatedFieldsFromFilter<T extends RelayFilterBase<any>>(): MethodDecorator {
+  return (
     obj: object & { [index: string]: any },
     property_name: string | symbol,
     descriptor: TypedPropertyDescriptor<any>
-  ) {
+  ) => {
     const original = descriptor.value;
-    const map: Map<string | symbol, string> =
-      Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string, string>();
-    const [filter, ...rest] = arguments;
-    for (const [new_prop_name, deprecated_field_prop_name] of map.entries()) {
-      const deprecated_field_val = Reflect.get(filter, deprecated_field_prop_name);
-      Reflect.set(filter, new_prop_name, deprecated_field_val);
-      delete filter[deprecated_field_prop_name.toString()];
-    }
-    return original?.apply(this, [filter, ...rest]);
+    descriptor.value = function(this: any, filter: T, ...rest: any[]) {
+      const map: Map<string | symbol, string> =
+        Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string, string>();
+      for (const [new_prop_name, deprecated_field_prop_name] of map.entries()) {
+        const deprecated_field_val = Reflect.get(filter, deprecated_field_prop_name);
+        Reflect.set(filter, new_prop_name, deprecated_field_val);
+        delete (filter as any)[deprecated_field_prop_name.toString()];
+      }
+      return original.apply(this, [filter, ...rest]);
+    };
   };
 }
