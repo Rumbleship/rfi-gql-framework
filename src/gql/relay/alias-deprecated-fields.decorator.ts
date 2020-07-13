@@ -90,7 +90,7 @@ export function stripDeprecatedFieldsFromFilter<T extends RelayFilterBase<any>>(
   const cloned = { ...filter };
 
   for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
-    const deprecated_field_val = Reflect.get(cloned, deprecated_field_prop_name);
+    const deprecated_field_val = Reflect.get(filter, deprecated_field_prop_name);
     Reflect.set(cloned, new_prop_name, deprecated_field_val);
     delete (cloned as any)[deprecated_field_prop_name.toString()];
   }
