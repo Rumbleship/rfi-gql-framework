@@ -49,7 +49,6 @@ export function AliasFromDeprecatedField(
       set(value) {
         Reflect.set(obj, `__${String(new_prop_name)}`, value);
       },
-      writable: true,
       configurable: true,
       enumerable: true
     });
@@ -64,7 +63,6 @@ export function AliasFromDeprecatedField(
         }
         Reflect.set(obj, `__${String(deprecated_prop_name)}`, value);
       },
-      writable: true,
       configurable: true,
       enumerable: true
     });
@@ -83,4 +81,3 @@ export function TransposeDeprecatedFields(): ParameterDecorator {
     }
   };
 }
-
