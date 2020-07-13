@@ -86,10 +86,13 @@ export function AliasFromDeprecatedField(
 export function stripDeprecatedFieldsFromFilter<T extends RelayFilterBase<any>>(filter: T): T {
   const map: Map<string | symbol, string> =
     Reflect.getMetadata(AliasDeprecatedFieldMap, filter) ?? new Map<string, string>();
+
+  const cloned = { ...filter };
+
   for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
-    const deprecated_field_val = Reflect.get(filter, deprecated_field_prop_name);
-    Reflect.set(filter, new_prop_name, deprecated_field_val);
-    delete (filter as any)[deprecated_field_prop_name.toString()];
+    const deprecated_field_val = Reflect.get(cloned, deprecated_field_prop_name);
+    Reflect.set(cloned, new_prop_name, deprecated_field_val);
+    delete (cloned as any)[deprecated_field_prop_name.toString()];
   }
   return filter;
 }
