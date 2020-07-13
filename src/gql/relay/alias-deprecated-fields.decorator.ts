@@ -94,5 +94,5 @@ export function stripDeprecatedFieldsFromFilter<T extends RelayFilterBase<any>>(
     Reflect.set(cloned, new_prop_name, deprecated_field_val);
     delete (cloned as any)[deprecated_field_prop_name.toString()];
   }
-  return filter;
+  return cloned;
 }
