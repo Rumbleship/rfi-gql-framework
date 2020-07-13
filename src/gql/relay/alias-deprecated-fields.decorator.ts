@@ -30,10 +30,12 @@ export function AliasFromDeprecatedField(
     const original_new_val = Reflect.get(obj, new_prop_name);
     const original_deprecated_val = Reflect.get(obj, deprecated_prop_name);
     Object.defineProperty(obj, `__${String(new_prop_name)}`, {
-      value: original_new_val
+      value: original_new_val,
+      writable: true
     });
     Object.defineProperty(obj, `__${String(deprecated_prop_name)}`, {
-      value: original_deprecated_val
+      value: original_deprecated_val,
+      writable: true
     });
 
     // Replace new prop with getter that reads from private new-prop, else private old-prop
@@ -45,8 +47,11 @@ export function AliasFromDeprecatedField(
         return new_value ?? val_from_deprecated_prop;
       },
       set(value) {
-        Object.defineProperty(obj, `__${String(new_prop_name)}`, { value });
-      }
+        Reflect.set(obj, `__${String(new_prop_name)}`, value);
+      },
+      writable: true,
+      configurable: true,
+      enumerable: true
     });
     Object.defineProperty(obj, deprecated_prop_name, {
       get() {
@@ -55,12 +60,13 @@ export function AliasFromDeprecatedField(
       set(value) {
         // If new prop isn't in use, when setting deprecated prop, set new prop as well
         if (!Reflect.get(obj, `__${String(new_prop_name)}`)) {
-          Object.defineProperty(obj, `__${String(new_prop_name)}`, { value });
+          Reflect.set(obj, `__${String(new_prop_name)}`, value);
         }
-        if (!Reflect.get(obj, `__${String(deprecated_prop_name)}`)) {
-          Object.defineProperty(obj, `__${String(deprecated_prop_name)}`, { value });
-        }
-      }
+        Reflect.set(obj, `__${String(deprecated_prop_name)}`, value);
+      },
+      writable: true,
+      configurable: true,
+      enumerable: true
     });
 
     return Field(field_options)(obj, new_prop_name);
