@@ -83,7 +83,7 @@ export function AliasFromDeprecatedField(
 //   }
 // }
 
-export function stripDeprecatedFieldsFromFilter<T extends RelayFilterBase<any>>(filter: T): T {
+export function transposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
   const map: Map<string | symbol, string> =
     Reflect.getMetadata(AliasDeprecatedFieldMap, filter) ?? new Map<string, string>();
 

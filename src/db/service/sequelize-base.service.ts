@@ -16,7 +16,7 @@ import {
   NodeServiceIsolationLevel,
   NodeServiceTransactionType,
   RelayFilterBase,
-  stripDeprecatedFieldsFromFilter
+  transposeDeprecatedValues
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
 import { RumbleshipContext, setContextId } from '../../app/';
@@ -457,7 +457,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
-    filterBy = stripDeprecatedFieldsFromFilter(filterBy);
+    filterBy = transposeDeprecatedValues(filterBy);
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -515,7 +515,7 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     this.addTraceContext(filterBy);
-    filterBy = stripDeprecatedFieldsFromFilter(filterBy);
+    filterBy = transposeDeprecatedValues(filterBy);
     // const filters = [];
     const { after, before, first, last, ...filter } = filterBy as any;
 
@@ -577,6 +577,7 @@ export class SequelizeBaseService<
    */
   @AddToTrace()
   async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
+    createInput = transposeDeprecatedValues(createInput);
     if (
       this.can({
         action: Actions.CREATE,
@@ -650,6 +651,7 @@ export class SequelizeBaseService<
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
+    updateInput = transposeDeprecatedValues(updateInput);
     let isAuthorized = options?.skipAuthorizationCheck ? true : false;
 
     const oid = target
