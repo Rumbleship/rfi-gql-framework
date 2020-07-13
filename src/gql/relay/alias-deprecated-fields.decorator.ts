@@ -27,12 +27,14 @@ export function AliasFromDeprecatedField(
 ): PropertyDecorator {
   return (obj: object, new_prop_name: symbol | string) => {
     // Copy values from old+new values to internal, "private" properties.
-    Object.defineProperty(obj, `__${String(new_prop_name)}`, Reflect.get(obj, new_prop_name));
-    Object.defineProperty(
-      obj,
-      `__${String(deprecated_prop_name)}`,
-      Reflect.get(obj, deprecated_prop_name)
-    );
+    const original_new_val = Reflect.get(obj, new_prop_name);
+    const original_deprecated_val = Reflect.get(obj, deprecated_prop_name);
+    Object.defineProperty(obj, `__${String(new_prop_name)}`, {
+      value: original_new_val
+    });
+    Object.defineProperty(obj, `__${String(deprecated_prop_name)}`, {
+      value: original_deprecated_val
+    });
 
     // Replace new prop with getter that reads from private new-prop, else private old-prop
     // Setter sets private new-prop
