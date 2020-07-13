@@ -76,18 +76,28 @@ export function AliasFromDeprecatedField(
   };
 }
 
-export function TransposeDeprecatedFields(): ParameterDecorator {
-  return (
+// export function Filter(): ParameterDecorator{
+//   return (obj: object,property_name: string|symbol, index: number) {
+
+//   }
+// }
+
+export function StripDeprecatedFieldsFromFilter(): MethodDecorator {
+  return function(
+    this: any,
     obj: object & { [index: string]: any },
     property_name: string | symbol,
-    index: number
-  ) => {
+    descriptor: TypedPropertyDescriptor<any>
+  ) {
+    const original = descriptor.value;
     const map: Map<string | symbol, string> =
       Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string, string>();
+    const [filter, ...rest] = arguments;
     for (const [new_prop_name, deprecated_field_prop_name] of map.entries()) {
-      const deprecated_field_val = Reflect.get(obj, deprecated_field_prop_name);
-      Reflect.set(obj, new_prop_name, deprecated_field_val);
-      delete obj[deprecated_field_prop_name.toString()];
+      const deprecated_field_val = Reflect.get(filter, deprecated_field_prop_name);
+      Reflect.set(filter, new_prop_name, deprecated_field_val);
+      delete filter[deprecated_field_prop_name.toString()];
     }
+    return original?.apply(this, [filter, ...rest]);
   };
 }

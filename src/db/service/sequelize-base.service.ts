@@ -16,7 +16,7 @@ import {
   NodeServiceIsolationLevel,
   NodeServiceTransactionType,
   RelayFilterBase,
-  TransposeDeprecatedFields
+  StripDeprecatedFieldsFromFilter
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
 import { RumbleshipContext, setContextId } from '../../app/';
@@ -456,10 +456,8 @@ export class SequelizeBaseService<
   }
 
   @AddToTrace()
-  async getAll(
-    @TransposeDeprecatedFields() filterBy: TFilter,
-    options?: NodeServiceOptions
-  ): Promise<TConnection> {
+  @StripDeprecatedFieldsFromFilter()
+  async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -499,10 +497,8 @@ export class SequelizeBaseService<
   }
 
   @AddToTrace()
-  async findOne(
-    @TransposeDeprecatedFields() filterBy: TFilter,
-    options?: NodeServiceOptions
-  ): Promise<TApi | undefined> {
+  @StripDeprecatedFieldsFromFilter()
+  async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
     this.addTraceContext(filterBy);
     // Authorization done in getAll
     const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
@@ -514,8 +510,9 @@ export class SequelizeBaseService<
   }
 
   @AddToTrace()
+  @StripDeprecatedFieldsFromFilter()
   async findEach(
-    @TransposeDeprecatedFields() filterBy: TFilter,
+    filterBy: TFilter,
     apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>,
     options?: NodeServiceOptions
   ): Promise<void> {
