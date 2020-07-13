@@ -4,28 +4,33 @@ import { FieldOptions, Field } from 'type-graphql';
 // export const AliasDeprecatedFieldSource = Symbol('AliasDeprecatedFieldSource');
 // export const AliasDeprecatedFieldTarget = Symbol('AliasDeprecatedFieldTarget');
 const AliasDeprecatedFieldMap = Symbol('AliasDeprecatedFieldMap');
-export function AliasDeprecatedField(
-  new_prop_name: string,
-  field_options: FieldOptions = {}
-): PropertyDecorator {
-  return (obj: object, deprecated_field_prop_name: string | symbol) => {
-    const map: Map<string | symbol, string> =
-      Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string | symbol, string>();
-    map.set(deprecated_field_prop_name, new_prop_name);
-    if (!field_options.deprecationReason) {
-      field_options.deprecationReason = `Deprecated in favor of \`${new_prop_name}\``;
-    }
-    Reflect.defineMetadata(AliasDeprecatedFieldMap, map, obj);
-    // Object.defineProperty(obj, new_prop_name, { get: val => Reflect.get() });
-    Field(field_options)(obj, deprecated_field_prop_name);
-  };
-}
+// export function AliasDeprecatedField(
+//   new_prop_name: string,
+//   field_options: FieldOptions = {}
+// ): PropertyDecorator {
+//   return (obj: object, deprecated_field_prop_name: string | symbol) => {
+//     const map: Map<string | symbol, string> =
+//       Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string | symbol, string>();
+//     map.set(deprecated_field_prop_name, new_prop_name);
+//     if (!field_options.deprecationReason) {
+//       field_options.deprecationReason = `Deprecated in favor of \`${new_prop_name}\``;
+//     }
+//     Reflect.defineMetadata(AliasDeprecatedFieldMap, map, obj);
+//     // Object.defineProperty(obj, new_prop_name, { get: val => Reflect.get() });
+//     Field(field_options)(obj, deprecated_field_prop_name);
+//   };
+// }
 
 export function AliasFromDeprecatedField(
   deprecated_prop_name: symbol | string,
   field_options: FieldOptions
 ): PropertyDecorator {
   return (obj: object, new_prop_name: symbol | string) => {
+    const map: Map<string | symbol, string | symbol> =
+      Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ??
+      new Map<string | symbol, string | symbol>();
+    map.set(deprecated_prop_name, new_prop_name);
+    Reflect.defineMetadata(AliasDeprecatedFieldMap, map, obj);
     // Copy values from old+new values to internal, "private" properties.
     const original_new_val = Reflect.get(obj, new_prop_name);
     const original_deprecated_val = Reflect.get(obj, deprecated_prop_name);
@@ -72,12 +77,17 @@ export function AliasFromDeprecatedField(
 }
 
 export function TransposeDeprecatedFields(): ParameterDecorator {
-  return (obj: object, property_name: string | symbol, index: number) => {
+  return (
+    obj: object & { [index: string]: any },
+    property_name: string | symbol,
+    index: number
+  ) => {
     const map: Map<string | symbol, string> =
       Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string, string>();
-    for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
+    for (const [new_prop_name, deprecated_field_prop_name] of map.entries()) {
       const deprecated_field_val = Reflect.get(obj, deprecated_field_prop_name);
       Reflect.set(obj, new_prop_name, deprecated_field_val);
+      delete obj[deprecated_field_prop_name.toString()];
     }
   };
 }
