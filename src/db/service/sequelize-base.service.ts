@@ -16,7 +16,7 @@ import {
   NodeServiceIsolationLevel,
   NodeServiceTransactionType,
   RelayFilterBase,
-  cloneAndtransposeDeprecatedValues
+  cloneAndTransposeDeprecatedValues
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
 import { RumbleshipContext, setContextId } from '../../app/';
@@ -458,7 +458,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
-    filterBy = cloneAndtransposeDeprecatedValues(filterBy);
+    filterBy = cloneAndTransposeDeprecatedValues(filterBy);
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -516,7 +516,7 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     this.addTraceContext(filterBy);
-    filterBy = cloneAndtransposeDeprecatedValues(filterBy);
+    filterBy = cloneAndTransposeDeprecatedValues(filterBy);
     // const filters = [];
     const { after, before, first, last, ...filter } = filterBy as any;
 
@@ -585,7 +585,7 @@ export class SequelizeBaseService<
         options
       })
     ) {
-      createInput = cloneAndtransposeDeprecatedValues(createInput);
+      createInput = cloneAndTransposeDeprecatedValues(createInput);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(createInput as any, sequelizeOptions);
       const node = this.gqlFromDbModel(instance as any);
@@ -652,7 +652,7 @@ export class SequelizeBaseService<
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
-    updateInput = cloneAndtransposeDeprecatedValues(updateInput);
+    updateInput = cloneAndTransposeDeprecatedValues(updateInput);
     let isAuthorized = options?.skipAuthorizationCheck ? true : false;
 
     const oid = target
@@ -694,7 +694,7 @@ export class SequelizeBaseService<
       if (!modelInstance) {
         throw new Error('invalid model in db');
       }
-      await modelInstance.update(cloneAndtransposeDeprecatedValues(updateInput) as any, {
+      await modelInstance.update(cloneAndTransposeDeprecatedValues(updateInput) as any, {
         ...sequelizeOptions,
         transaction: updateTransaction
       });

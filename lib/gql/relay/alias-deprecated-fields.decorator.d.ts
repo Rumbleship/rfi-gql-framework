@@ -26,4 +26,4 @@ export declare function AliasFromDeprecatedField<T, K = keyof T>(deprecated_prop
  *
  * @returns A **clone** of the original filter/input with the deprecated values removed
  */
-export declare function cloneAndtransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T;
+export declare function cloneAndTransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T;

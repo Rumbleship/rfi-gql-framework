@@ -66,7 +66,7 @@ export function AliasFromDeprecatedField<T, K = keyof T>(
  *
  * @returns A **clone** of the original filter/input with the deprecated values removed
  */
-export function cloneAndtransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
+export function cloneAndTransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
   const map: Map<string | symbol, string> =
     Reflect.getMetadata(AliasDeprecatedFieldMap, filter) ?? new Map<string, string>();
 
