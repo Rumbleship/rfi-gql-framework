@@ -694,7 +694,7 @@ export class SequelizeBaseService<
       if (!modelInstance) {
         throw new Error('invalid model in db');
       }
-      await modelInstance.update(updateInput as any, {
+      await modelInstance.update(cloneAndtransposeDeprecatedValues(updateInput) as any, {
         ...sequelizeOptions,
         transaction: updateTransaction
       });
