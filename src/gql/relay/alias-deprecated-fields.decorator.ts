@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { modelKey } from './../../db/transformers/db-to-gql';
+// tslint:disable-next-line: no-circular-imports
+import { modelKey } from './../../db/transformers/db-to-gql.symbol';
 import { RelayFilterBase, RelayInputTypeBase } from './relay.interface';
 import { FieldOptions, Field } from 'type-graphql';
 

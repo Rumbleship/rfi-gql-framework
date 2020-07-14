@@ -1,8 +1,6 @@
 import { Model } from 'sequelize-typescript';
 import { Node, NodeService } from '../../gql';
 import { ClassType } from '../../helpers';
-export declare const modelKey: unique symbol;
-export declare const apiKey: unique symbol;
 /**
  * Defines a simple interface to create a concrete class from a discriminator
  * These should be added to 'NodeServices' on the context as well... and use the base classes
