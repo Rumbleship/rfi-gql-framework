@@ -2,72 +2,51 @@ import 'reflect-metadata';
 import { RelayFilterBase } from './relay.interface';
 import { FieldOptions, Field } from 'type-graphql';
 
-// export const AliasDeprecatedFieldSource = Symbol('AliasDeprecatedFieldSource');
-// export const AliasDeprecatedFieldTarget = Symbol('AliasDeprecatedFieldTarget');
 const AliasDeprecatedFieldMap = Symbol('AliasDeprecatedFieldMap');
-// export function AliasDeprecatedField(
-//   new_prop_name: string,
-//   field_options: FieldOptions = {}
-// ): PropertyDecorator {
-//   return (obj: object, deprecated_field_prop_name: string | symbol) => {
-//     const map: Map<string | symbol, string> =
-//       Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string | symbol, string>();
-//     map.set(deprecated_field_prop_name, new_prop_name);
-//     if (!field_options.deprecationReason) {
-//       field_options.deprecationReason = `Deprecated in favor of \`${new_prop_name}\``;
-//     }
-//     Reflect.defineMetadata(AliasDeprecatedFieldMap, map, obj);
-//     // Object.defineProperty(obj, new_prop_name, { get: val => Reflect.get() });
-//     Field(field_options)(obj, deprecated_field_prop_name);
-//   };
-// }
 
-export function AliasFromDeprecatedField(
-  deprecated_prop_name: symbol | string,
+/**
+ *
+ * @param deprecated_prop_name Name of the property to be deprecated
+ * @param { FieldOptions } field_options
+ *
+ * @description For use in the deprecation process. This decorator wraps `@field()` from type-graphql
+ * and allows several properties to be defined and exposed at an API level, all sitting on top of a
+ * single one in the backend.
+ *
+ * @note that we explicitly redefine both the source and target properties using getters/setters
+ * but to work with the TypeScript compiler into treating them as "normal" properties, they cannot be
+ * defined with getters/setters in the base-attribs file:
+ * `{ foo: get(): string|undefined }` and `{ foo?: string }` are treated very differently.
+ */
+export function AliasFromDeprecatedField<T, K = keyof T>(
+  deprecated_prop_name: K,
   field_options: FieldOptions
 ): PropertyDecorator {
   return (obj: object, new_prop_name: symbol | string) => {
-    const map: Map<string | symbol, string | symbol> =
-      Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ??
-      new Map<string | symbol, string | symbol>();
-    map.set(deprecated_prop_name, new_prop_name);
+    const map: Map<string, string> =
+      Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string, string>();
+    map.set(String(deprecated_prop_name), String(new_prop_name));
     Reflect.defineMetadata(AliasDeprecatedFieldMap, map, obj);
-    // Copy values from old+new values to internal, "private" properties.
-    const original_new_val = Reflect.get(obj, new_prop_name);
-    const original_deprecated_val = Reflect.get(obj, deprecated_prop_name);
-    Object.defineProperty(obj, `__${String(new_prop_name)}`, {
-      value: original_new_val,
+    const shared_prop_name = `__${String(new_prop_name)}`;
+    Object.defineProperty(obj, shared_prop_name, {
       writable: true
     });
-    Object.defineProperty(obj, `__${String(deprecated_prop_name)}`, {
-      value: original_deprecated_val,
-      writable: true
-    });
-
-    // Replace new prop with getter that reads from private new-prop, else private old-prop
-    // Setter sets private new-prop
     Object.defineProperty(obj, new_prop_name, {
       get() {
-        const val_from_deprecated_prop = Reflect.get(obj, `__${String(deprecated_prop_name)}`);
-        const new_value = Reflect.get(obj, `__${String(new_prop_name)}`);
-        return new_value ?? val_from_deprecated_prop;
+        return Reflect.get(obj, shared_prop_name);
       },
       set(value) {
-        Reflect.set(obj, `__${String(new_prop_name)}`, value);
+        Reflect.set(obj, shared_prop_name, value);
       },
       configurable: true,
       enumerable: true
     });
-    Object.defineProperty(obj, deprecated_prop_name, {
+    Object.defineProperty(obj, String(deprecated_prop_name), {
       get() {
-        return Reflect.get(obj, `__${String(deprecated_prop_name)}`);
+        return Reflect.get(obj, shared_prop_name);
       },
       set(value) {
-        // If new prop isn't in use, when setting deprecated prop, set new prop as well
-        if (!Reflect.get(obj, `__${String(new_prop_name)}`)) {
-          Reflect.set(obj, `__${String(new_prop_name)}`, value);
-        }
-        Reflect.set(obj, `__${String(deprecated_prop_name)}`, value);
+        Reflect.set(obj, shared_prop_name, value);
       },
       configurable: true,
       enumerable: true
@@ -77,16 +56,23 @@ export function AliasFromDeprecatedField(
   };
 }
 
-// export function Filter(): ParameterDecorator{
-//   return (obj: object,property_name: string|symbol, index: number) {
-
-//   }
-// }
-
+/**
+ *
+ * @param filter can be Filter|Input|Update
+ * CANNOT BE true true relay node object, which are very special.
+ *
+ * @description Remove any deprecated values from the object before it gets turned into an
+ * instruction to sequelize for create/update/filter.
+ */
 export function transposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
   const map: Map<string | symbol, string> =
     Reflect.getMetadata(AliasDeprecatedFieldMap, filter) ?? new Map<string, string>();
 
+  /**
+   * @NOTE this is some magic! Cloning an object removes getters and setters that we inject
+   * with the `@AliasFromDeprecatedField` decorator. We then ensure that only the forward-facing
+   * new field is populated.
+   */
   const cloned = { ...filter };
 
   for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
