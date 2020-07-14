@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * @AliasFromDeprecatedField decorator that allows changes to api object fields to be made in forward/backward compatible manner
+  * `RelayInputTypeBase<T>` interface to help with typechecking for GQL @InputTypes
+### Removed
+### Changed
+### Fixed
+  * SequelizeBaseService.can() explicitly uses `getAuthorizerTreatAsNoDefault()` instead of relying on `@rumbleship/acl's` default, which includes the inflected default attributes
+### Deprecated
+### Security
+
+
 ## [10.0.0] -- 2020-07-01
 
 ### Changed

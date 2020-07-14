@@ -3,9 +3,7 @@ import { Oid } from '@rumbleship/oid';
 import { Node, NodeService } from '../../gql';
 import { ClassType } from '../../helpers';
 import { setAuthorizeContext } from './create-auth-where-clause';
-
-export const modelKey = Symbol.for('model');
-export const apiKey = Symbol.for('api');
+import { apiKey, modelKey } from './db-to-gql.symbol';
 
 /**
  * Defines a simple interface to create a concrete class from a discriminator

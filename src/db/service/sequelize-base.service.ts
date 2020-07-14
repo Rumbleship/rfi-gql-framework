@@ -15,7 +15,8 @@ import {
   NodeServiceTransaction,
   NodeServiceIsolationLevel,
   NodeServiceTransactionType,
-  RelayFilterBase
+  RelayFilterBase,
+  cloneAndTransposeDeprecatedValues
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
 import { RumbleshipContext, setContextId } from '../../app/';
@@ -31,7 +32,8 @@ import {
   modelKey,
   reloadNodeFromModel,
   AuthIncludeEntry,
-  createOrderClause
+  createOrderClause,
+  getAuthorizerTreatAsNoDefault
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
@@ -110,7 +112,7 @@ export class SequelizeBaseService<
         params.action,
         params.authorizable,
         this.permissions,
-        params.treatAsAuthorizerMap
+        params.treatAsAuthorizerMap ?? getAuthorizerTreatAsNoDefault(params.authorizable)
       );
     return can ? true : false;
   }
@@ -456,6 +458,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
+    filterBy = cloneAndTransposeDeprecatedValues(filterBy);
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -513,6 +516,7 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     this.addTraceContext(filterBy);
+    filterBy = cloneAndTransposeDeprecatedValues(filterBy);
     // const filters = [];
     const { after, before, first, last, ...filter } = filterBy as any;
 
@@ -581,6 +585,7 @@ export class SequelizeBaseService<
         options
       })
     ) {
+      createInput = cloneAndTransposeDeprecatedValues(createInput);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(createInput as any, sequelizeOptions);
       const node = this.gqlFromDbModel(instance as any);
@@ -647,6 +652,7 @@ export class SequelizeBaseService<
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
+    updateInput = cloneAndTransposeDeprecatedValues(updateInput);
     let isAuthorized = options?.skipAuthorizationCheck ? true : false;
 
     const oid = target
@@ -688,7 +694,7 @@ export class SequelizeBaseService<
       if (!modelInstance) {
         throw new Error('invalid model in db');
       }
-      await modelInstance.update(updateInput as any, {
+      await modelInstance.update(cloneAndTransposeDeprecatedValues(updateInput) as any, {
         ...sequelizeOptions,
         transaction: updateTransaction
       });
