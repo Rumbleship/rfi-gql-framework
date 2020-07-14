@@ -28,6 +28,8 @@ export declare function AliasFromDeprecatedField<T, K = keyof T>(deprecated_prop
  * instruction to sequelize for create/update/filter.
  *
  * @returns If any args are marked as deprecated, a **clone** of the original filter/input
- *  with the deprecated values removed, otherwise: the original object
+ *  with the deprecated values removed, otherwise: the original object. Make sure to note that
+ *  this means once this method is called on a filter/input, `instanceof` **cannot**  be guaranteed
+ *  to work -- cloning removes the prototype inheritance that it relies on.
  */
 export declare function cloneAndTransposeDeprecatedValues<T extends RelayFilterBase<any> | RelayInputTypeBase<any>>(filterOrInputType: T): T;
