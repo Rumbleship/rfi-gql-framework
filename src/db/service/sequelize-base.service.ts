@@ -32,7 +32,8 @@ import {
   modelKey,
   reloadNodeFromModel,
   AuthIncludeEntry,
-  createOrderClause
+  createOrderClause,
+  getAuthorizerTreatAsNoDefault
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
@@ -111,7 +112,7 @@ export class SequelizeBaseService<
         params.action,
         params.authorizable,
         this.permissions,
-        params.treatAsAuthorizerMap
+        params.treatAsAuthorizerMap ?? getAuthorizerTreatAsNoDefault(params.authorizable)
       );
     return can ? true : false;
   }
