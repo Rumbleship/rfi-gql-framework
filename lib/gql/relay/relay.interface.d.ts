@@ -81,6 +81,8 @@ export interface RelayFilterBase<T> {
     deleted_at?: Date;
     deleted_between?: DateRange;
 }
+export interface RelayInputTypeBase<T> {
+}
 export interface RelayService<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter extends RelayFilterBase<TApi>, TInput, TUpdate> extends NodeService<TApi> {
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     count(filterBy: any, options?: NodeServiceOptions): Promise<number>;

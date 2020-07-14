@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { RelayFilterBase } from './relay.interface';
+import { modelKey } from './../../db/transformers/db-to-gql';
+import { RelayFilterBase, RelayInputTypeBase } from './relay.interface';
 import { FieldOptions, Field } from 'type-graphql';
 
 const AliasDeprecatedFieldMap = Symbol('AliasDeprecatedFieldMap');
@@ -20,7 +21,7 @@ const AliasDeprecatedFieldMap = Symbol('AliasDeprecatedFieldMap');
  */
 export function AliasFromDeprecatedField<T, K = keyof T>(
   deprecated_prop_name: K,
-  field_options: FieldOptions
+  field_options: FieldOptions = {}
 ): PropertyDecorator {
   return (obj: object, new_prop_name: symbol | string) => {
     const map: Map<string, string> =
@@ -58,29 +59,43 @@ export function AliasFromDeprecatedField<T, K = keyof T>(
 
 /**
  *
- * @param filter can be Filter|Input|Update
+ * @param filterOrInputType can be Filter|Input|Update
  * CANNOT BE true true relay node object, which are very special.
+ *
+ * @throws Error if the passed object is a NodeRelay
+ * (discriminated by presence of Symbol(modelKey)`)
  *
  * @description Remove any deprecated values from the object before it gets turned into an
  * instruction to sequelize for create/update/filter.
  *
- * @returns A **clone** of the original filter/input with the deprecated values removed
+ * @returns If any args are marked as deprecated, a **clone** of the original filter/input
+ *  with the deprecated values removed, otherwise: the original object
  */
-export function cloneAndTransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
-  const map: Map<string | symbol, string> =
-    Reflect.getMetadata(AliasDeprecatedFieldMap, filter) ?? new Map<string, string>();
-
-  /**
-   * @NOTE this is some magic! Cloning an object removes getters and setters that we inject
-   * with the `@AliasFromDeprecatedField` decorator. We then ensure that only the forward-facing
-   * new field is populated.
-   */
-  const cloned = { ...filter };
-
-  for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
-    const deprecated_field_val = Reflect.get(filter, deprecated_field_prop_name);
-    Reflect.set(cloned, new_prop_name, deprecated_field_val);
-    delete (cloned as any)[deprecated_field_prop_name.toString()];
+export function cloneAndTransposeDeprecatedValues<
+  T extends RelayFilterBase<any> | RelayInputTypeBase<any>
+>(filterOrInputType: T): T {
+  if (Reflect.get(filterOrInputType, modelKey)) {
+    throw new Error('Cannot `cloneAndTransposeDeprecatedValues` for a relay node object.');
   }
-  return cloned;
+  const map: Map<string | symbol, string> = Reflect.getMetadata(
+    AliasDeprecatedFieldMap,
+    filterOrInputType
+  );
+
+  if (map) {
+    /**
+     * @NOTE this is some magic! Cloning an object removes getters and setters that we inject
+     * with the `@AliasFromDeprecatedField` decorator. We then ensure that only the forward-facing
+     * new field is populated.
+     */
+    const cloned = { ...filterOrInputType };
+
+    for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
+      const deprecated_field_val = Reflect.get(filterOrInputType, deprecated_field_prop_name);
+      Reflect.set(cloned, new_prop_name, deprecated_field_val);
+      delete (cloned as any)[deprecated_field_prop_name.toString()];
+    }
+    return cloned;
+  }
+  return filterOrInputType;
 }

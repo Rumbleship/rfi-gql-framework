@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * @AliasFromDeprecatedField decorator that allows changes to api object fields to be made in forward/backward compatible manner
+  * `RelayInputTypeBase<T>` interface to help with typechecking for GQL @InputTypes
 ### Removed
 ### Changed
 ### Fixed
