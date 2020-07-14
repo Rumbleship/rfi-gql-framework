@@ -23,5 +23,7 @@ export declare function AliasFromDeprecatedField<T, K = keyof T>(deprecated_prop
  *
  * @description Remove any deprecated values from the object before it gets turned into an
  * instruction to sequelize for create/update/filter.
+ *
+ * @returns A **clone** of the original filter/input with the deprecated values removed
  */
-export declare function transposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T;
+export declare function cloneAndtransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T;

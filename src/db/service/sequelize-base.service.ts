@@ -16,7 +16,7 @@ import {
   NodeServiceIsolationLevel,
   NodeServiceTransactionType,
   RelayFilterBase,
-  transposeDeprecatedValues
+  cloneAndtransposeDeprecatedValues
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
 import { RumbleshipContext, setContextId } from '../../app/';
@@ -458,7 +458,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
-    filterBy = transposeDeprecatedValues(filterBy);
+    filterBy = cloneAndtransposeDeprecatedValues(filterBy);
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -516,7 +516,7 @@ export class SequelizeBaseService<
     options?: NodeServiceOptions
   ): Promise<void> {
     this.addTraceContext(filterBy);
-    filterBy = transposeDeprecatedValues(filterBy);
+    filterBy = cloneAndtransposeDeprecatedValues(filterBy);
     // const filters = [];
     const { after, before, first, last, ...filter } = filterBy as any;
 
@@ -578,7 +578,6 @@ export class SequelizeBaseService<
    */
   @AddToTrace()
   async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
-    createInput = transposeDeprecatedValues(createInput);
     if (
       this.can({
         action: Actions.CREATE,
@@ -586,6 +585,7 @@ export class SequelizeBaseService<
         options
       })
     ) {
+      createInput = cloneAndtransposeDeprecatedValues(createInput);
       const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
       const instance = await this.model.create(createInput as any, sequelizeOptions);
       const node = this.gqlFromDbModel(instance as any);
@@ -652,7 +652,7 @@ export class SequelizeBaseService<
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
-    updateInput = transposeDeprecatedValues(updateInput);
+    updateInput = cloneAndtransposeDeprecatedValues(updateInput);
     let isAuthorized = options?.skipAuthorizationCheck ? true : false;
 
     const oid = target

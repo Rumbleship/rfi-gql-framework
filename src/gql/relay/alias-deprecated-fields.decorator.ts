@@ -63,8 +63,10 @@ export function AliasFromDeprecatedField<T, K = keyof T>(
  *
  * @description Remove any deprecated values from the object before it gets turned into an
  * instruction to sequelize for create/update/filter.
+ *
+ * @returns A **clone** of the original filter/input with the deprecated values removed
  */
-export function transposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
+export function cloneAndtransposeDeprecatedValues<T extends RelayFilterBase<any>>(filter: T): T {
   const map: Map<string | symbol, string> =
     Reflect.getMetadata(AliasDeprecatedFieldMap, filter) ?? new Map<string, string>();
 
