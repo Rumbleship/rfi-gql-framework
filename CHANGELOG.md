@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 ### Removed
+  * `getAuthorizerTreatAsNoDefault()` in favor of exported fn from `@rumbleship/acl#1.4.0`
 ### Changed
+  * Upgrade to `@rumbleship/acl#1.4.0` in peer, dev
 ### Fixed
 ### Deprecated
 ### Security
