@@ -1,7 +1,14 @@
 import { Service } from 'typedi';
 import { Transaction, FindOptions, Op } from 'sequelize';
 import { Model } from 'sequelize-typescript';
-import { Actions, RFIAuthError, Permissions, AuthorizerTreatAsMap, Scopes } from '@rumbleship/acl';
+import {
+  Actions,
+  RFIAuthError,
+  Permissions,
+  AuthorizerTreatAsMap,
+  Scopes,
+  getAuthorizerTreatAs
+} from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
 import { modelIterator } from '@rumbleship/iterable-model-sequelize';
@@ -32,8 +39,7 @@ import {
   modelKey,
   reloadNodeFromModel,
   AuthIncludeEntry,
-  createOrderClause,
-  getAuthorizerTreatAsNoDefault
+  createOrderClause
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
@@ -112,7 +118,7 @@ export class SequelizeBaseService<
         params.action,
         params.authorizable,
         this.permissions,
-        params.treatAsAuthorizerMap ?? getAuthorizerTreatAsNoDefault(params.authorizable)
+        params.treatAsAuthorizerMap ?? getAuthorizerTreatAs(params.authorizable, false)
       );
     return can ? true : false;
   }

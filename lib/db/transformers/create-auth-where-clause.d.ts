@@ -1,4 +1,4 @@
-import { Permissions, Authorizer, AuthorizerTreatAsMap, Actions } from '@rumbleship/acl';
+import { Permissions, Authorizer, Actions } from '@rumbleship/acl';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
 export interface AuthIncludeEntry {
@@ -6,7 +6,6 @@ export interface AuthIncludeEntry {
     as: string;
     attributes?: string[];
 }
-export declare function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap;
 export declare const AUTHORIZE_THROUGH_ENTRIES: unique symbol;
 declare class AuthThroughEntry {
     readonly targetClass: () => ClassType<object>;

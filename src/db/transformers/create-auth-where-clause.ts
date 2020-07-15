@@ -1,10 +1,4 @@
-import {
-  Permissions,
-  Authorizer,
-  AuthorizerTreatAsMap,
-  AuthResourceSymbol,
-  Actions
-} from '@rumbleship/acl';
+import { Permissions, Authorizer, Actions, getAuthorizerTreatAs } from '@rumbleship/acl';
 import { Op } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
@@ -13,13 +7,6 @@ export interface AuthIncludeEntry {
   model: typeof Model;
   as: string;
   attributes?: string[];
-}
-
-export function getAuthorizerTreatAsNoDefault(authorizable: any): AuthorizerTreatAsMap {
-  const retrieved: AuthorizerTreatAsMap = Reflect.getMetadata(AuthResourceSymbol, authorizable);
-  const treatAsMap = retrieved || new AuthorizerTreatAsMap();
-
-  return treatAsMap;
 }
 
 export const AUTHORIZE_THROUGH_ENTRIES = Symbol('AUTHORIZE_THROUGH_ENTRIES');
@@ -71,7 +58,7 @@ export function createAuthWhereClause(
   targetClass: object,
   associationName?: string
 ) {
-  const authorizingAttributes = getAuthorizerTreatAsNoDefault(targetClass);
+  const authorizingAttributes = getAuthorizerTreatAs(targetClass, false);
   let whereAuthClause = {};
 
   for (const [role, keys] of authorizingAttributes) {

@@ -973,9 +973,9 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#1.2.0":
-  version "1.2.0"
-  resolved "git+ssh://git@github.com/rumbleship/acl.git#c7f4b9ae4b18514ecf6f78bd5549b00a1726d9eb"
+"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#1.4.0":
+  version "1.4.0"
+  resolved "git+ssh://git@github.com/rumbleship/acl.git#1f7828cfb0ef3269c3fe433100922ff108417645"
   dependencies:
     jsonwebtoken "^8.5.1"
 
