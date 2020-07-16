@@ -24,37 +24,37 @@ export function AliasFromDeprecatedField<T, K = keyof T>(
   deprecated_prop_name: K,
   field_options: FieldOptions = {}
 ): PropertyDecorator {
-  return (obj: object, new_prop_name: symbol | string) => {
+  return (target_class: object, new_prop_name: symbol | string) => {
     const map: Map<string, string> =
-      Reflect.getMetadata(AliasDeprecatedFieldMap, obj) ?? new Map<string, string>();
+      Reflect.getMetadata(AliasDeprecatedFieldMap, target_class) ?? new Map<string, string>();
     map.set(String(deprecated_prop_name), String(new_prop_name));
-    Reflect.defineMetadata(AliasDeprecatedFieldMap, map, obj);
+    Reflect.defineMetadata(AliasDeprecatedFieldMap, map, target_class);
     const shared_prop_name = `__${String(new_prop_name)}`;
-    Object.defineProperty(obj, shared_prop_name, {
+    Object.defineProperty(target_class, shared_prop_name, {
       writable: true
     });
-    Object.defineProperty(obj, new_prop_name, {
+    Object.defineProperty(target_class, new_prop_name, {
       get() {
-        return Reflect.get(obj, shared_prop_name);
+        return Reflect.get(this, shared_prop_name);
       },
       set(value) {
-        Reflect.set(obj, shared_prop_name, value);
+        Reflect.set(this, shared_prop_name, value);
       },
       configurable: true,
       enumerable: true
     });
-    Object.defineProperty(obj, String(deprecated_prop_name), {
+    Object.defineProperty(target_class, String(deprecated_prop_name), {
       get() {
-        return Reflect.get(obj, shared_prop_name);
+        return Reflect.get(this, shared_prop_name);
       },
       set(value) {
-        Reflect.set(obj, shared_prop_name, value);
+        Reflect.set(this, shared_prop_name, value);
       },
       configurable: true,
       enumerable: true
     });
 
-    return Field(field_options)(obj, new_prop_name);
+    return Field(field_options)(target_class, new_prop_name);
   };
 }
 
@@ -95,7 +95,7 @@ export function cloneAndTransposeDeprecatedValues<
 
     for (const [deprecated_field_prop_name, new_prop_name] of map.entries()) {
       const deprecated_field_val = Reflect.get(filterOrInputType, deprecated_field_prop_name);
-      if(deprecated_field_val){
+      if (deprecated_field_val) {
         Reflect.set(cloned, new_prop_name, deprecated_field_val);
         delete (cloned as any)[deprecated_field_prop_name.toString()];
       }

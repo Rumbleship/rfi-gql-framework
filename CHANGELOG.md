@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
-  * Only add key for new field if value from deprecated field exiss
+  * Only add key for new field if value from deprecated field exists
+  * Getters/setters for shared properties in deprecated logic reference instance, not class
 ### Deprecated
 ### Security
 
