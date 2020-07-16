@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * Only add key for new field if value from deprecated field exiss
 ### Deprecated
 ### Security
 
