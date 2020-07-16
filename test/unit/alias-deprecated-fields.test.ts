@@ -89,6 +89,9 @@ describe('Given: an instantiated filter', () => {
       test('Then: the key for deprecated field is completely removed', () => {
         expect(Object.keys(processed).includes('a_deprecated_field')).toBeFalsy();
       });
+      test('Then: the hidden, shared key is completely removed', () => {
+        expect(Object.keys(processed).includes('__new_field')).toBeFalsy();
+      });
       test('Then: the input is cloned', () => {
         // double equals is very important!
         // tslint:disable-next-line: triple-equals
@@ -107,6 +110,9 @@ describe('Given: an instantiated filter', () => {
           expect(Object.keys(processed).includes(field_name)).toBeFalsy();
         }
       );
+      test('Then: the hidden, shared key is completely removed', () => {
+        expect(Object.keys(processed).includes('__new_field')).toBeFalsy();
+      });
       test('Then: the input is cloned', () => {
         // double equals is very important!
         // tslint:disable-next-line: triple-equals
@@ -122,6 +128,9 @@ describe('Given: an instantiated filter', () => {
     describe('When: passed to cloneAndTransposeDeprecatedValues', () => {
       test('Then: the input is not cloned', () => {
         expect(processed === filter).toBe(true);
+      });
+      test('Then: the hidden, shared key is not present', () => {
+        expect(Object.keys(processed).includes('__new_field')).toBeFalsy();
       });
     });
   });
@@ -142,6 +151,9 @@ describe('Given: an instantiated Input', () => {
       test('Then: the key for deprecated field is completely removed', () => {
         expect(Object.keys(processed).includes('a_deprecated_field')).toBeFalsy();
       });
+      test('Then: the hidden, shared key is completely removed', () => {
+        expect(Object.keys(processed).includes('__new_field')).toBeFalsy();
+      });
       test('Then: the input is cloned', () => {
         // double equals is very important!
         // tslint:disable-next-line: triple-equals
@@ -156,6 +168,9 @@ describe('Given: an instantiated Input', () => {
     describe('When: passed to cloneAndTransposeDeprecatedValues', () => {
       test('Then: the input is not cloned', () => {
         expect(processed === filter).toBe(true);
+      });
+      test('Then: the hidden, shared key is not present', () => {
+        expect(Object.keys(processed).includes('__new_field')).toBeFalsy();
       });
     });
   });

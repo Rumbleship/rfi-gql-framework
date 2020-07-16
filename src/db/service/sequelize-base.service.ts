@@ -505,6 +505,7 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined> {
+    filterBy = cloneAndTransposeDeprecatedValues(filterBy);
     this.addTraceContext(filterBy);
     // Authorization done in getAll
     const matched = await this.getAll({ ...filterBy, ...{ first: 1 } }, options);
