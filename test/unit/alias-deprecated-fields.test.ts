@@ -52,10 +52,10 @@ describe.each(['a_deprecated_field', 'new_field'])(
     beforeAll(() => {
       transformed = plainToClass(HasDeprecatedAttribs, plain);
     });
-    test('Then: both the new field is populated', () => {
+    test('Then: the new field is populated', () => {
       expect(transformed.new_field).toBe(field);
     });
-    test('Then: both the deprecated field is populated', () => {
+    test('Then: the deprecated field is populated', () => {
       expect(transformed.a_deprecated_field).toBe(field);
     });
     test('Then: the unrelated field is untouched', () => {
@@ -96,6 +96,25 @@ describe('Given: an instantiated filter', () => {
       });
     });
   });
+
+  describe('And: neither the deprecated nor replacement attribute is populated', () => {
+    const with_undefined_values = new FilterWithDeprecatedAttribs();
+    const processed = cloneAndTransposeDeprecatedValues(with_undefined_values);
+    describe('When: passed to cloneAndTransposeDeprecatedValues', () => {
+      test.each(['new_field', 'a_deprecated_field'])(
+        'Then: the field `%s` is not set on clone',
+        field_name => {
+          expect(Object.keys(processed).includes(field_name)).toBeFalsy();
+        }
+      );
+      test('Then: the input is cloned', () => {
+        // double equals is very important!
+        // tslint:disable-next-line: triple-equals
+        expect(processed == with_undefined_values).toBe(false);
+      });
+    });
+  });
+
   describe('And: no attributes are marked as deprecated', () => {
     const filter = new FilterNothingDeprecated();
     filter.a_field = 'interesting_value';
