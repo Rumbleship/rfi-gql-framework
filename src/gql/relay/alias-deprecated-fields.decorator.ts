@@ -99,6 +99,7 @@ export function cloneAndTransposeDeprecatedValues<
         Reflect.set(cloned, new_prop_name, deprecated_field_val);
         delete (cloned as any)[deprecated_field_prop_name.toString()];
       }
+      delete (cloned as any)[`__${new_prop_name}`];
     }
     return cloned;
   }
