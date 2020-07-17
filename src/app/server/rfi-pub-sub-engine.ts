@@ -106,10 +106,27 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     onMessage: (message: string) => null,
     options?: RfiSubscriptionOptions
   ): Promise<number> {
-    const topicName = `${this.topicPrefix}_${triggerName}`;
+    // yes this is ugly as fuck
+    // we distinguish what type of subscription to do via
+    // a naming convention on the trigger name
+    // Basically, do we want a unique subscription or a shared subscription
+    // TODO this must be rationalized
+    // in the mean time... triggerName p[assed in beginning in 'queued_...' means a service type subscription
+    // ie we share the subscription across all instances of this service..
+    let topicName;
+    const queuedString = 'queued_';
+    let opts: RfiSubscriptionOptions = { ...options };
+    if (triggerName.startsWith(queuedString)) {
+      topicName = `${this.topicPrefix}_${triggerName.substring(queuedString.length)}`;
+      // todo does this need a servoe name Maybe set in the pubsub cnstructor?
+      opts = { ...options, asService: true };
+    } else {
+      topicName = `${this.topicPrefix}_${triggerName}`;
+    }
     await this.createTopicIfNotExist(topicName);
-    const sub_id = await super.subscribe(topicName, onMessage, options);
+    const sub_id = await super.subscribe(topicName, onMessage, opts);
     this.subscription_ids.push(sub_id);
+
     return sub_id;
   }
 
