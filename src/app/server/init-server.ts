@@ -114,6 +114,7 @@ export async function initServer(
 
   const pubSub = new RfiPubSub(
     config.Gcp.gaeVersion,
+    config.serviceName,
     config.PubSub,
     config.Gcp.Auth,
     InjectedBeeline

@@ -11,10 +11,11 @@ import { RfiPubSubEngine } from './rfi-pub-sub-engine.interface';
  */
 export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     protected topicPrefix: string;
+    protected serviceName: string;
     publisher_version: string;
     protected subscription_ids: number[];
     protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
-    constructor(publisher_version: string, config: IPubSubConfig, auth: IGcpAuthConfig, beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline);
+    constructor(publisher_version: string, serviceName: string, config: IPubSubConfig, auth: IGcpAuthConfig, beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline);
     /**
      *
      * @param {Sequelize } sequelize

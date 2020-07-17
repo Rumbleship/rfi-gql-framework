@@ -22,11 +22,13 @@ import { getContextId } from '../rumbleship-context';
  */
 export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;
+  protected serviceName: string;
   public publisher_version: string;
   protected subscription_ids: number[];
   protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
   constructor(
     publisher_version: string,
+    serviceName: string,
     config: IPubSubConfig,
     auth: IGcpAuthConfig,
     beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
@@ -34,6 +36,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     // RfiPubSub.validatePubSubConfig(config);
     super(auth, uniqueSubscriptionNamePart);
     this.topicPrefix = config.topicPrefix;
+    this.serviceName = serviceName;
     this.publisher_version = publisher_version;
     this.beeline_cls = beeline;
     this.subscription_ids = [];
@@ -106,20 +109,23 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     onMessage: (message: string) => null,
     options?: RfiSubscriptionOptions
   ): Promise<number> {
-    // yes this is ugly as fuck
-    // we distinguish what type of subscription to do via
-    // a naming convention on the trigger name
-    // Basically, do we want a unique subscription or a shared subscription
-    // TODO this must be rationalized
-    // in the mean time... triggerName p[assed in beginning in 'queued_...' means a service type subscription
-    // ie we share the subscription across all instances of this service..
+    // This function is called deep within the type-graphql library, and
+    // there is no way to pass in the 'options'
+    //
+    // So we distinguish what type of subscription to do via
+    // a naming convention on the trigger name. Basically, do we want a unique subscription or a shared subscription
+    //
+    // If the triggerName passed in beginning in 'queued_...' means a service type subscription, i.e. it
+    // acts liker a classic 'worker queue' where each instance that is subscribes gets
+    // ie we share the subscription across all instances of this service.. On one of which will be notified of an
+    // message published to the underlyging topic
     let topicName;
     const queuedString = 'queued-';
     let opts: RfiSubscriptionOptions = { ...options };
     if (triggerName.startsWith(queuedString)) {
       topicName = `${this.topicPrefix}_${triggerName.substring(queuedString.length)}`;
-      // todo does this need a servoe name Maybe set in the pubsub cnstructor?
-      opts = { ...options, asService: true };
+
+      opts = { ...options, asService: true, serviceName: this.serviceName };
     } else {
       topicName = `${this.topicPrefix}_${triggerName}`;
     }

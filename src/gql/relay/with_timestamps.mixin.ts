@@ -4,7 +4,10 @@ import { AttribType } from './attrib.enum';
 import { Field } from 'type-graphql';
 import { GqlBaseAttribs } from './base-attribs.builder';
 
-export function withTimeStamps<TBase extends ClassType<any>>(attribType: AttribType, Base: TBase) {
+export function withTimeStamps<TBase extends ClassType<object>>(
+  attribType: AttribType,
+  Base: TBase
+) {
   @GqlBaseAttribs(attribType)
   class TimeStampedGQL extends Base {
     @Field(type => Date, { nullable: true })
