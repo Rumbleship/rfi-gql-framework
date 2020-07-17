@@ -1,10 +1,12 @@
-import { ClassType } from '../../helpers/classtype';
-import { AttribType } from './attrib.enum';
-
 import { Field } from 'type-graphql';
-import { GqlBaseAttribs } from './base-attribs.builder';
+import { AttribType } from '../attrib.enum';
+import { GqlBaseAttribs } from '../base-attribs.builder';
+import { ClassType } from './../../../helpers/classtype';
 
-export function withTimeStamps<TBase extends ClassType<any>>(attribType: AttribType, Base: TBase) {
+export function withTimeStamps<TBase extends ClassType<object>>(
+  attribType: AttribType,
+  Base: TBase
+) {
   @GqlBaseAttribs(attribType)
   class TimeStampedGQL extends Base {
     @Field(type => Date, { nullable: true })

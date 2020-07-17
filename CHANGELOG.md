@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * Mixins don't add `{[index: string]: any}` type any more
 ### Deprecated
 ### Security
 
