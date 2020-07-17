@@ -114,7 +114,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     // in the mean time... triggerName p[assed in beginning in 'queued_...' means a service type subscription
     // ie we share the subscription across all instances of this service..
     let topicName;
-    const queuedString = 'queued_';
+    const queuedString = 'queued-';
     let opts: RfiSubscriptionOptions = { ...options };
     if (triggerName.startsWith(queuedString)) {
       topicName = `${this.topicPrefix}_${triggerName.substring(queuedString.length)}`;
