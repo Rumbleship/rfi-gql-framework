@@ -5,7 +5,7 @@ import * as Hoek from '@hapi/hoek';
 import Container from 'typedi';
 import { buildSchema, BuildSchemaOptions } from 'type-graphql';
 import { ConnectionContext } from 'subscriptions-transport-ws';
-import { printSchema } from 'graphql';
+import { printSchema, GraphQLSchema } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
@@ -25,7 +25,7 @@ import { DateRange, DateRangeGQL } from '../../gql';
 
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
-
+export let globalGraphQlSchema: GraphQLSchema | undefined;
 export async function initServer(
   config: ISharedSchema,
   InjectedBeeline: typeof RumbleshipBeeline,
@@ -139,7 +139,7 @@ export async function initServer(
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };
   const schema_options = Hoek.merge(default_schema_options, injected_schema_options);
-  const schema = await buildSchema(schema_options).catch(err => {
+  globalGraphQlSchema = await buildSchema(schema_options).catch(err => {
     serverLogger.error(err.stack);
     if (err.details && Array.isArray(err.details)) {
       for (const detail of err.details) {
@@ -148,14 +148,14 @@ export async function initServer(
     }
     throw err;
   });
-  const schemaAsString = printSchema(schema);
+  const schemaAsString = printSchema(globalGraphQlSchema);
   if (config.GqlSchema.schemaPrintFile) {
     writeFileSync(config.GqlSchema.schemaPrintFile, schemaAsString);
   }
 
   pubSub.linkToSequelize(sequelize);
   const apolloServer = new ApolloServer({
-    schema,
+    schema: globalGraphQlSchema,
     introspection: true,
     subscriptions: {
       onConnect: (connectionParams, webSocket, context: ConnectionContext) => {
