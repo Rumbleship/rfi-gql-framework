@@ -125,7 +125,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     if (triggerName.startsWith(queuedString)) {
       topicName = `${this.topicPrefix}_${triggerName.substring(queuedString.length)}`;
 
-      opts = { ...options, asService: true, serviceName: this.serviceName };
+      opts = { ...options, asService: true, serviceName: `queued-${this.serviceName}` };
     } else {
       topicName = `${this.topicPrefix}_${triggerName}`;
     }
