@@ -5,18 +5,17 @@ import { hostname } from 'os';
 import { IPubSubConfig, IGcpAuthConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
-import {
-  ModelDelta,
-  NotificationOf,
-  RfiSubscriptionOptions,
-  uniqueSubscriptionNamePart,
-  NODE_CHANGE_NOTIFICATION
-} from '../../gql';
+import { ModelDelta, NotificationOf, NODE_CHANGE_NOTIFICATION } from '../../gql';
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
-import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
+import {
+  RfiPubSubEngine,
+  NodeChangePayload,
+  RfiSubscriptionOptions
+} from './rfi-pub-sub-engine.interface';
 
 import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
 import { getContextId } from '../rumbleship-context';
+import { uniqueSubscriptionNamePart } from './unique-subscription-name-part';
 /**
  * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
  */
@@ -33,7 +32,6 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     auth: IGcpAuthConfig,
     beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
   ) {
-    // RfiPubSub.validatePubSubConfig(config);
     super(auth, uniqueSubscriptionNamePart);
     this.topicPrefix = config.topicPrefix;
     this.serviceName = serviceName;
@@ -41,23 +39,6 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     this.beeline_cls = beeline;
     this.subscription_ids = [];
   }
-
-  // static validatePubSubConfig(config: RfiPubSubConfig) {
-  //   if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
-  //     if (['test', 'development'].includes(config.topicPrefix)) {
-  //       /**
-  //        * Each instance of a dev environment (which really means each instance of the database)
-  //        * e.g. when running locally needs to have a prefix for the topics so they dont clash with others
-  //        * as we share a development queue in GCP pub sub
-  //        *
-  //        * Alternatively, use an emulator!
-  //        */
-  //       throw new Error(
-  //         'PubSub.topicPrefix MUST be set to a non-clashing value i.e your username.: See @rumbleship/gql: RfiPubSub'
-  //       );
-  //     }
-  //   }
-  // }
 
   /**
    *
@@ -119,6 +100,9 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     // acts liker a classic 'worker queue' where each instance that is subscribes gets
     // ie we share the subscription across all instances of this service.. On one of which will be notified of an
     // message published to the underlyging topic
+    // the superclass subscribe uses uniqueSubscriptionNamePart() in the subscribe to find the name
+    // of the subscription to use, and that function takes the SubscriptionOptions and creates the appropriate suscription name
+    // depending on the asService option
     let topicName;
     const queuedString = 'queued-';
     let opts: RfiSubscriptionOptions = { ...options };
@@ -130,6 +114,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
       topicName = `${this.topicPrefix}_${triggerName}`;
     }
     await this.createTopicIfNotExist(topicName);
+    // the googlePubSub lib uses the
     const sub_id = await super.subscribe(topicName, onMessage, opts);
     this.subscription_ids.push(sub_id);
 

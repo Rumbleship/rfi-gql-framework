@@ -1,22 +1,6 @@
-import { hostname } from 'os';
 import { ClassType } from '../../helpers';
 import { BaseReadableResolverInterface } from './base-resolver.interface';
 import { Node, NodeNotification } from '../relay';
-
-export interface RfiSubscriptionOptions {
-  asService?: boolean;
-  serviceName?: string;
-}
-export function uniqueSubscriptionNamePart(
-  topicName: string,
-  subscriptionOptions?: RfiSubscriptionOptions
-) {
-  if (subscriptionOptions && subscriptionOptions.asService) {
-    return `${topicName}-${subscriptionOptions.serviceName ?? 'any'}-ServiceSubscription`;
-  } else {
-    return `${topicName}-${hostname()}`;
-  }
-}
 
 export interface RawPayload {
   data: { toString(): string };
