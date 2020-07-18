@@ -3,9 +3,9 @@ import { GooglePubSub } from '@axelspringer/graphql-google-pubsub';
 import { IPubSubConfig, IGcpAuthConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
-import { ModelDelta, NotificationOf, RfiSubscriptionOptions } from '../../gql';
+import { ModelDelta, NotificationOf } from '../../gql';
 import { DbModelAndOidScope } from './init-sequelize';
-import { RfiPubSubEngine } from './rfi-pub-sub-engine.interface';
+import { RfiPubSubEngine, RfiSubscriptionOptions } from './rfi-pub-sub-engine.interface';
 /**
  * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
  */

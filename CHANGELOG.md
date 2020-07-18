@@ -11,9 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * Boilerplate test for mixin typesafety
 ### Deprecated
 ### Security
 
+
+## [10.1.5] -- 2020-07-17
+
+### Fixed
+  * Mixins don't add `{[index: string]: any}` type any more
 
 ## [10.1.4] -- 2020-07-16
 
