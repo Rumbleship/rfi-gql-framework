@@ -16,7 +16,7 @@ import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
 import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
 
 import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
-import { getContextId } from '../rumbleship-context';
+import { getContextId, getAuthorizedUser } from '../rumbleship-context';
 /**
  * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
  */
@@ -77,8 +77,15 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
         if (options && options.transaction) {
           const context_id = getContextId(options.transaction);
+          const authorized_user = getAuthorizedUser(options.transaction);
           options.transaction.afterCommit(t => {
-            pubSub.publishModelChange(notification_of, instance, deltas, context_id);
+            pubSub.publishModelChange(
+              notification_of,
+              instance,
+              deltas,
+              context_id,
+              authorized_user
+            );
           });
         } else {
           pubSub.publishModelChange(notification_of, instance, deltas);
@@ -138,13 +145,15 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     notification: NotificationOf,
     model: Model,
     deltas: ModelDelta[],
-    context_id?: string
+    context_id?: string,
+    authorized_user?: string
   ): void {
     const rval = payloadFromModel(model) as NodeChangePayload;
     rval.action = notification;
     rval.deltas = deltas;
     rval.publisher_version = this.publisher_version;
     rval.marshalled_trace = context_id ? this.getMarshalledTraceContext(context_id) : undefined;
+    rval.authorized_user = authorized_user;
 
     const payload = JSON.stringify(rval);
 

@@ -26,7 +26,7 @@ import {
   cloneAndTransposeDeprecatedValues
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
-import { RumbleshipContext, setContextId } from '../../app/';
+import { RumbleshipContext, setContextId, setAuthorizedUser } from '../../app/';
 import {
   GqlSingleTableInheritanceFactory,
   getAuthorizeContext,
@@ -420,6 +420,7 @@ export class SequelizeBaseService<
       'db.transaction.id': (txn as any).id
     });
     setContextId(txn, this.ctx.id);
+    setAuthorizedUser(txn, this.ctx.authorizer);
     this.ctx.logger.addMetadata({
       txn: { id: (txn as any).id, options: (txn as any).options }
     });

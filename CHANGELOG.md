@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Persist the user who triggered a notification on the notification payload: https://www.pivotaltracker.com/story/show/173904113
 ### Removed
 ### Changed
 ### Fixed
