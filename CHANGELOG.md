@@ -5,17 +5,11 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [10.2.0] -- 2020-07-22
 
 ### Added
   * Persist the user who triggered a notification on the notification payload: https://www.pivotaltracker.com/story/show/173904113
     * Forced creation of transactions for `SequelizeBaseService.create` and `SequelizeBaseService.update` if they aren't passed in via `NodeServiceOptions`
-### Removed
-### Changed
-### Fixed
-### Deprecated
-### Security
-
 
 ## [10.1.6] -- 2020-07-18
 
