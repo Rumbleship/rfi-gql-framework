@@ -17,6 +17,7 @@ import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interfa
 
 import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
 import { getContextId, getAuthorizedUser } from '../rumbleship-context';
+import uuid = require('uuid');
 /**
  * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
  */
@@ -88,6 +89,16 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
             );
           });
         } else {
+          const beeline = RumbleshipBeeline.make(uuid.v4());
+          beeline.finishTrace(
+            beeline.startTrace({
+              name: 'MissingTransaction',
+              'instance.id': instance.id,
+              'instance.constructor': instance?.constructor?.name,
+              'instance.deltas': deltas,
+              notification_of
+            })
+          );
           pubSub.publishModelChange(notification_of, instance, deltas);
         }
       };

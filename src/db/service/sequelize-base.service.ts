@@ -459,7 +459,7 @@ export class SequelizeBaseService<
       }
       return { paranoid: options.paranoid, transaction, lock };
     } else {
-      return undefined;
+      return {};
     }
   }
 
@@ -585,7 +585,8 @@ export class SequelizeBaseService<
    * @param options
    */
   @AddToTrace()
-  async create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi> {
+  async create(createInput: TInput, uncloned_options: NodeServiceOptions = {}): Promise<TApi> {
+    const options: NodeServiceOptions = { ...uncloned_options };
     if (
       this.can({
         action: Actions.CREATE,
@@ -594,11 +595,38 @@ export class SequelizeBaseService<
       })
     ) {
       createInput = cloneAndTransposeDeprecatedValues(createInput);
-      const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-      const instance = await this.model.create(createInput as any, sequelizeOptions);
-      const node = this.gqlFromDbModel(instance as any);
-      this.ctx.beeline.addTraceContext({ 'relay.node.id': node.id.toString() });
-      return node;
+      /**
+       * All changes (update/create/etc) must be within a transaction, which Sequelize guarantees
+       * to pass to low level model hooks that the publisher listens to.
+       *
+       * We attach data (authorized acting user, marshalled trace, etc) to the transaction object
+       * to take advantage of this behavior and allow a the publisher to make the payloads it
+       * publishes aware of the `RumbleshipContext` that generated them.
+       */
+      options.transaction =
+        options.transaction ??
+        (await this.newTransaction({
+          isolation: NodeServiceIsolationLevel.READ_COMMITTED,
+          autocommit: false
+        }));
+      try {
+        const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
+        const instance = await this.model.create(createInput as any, sequelizeOptions);
+        const node = this.gqlFromDbModel(instance as any);
+        this.ctx.beeline.addTraceContext({ 'relay.node.id': node.id.toString() });
+        return node;
+      } catch (e) {
+        if (!uncloned_options.transaction) {
+          await this.endTransaction(options.transaction, 'rollback');
+          // Explicitly unset it so the finally doesn't commit
+          options.transaction = undefined;
+        }
+        throw e;
+      } finally {
+        if (options.transaction && !uncloned_options.transaction) {
+          await this.endTransaction(options.transaction, 'commit');
+        }
+      }
     }
     this.ctx.logger.info('sequelize_base_service_authorization_denied');
     throw new RFIAuthError();
@@ -656,7 +684,12 @@ export class SequelizeBaseService<
    * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
    */
   @AddToTrace()
-  async update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi> {
+  async update(
+    updateInput: TUpdate,
+    uncloned_options: NodeServiceOptions = {},
+    target?: TApi
+  ): Promise<TApi> {
+    const options: NodeServiceOptions = { ...uncloned_options };
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
@@ -674,6 +707,20 @@ export class SequelizeBaseService<
     this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
     delete (updateInput as any).id;
     const { id: dbId } = oid.unwrap();
+    /**
+     * All changes (update/create/etc) must be within a transaction, which Sequelize guarantees
+     * to pass to low level model hooks that the publisher listens to.
+     *
+     * We attach data (authorized acting user, marshalled trace, etc) to the transaction object
+     * to take advantage of this behavior and allow a the publisher to make the payloads it
+     * publishes aware of the `RumbleshipContext` that generated them.
+     */
+    options.transaction =
+      options.transaction ??
+      (await this.newTransaction({
+        isolation: NodeServiceIsolationLevel.READ_COMMITTED,
+        autocommit: false
+      }));
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     isAuthorized = isAuthorized
       ? isAuthorized
@@ -683,7 +730,7 @@ export class SequelizeBaseService<
     }
     // start a (nested) transaction
     const updateTransaction = await this.model.sequelize!.transaction({
-      transaction: sequelizeOptions?.transaction,
+      transaction: sequelizeOptions.transaction,
       autocommit: false
     });
     try {
@@ -725,7 +772,16 @@ export class SequelizeBaseService<
       }
     } catch (e) {
       await updateTransaction.rollback();
+      if (!uncloned_options.transaction) {
+        await this.endTransaction(options.transaction, 'rollback');
+        // Explicitly unset it so the finally doesn't commit
+        options.transaction = undefined;
+      }
       throw e;
+    } finally {
+      if (options.transaction && !uncloned_options.transaction) {
+        await this.endTransaction(options.transaction, 'commit');
+      }
     }
   }
 

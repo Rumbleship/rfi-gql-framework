@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * Persist the user who triggered a notification on the notification payload: https://www.pivotaltracker.com/story/show/173904113
+    * Forced creation of transactions for `SequelizeBaseService.create` and `SequelizeBaseService.update` if they aren't passed in via `NodeServiceOptions`
 ### Removed
 ### Changed
 ### Fixed

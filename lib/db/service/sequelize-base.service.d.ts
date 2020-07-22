@@ -105,7 +105,11 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
         paranoid: boolean | undefined;
         transaction: Transaction | undefined;
         lock: any;
-    } | undefined;
+    } | {
+        paranoid?: undefined;
+        transaction?: undefined;
+        lock?: undefined;
+    };
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
@@ -122,7 +126,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param createInput Parameters to use for input
      * @param options
      */
-    create(createInput: TInput, options?: NodeServiceOptions): Promise<TApi>;
+    create(createInput: TInput, uncloned_options?: NodeServiceOptions): Promise<TApi>;
     /**
      * Runs an autyhroization query to see if the requested action  is allowed based
      * on the users permissions
@@ -152,7 +156,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param options - may include a transaction
      * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
      */
-    update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
+    update(updateInput: TUpdate, uncloned_options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: RelayFilterBase<TAssocApi>, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
     private makeEdge;
