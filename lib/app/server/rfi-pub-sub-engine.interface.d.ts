@@ -21,6 +21,7 @@ export declare enum PayloadTypes {
  */
 export interface Payload<T extends PayloadTypes> {
     marshalled_trace?: string;
+    authorized_user?: string;
     type?: T;
 }
 export interface NodeChangePayload extends Payload<PayloadTypes.NODE_CHANGE> {
