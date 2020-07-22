@@ -35,7 +35,7 @@ export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
      *
      * @note This triggers floating promises which is explicity does not await!
      */
-    publishModelChange(notification: NotificationOf, model: Model, deltas: ModelDelta[], context_id?: string): void;
+    publishModelChange(notification: NotificationOf, model: Model, deltas: ModelDelta[], context_id?: string, authorized_user?: string): void;
     deleteCurrentSubscriptionsMatchingPrefix(): Promise<void>;
     createSubscriptionsFor(dbModels: DbModelAndOidScope[]): Promise<void>;
     private createTopicIfNotExist;

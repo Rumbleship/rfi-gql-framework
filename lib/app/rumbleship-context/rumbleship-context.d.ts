@@ -35,3 +35,6 @@ export declare class RumbleshipContext implements Context {
 export declare const RumbleshipContextIdKey = "_@RumbleshipContextId";
 export declare function setContextId(target: object, context_id: string): object;
 export declare function getContextId(target: object): string | undefined;
+export declare const RumbleshipActingUserKey = "_@RumbleshipActingUserKey";
+export declare function setAuthorizedUser(target: object, authorizer: Authorizer): object;
+export declare function getAuthorizedUser(target: object): string | undefined;
