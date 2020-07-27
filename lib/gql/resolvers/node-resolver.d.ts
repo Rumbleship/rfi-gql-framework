@@ -3,10 +3,10 @@ import { RelayResolver } from './relay-resolver.interface';
 import { Node, NodeNotification, NotificationOf, NodeService } from '../relay';
 import { RawPayload } from './create-node-notification';
 declare class ClassGqlNodeNotification extends NodeNotification<any> {
-    sequence: number;
+    change_uuid: string;
     notificationOf: NotificationOf;
     node: Node<any>;
-    constructor(notificationOf: NotificationOf, node: Node<any>);
+    constructor(notificationOf: NotificationOf, change_uuid: string, node: Node<any>);
 }
 export declare class NodeResolver implements RelayResolver {
     private readonly nodeServices;

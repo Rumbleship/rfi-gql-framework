@@ -8,12 +8,12 @@ export interface ModelDelta {
 }
 
 export abstract class NodeNotification<T extends Node<T>> {
-  sequence: number;
+  change_uuid: string;
   notificationOf: NotificationOf;
   node: T;
-  constructor(notificationOf: NotificationOf, node: T) {
+  constructor(notificationOf: NotificationOf, change_uuid: string, node: T) {
     this.notificationOf = notificationOf;
     this.node = node;
-    this.sequence = Date.now();
+    this.change_uuid = change_uuid;
   }
 }

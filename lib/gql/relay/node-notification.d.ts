@@ -6,8 +6,8 @@ export interface ModelDelta {
     newValue: any;
 }
 export declare abstract class NodeNotification<T extends Node<T>> {
-    sequence: number;
+    change_uuid: string;
     notificationOf: NotificationOf;
     node: T;
-    constructor(notificationOf: NotificationOf, node: T);
+    constructor(notificationOf: NotificationOf, change_uuid: string, node: T);
 }
