@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-exported 
+* exported unique-subscription-name-part, plugins and routes
 ### Removed
 ### Changed
 ### Fixed
