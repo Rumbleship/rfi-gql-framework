@@ -12,10 +12,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
-  * Boilerplate test for mixin typesafety
 ### Deprecated
 ### Security
 
+
+## [10.2.0] -- 2020-07-22
+
+### Added
+  * Persist the user who triggered a notification on the notification payload: https://www.pivotaltracker.com/story/show/173904113
+    * Forced creation of transactions for `SequelizeBaseService.create` and `SequelizeBaseService.update` if they aren't passed in via `NodeServiceOptions`
+
+## [10.1.6] -- 2020-07-18
+
+### Fixed
+  * Boilerplate test for mixin typesafety
 
 ## [10.1.5] -- 2020-07-17
 

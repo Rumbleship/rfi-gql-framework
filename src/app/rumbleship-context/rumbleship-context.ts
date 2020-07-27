@@ -248,3 +248,13 @@ export function setContextId(target: object, context_id: string) {
 export function getContextId(target: object): string | undefined {
   return Reflect.get(target, RumbleshipContextIdKey);
 }
+
+export const RumbleshipActingUserKey = '_@RumbleshipActingUserKey';
+export function setAuthorizedUser(target: object, authorizer: Authorizer) {
+  Reflect.set(target, RumbleshipActingUserKey, authorizer.getUser());
+  return target;
+}
+
+export function getAuthorizedUser(target: object): string | undefined {
+  return Reflect.get(target, RumbleshipActingUserKey);
+}
