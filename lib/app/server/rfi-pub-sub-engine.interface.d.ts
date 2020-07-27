@@ -9,7 +9,7 @@ export interface RfiSubscriptionOptions {
 export interface PubEngine extends PubSubEngine {
     publisher_version: string;
     getMarshalledTraceContext(trace_id: string): string;
-    publishModelChange(notificationType: NotificationOf, model: Model, deltas: any[]): void;
+    publishModelChange(notification: NotificationOf, change_uuid: string, model: Model, deltas: ModelDelta[], context_id?: string, authorized_user?: string): void;
     subscribe(triggerName: string, onMessage: (message: string) => null, options?: RfiSubscriptionOptions): Promise<number>;
     unsubscribeAll(): void;
 }
@@ -30,6 +30,7 @@ export interface Payload<T extends PayloadTypes> {
 }
 export interface NodeChangePayload extends Payload<PayloadTypes.NODE_CHANGE> {
     publisher_version: string;
+    change_uuid: string;
     oid: string;
     id: string;
     action: string;

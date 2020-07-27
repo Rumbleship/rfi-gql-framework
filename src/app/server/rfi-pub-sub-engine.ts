@@ -66,6 +66,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
           options.transaction.afterCommit(t => {
             pubSub.publishModelChange(
               notification_of,
+              uuid.v4(),
               instance,
               deltas,
               context_id,
@@ -83,7 +84,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
               notification_of
             })
           );
-          pubSub.publishModelChange(notification_of, instance, deltas);
+          pubSub.publishModelChange(notification_of, uuid.v4(), instance, deltas);
         }
       };
     };
@@ -162,6 +163,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
    */
   publishModelChange(
     notification: NotificationOf,
+    change_uuid: string,
     model: Model,
     deltas: ModelDelta[],
     context_id?: string,
@@ -169,6 +171,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   ): void {
     const rval = payloadFromModel(model) as NodeChangePayload;
     rval.action = notification;
+    rval.change_uuid = change_uuid;
     rval.deltas = deltas;
     rval.publisher_version = this.publisher_version;
     rval.marshalled_trace = context_id ? this.getMarshalledTraceContext(context_id) : undefined;
