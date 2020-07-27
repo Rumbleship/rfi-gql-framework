@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
   * exported unique-subscription-name-part, plugins and routes
   * Added change_uuid to NodeChangePayload to support deduplication of subscription notifications
+    * BREAKING_CHANGE when a ClassGqlNodeNotifcation is constructed, a change_uuid must be included. This is set in the publish from the 
+    sequelize hooks. However, it must be extracted from the RawPayload the graphQl resolver reieves and then set in the constructor of the return structure
 ### Removed
 ### Changed
 ### Fixed
