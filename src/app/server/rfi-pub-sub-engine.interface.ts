@@ -12,7 +12,7 @@ export interface PubEngine extends PubSubEngine {
   getMarshalledTraceContext(trace_id: string): string;
   publishModelChange(
     notification: NotificationOf,
-    change_uuid: string,
+    idempotency_key: string,
     model: Model,
     deltas: ModelDelta[],
     context_id?: string,
@@ -45,7 +45,7 @@ export interface Payload<T extends PayloadTypes> {
 }
 export interface NodeChangePayload extends Payload<PayloadTypes.NODE_CHANGE> {
   publisher_version: string;
-  change_uuid: string;
+  idempotency_key: string;
   oid: string;
   id: string;
   action: string;

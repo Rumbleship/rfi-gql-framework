@@ -8,15 +8,15 @@ export interface ModelDelta {
 }
 
 export abstract class NodeNotification<T extends Node<T>> {
-  change_uuid: string;
+  idempotency_key: string;
   notificationOf: NotificationOf;
   node: T;
-  constructor(notificationOf: NotificationOf, change_uuid: string, node: T) {
-    if (!change_uuid) {
-      throw Error(`Must have a change_uuid set on change of ${node.constructor.name}`);
+  constructor(notificationOf: NotificationOf, idempotency_key: string, node: T) {
+    if (!idempotency_key) {
+      throw Error(`Must have a idempotency_key set on change of ${node.constructor.name}`);
     }
     this.notificationOf = notificationOf;
     this.node = node;
-    this.change_uuid = change_uuid;
+    this.idempotency_key = idempotency_key;
   }
 }

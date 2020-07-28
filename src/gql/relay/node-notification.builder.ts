@@ -10,14 +10,14 @@ export function GqlNodeNotification<T extends Node<T>>(
   @ObjectType({ isAbstract: true })
   class GqlNodeNotificationClass extends NodeNotification<T> {
     @Field()
-    change_uuid!: string;
+    idempotency_key!: string;
     @Field(type => NotificationOf)
     notificationOf!: NotificationOf;
     @Field(type => clsNotification, { nullable: true })
     node!: T;
 
-    constructor(notificationOf: NotificationOf, change_uuid: string, node: T) {
-      super(notificationOf, change_uuid, node);
+    constructor(notificationOf: NotificationOf, idempotency_key: string, node: T) {
+      super(notificationOf, idempotency_key, node);
     }
   }
   return GqlNodeNotificationClass;

@@ -22,7 +22,7 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
       const node = await resolver.getOne(received.oid);
       const gql_node_notification: NodeNotification<any> = new NotificationType(
         received.action,
-        received.change_uuid,
+        received.idempotency_key,
         node
       );
       return gql_node_notification;

@@ -163,7 +163,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
    */
   publishModelChange(
     notification: NotificationOf,
-    change_uuid: string,
+    idempotency_key: string,
     model: Model,
     deltas: ModelDelta[],
     context_id?: string,
@@ -171,7 +171,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   ): void {
     const rval = payloadFromModel(model) as NodeChangePayload;
     rval.action = notification;
-    rval.change_uuid = change_uuid;
+    rval.idempotency_key = idempotency_key;
     rval.deltas = deltas;
     rval.publisher_version = this.publisher_version;
     rval.marshalled_trace = context_id ? this.getMarshalledTraceContext(context_id) : undefined;

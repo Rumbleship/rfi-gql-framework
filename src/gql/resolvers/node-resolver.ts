@@ -31,13 +31,13 @@ import { RawPayload, createNodeNotification } from './create-node-notification';
 @ObjectType()
 class ClassGqlNodeNotification extends NodeNotification<any> {
   @Field(type => Int)
-  change_uuid!: string;
+  idempotency_key!: string;
   @Field(type => NotificationOf)
   notificationOf!: NotificationOf;
   @Field(type => Node, { nullable: true })
   node!: Node<any>;
-  constructor(notificationOf: NotificationOf, change_uuid: string, node: Node<any>) {
-    super(notificationOf, change_uuid, node);
+  constructor(notificationOf: NotificationOf, idempotency_key: string, node: Node<any>) {
+    super(notificationOf, idempotency_key, node);
   }
 }
 
