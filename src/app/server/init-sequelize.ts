@@ -115,5 +115,8 @@ export async function resetAllTables(): Promise<void> {
 }
 
 export function buildDbName(name?: string, suffix?: string): string {
-  return suffix ? (suffix && suffix[0] === '_' ? suffix : `_${suffix}`) : '';
+  if (!name) {
+    throw new Error('database name must be specified');
+  }
+  return name + (suffix ? (suffix && suffix[0] === '_' ? suffix : `_${suffix}`) : '');
 }

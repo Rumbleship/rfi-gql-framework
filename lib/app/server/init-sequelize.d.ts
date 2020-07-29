@@ -34,3 +34,4 @@ export declare function initSequelize(cfg: RumbleshipDatabaseOptions | {
     dbSuffix?: string;
 }): Promise<Sequelize>;
 export declare function resetAllTables(): Promise<void>;
+export declare function buildDbName(name?: string, suffix?: string): string;
