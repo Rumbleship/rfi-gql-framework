@@ -1,4 +1,4 @@
-import { buildDbName } from 'src';
+import { buildDbName } from './../../src';
 
 test('it separates db name and suffix with a single `_`', () => {
   expect(buildDbName('foo', 'bar')).toBe('foo_bar');
