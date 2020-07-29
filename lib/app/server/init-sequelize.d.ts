@@ -21,7 +21,7 @@ export declare function getOidFor(model: Model): Oid;
  * { database, username, password, dialect, host, port, pool, define, dialectOptions: { socketPath, maxPreparedStatements }}
  * @param loggingFun The logging function to pass in. Required
  * @param dbModels An array of sequelize-typescript models for this application
- * @param opt options...
+ * @param opts options...
  * force: true forces a sync on the database creating new tables.
  * dbSuffix is added to the configured name and is used in development and test environments to
  * create isolated test databases in test suites
@@ -29,7 +29,7 @@ export declare function getOidFor(model: Model): Oid;
  */
 export declare function initSequelize(cfg: RumbleshipDatabaseOptions | {
     db: RumbleshipDatabaseOptions;
-}, loggingFun: (msg: string) => any, dbModels: DbModelAndOidScope[], opt?: {
+}, loggingFun: (msg: string) => any, dbModels: DbModelAndOidScope[], opts?: {
     force: boolean;
     dbSuffix?: string;
 }): Promise<Sequelize>;

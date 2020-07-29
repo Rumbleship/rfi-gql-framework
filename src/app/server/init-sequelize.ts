@@ -40,7 +40,7 @@ export function getOidFor(model: Model) {
  * { database, username, password, dialect, host, port, pool, define, dialectOptions: { socketPath, maxPreparedStatements }}
  * @param loggingFun The logging function to pass in. Required
  * @param dbModels An array of sequelize-typescript models for this application
- * @param opt options...
+ * @param opts options...
  * force: true forces a sync on the database creating new tables.
  * dbSuffix is added to the configured name and is used in development and test environments to
  * create isolated test databases in test suites
@@ -50,17 +50,16 @@ export async function initSequelize(
   cfg: RumbleshipDatabaseOptions | { db: RumbleshipDatabaseOptions },
   loggingFun: (msg: string) => any,
   dbModels: DbModelAndOidScope[],
-  opt?: {
+  opts?: {
     force: boolean;
     dbSuffix?: string;
   }
 ): Promise<Sequelize> {
   // Forward/backward compatibility with old format of passing entire app config in.
   const config: RumbleshipDatabaseOptions = Reflect.get(cfg, 'db') ?? cfg;
-  const force = opt?.force ?? false;
-  const dbSuffix = opt?.dbSuffix ?? '';
+  const force = opts?.force ?? false;
   const { database, username, password, dialect, host, port, pool, define } = config;
-  const db = database + (dbSuffix[0] === '_' ? dbSuffix.slice(1) : dbSuffix);
+  const db = buildDbName(database, opts?.dbSuffix);
 
   const options: RumbleshipDatabaseOptions = {
     database: db,
@@ -88,7 +87,7 @@ export async function initSequelize(
   }
 
   if (config.dialectOptions) {
-    if (['test', 'development'].includes(process.env.NODE_ENV as string) && dbSuffix.length) {
+    if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
       options.database = '';
       const temporarySequelize = new Sequelize(options);
       await temporarySequelize.query(`DROP DATABASE IF EXISTS ${db};`);
@@ -113,4 +112,8 @@ export async function resetAllTables(): Promise<void> {
       await theSequelizeInstance.sync({ force: true }); // force the tables to be dropped and recreated
     }
   }
+}
+
+export function buildDbName(name?: string, suffix?: string): string {
+  return suffix ? (suffix && suffix[0] === '_' ? suffix : `_${suffix}`) : '';
 }
