@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * dbSuffix option correctly separates db name from suffix with `_`
 ### Deprecated
 ### Security
 
