@@ -10,7 +10,12 @@ import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
 import { ISharedSchema } from '@rumbleship/config';
-import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
+import {
+  RumbleshipContextControl,
+  getRumbleshipContextFrom,
+  RouteMatch,
+  RumbleshipContextControlOptions
+} from '@rumbleship/context-control';
 import { ServiceFactories, ServiceFactoryMap } from '@rumbleship/service-factory-map';
 import { spyglassHapiPlugin, logging } from '@rumbleship/spyglass';
 import { RumbleshipBeeline, HoneycombMiddleware, addGaeVersionDataToTrace } from '@rumbleship/o11y';
@@ -42,11 +47,22 @@ export async function initServer(
   dbOptions?: {
     force: boolean;
     dbSuffix?: string;
+  },
+  injected_options_for_default_plugins?: {
+    RumbleshipContextControl: { skip_conditions?: RouteMatch[]; attach_conditions?: RouteMatch[] };
   }
 ): Promise<Hapi.Server> {
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
   const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
+  const context_control_options: RumbleshipContextControlOptions = {
+    injected_config: config,
+    authorizer_secret: config.AccessToken.secret,
+    global_container: Container,
+    attach_conditions:
+      injected_options_for_default_plugins?.RumbleshipContextControl.attach_conditions,
+    skip_conditions: injected_options_for_default_plugins?.RumbleshipContextControl.skip_conditions
+  };
   const default_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
     { plugin: hapiRequireHttps },
     { plugin: hapiRequestIdHeader, options: { persist: true } },
@@ -57,11 +73,7 @@ export async function initServer(
     { plugin: goodRfi, options: config }, // Winston and good logging a la RFI style - see spyglass
     {
       plugin: RumbleshipContextControl,
-      options: {
-        injected_config: config,
-        authorizer_secret: config.AccessToken.secret,
-        global_container: Container
-      }
+      options: context_control_options
     }
   ];
   const hapi_plugins = [...default_hapi_plugins, ...injected_hapi_plugins];
