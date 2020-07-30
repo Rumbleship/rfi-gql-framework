@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Upgrade to `@rumbleship/acl#2.0.0-rc` with automatic assignment of SerivceUser
 ### Fixed
 ### Deprecated
 ### Security

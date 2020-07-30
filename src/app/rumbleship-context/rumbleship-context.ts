@@ -1,6 +1,6 @@
 import Container, { ContainerInstance } from 'typedi';
 import uuid = require('uuid');
-import { Authorizer, Scopes, createAuthHeader } from '@rumbleship/acl';
+import { Authorizer, Scopes } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { logging } from '@rumbleship/spyglass';
@@ -61,17 +61,16 @@ class RumbleshipContextOptionsWithDefaults {
     this._logger = options.logger ?? logging.getLogger(config.Logging, { filename });
     this._authorizer =
       options.authorizer ??
-      new Authorizer(
-        createAuthHeader(
+      Authorizer.make(
+        Authorizer.createAuthHeader(
           {
             user: config.ServiceUser.id,
             roles: {},
             scopes: [Scopes.SYSADMIN]
           },
-          config.AccessToken.secret,
           { expiresIn: '5m' }
         ),
-        config.AccessToken.secret
+        true
       );
     this._authorizer.authenticate();
     this._container = options.container ?? Container.of(this.id);
