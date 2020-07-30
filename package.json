@@ -1,6 +1,6 @@
 {
   "name": "@rumbleship/gql",
-  "version": "10.2.1",
+  "version": "10.2.2",
   "authors": [
     "Mat Henshall <mat.henshall@rumbleship.com>",
     "Isaac Sparling <isaac@rumbleship.com"
@@ -34,7 +34,7 @@
     "@hapi/good": "^9.0.0",
     "@hapi/hapi": "^18.4",
     "@hapi/hoek": "^9.0.3",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.4.0",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#2.0.0",
     "@rumbleship/config": "git+ssh://git@github.com/rumbleship/config.git#1.0.0",
     "@rumbleship/iterable-model-sequelize": "git+ssh://git@github.com/rumbleship/iterable-model-sequelize#0.1.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#4.0.1",
@@ -88,7 +88,7 @@
     "@hapi/good": "^9.0.0",
     "@hapi/hapi": "^18.4",
     "@hapi/hoek": "^9.0.3",
-    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#1.4.0",
+    "@rumbleship/acl": "git+ssh://git@github.com/rumbleship/acl.git#2.0.0",
     "@rumbleship/config": "git+ssh://git@github.com/rumbleship/config.git#chore/config",
     "@rumbleship/iterable-model-sequelize": "git+ssh://git@github.com/rumbleship/iterable-model-sequelize#0.1.3",
     "@rumbleship/o11y": "git+ssh://git@github.com/rumbleship/observability.git#4.0.1",

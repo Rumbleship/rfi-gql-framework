@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [10.2.2] -- 2020-07-30
+
+### Changed
+  * Upgrade to `@rumbleship/acl#2.0.0` with automatic assignment of ServiceUser
+
 ## [10.2.1] -- 2020-07-29
 
 ### Fixed

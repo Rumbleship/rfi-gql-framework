@@ -52,6 +52,7 @@ export async function initServer(
     RumbleshipContextControl: { skip_conditions?: RouteMatch[]; attach_conditions?: RouteMatch[] };
   }
 ): Promise<Hapi.Server> {
+  Authorizer.initialize(config);
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
   const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
@@ -176,7 +177,7 @@ export async function initServer(
         if (bearer_token) {
           const authorizer = (() => {
             try {
-              return new Authorizer(bearer_token, config.AccessToken.secret);
+              return Authorizer.make(bearer_token, true);
             } catch (error) {
               if (error instanceof InvalidJWTError) {
                 throw new AuthenticationError(error.message);
