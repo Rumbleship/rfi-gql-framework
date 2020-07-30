@@ -973,9 +973,9 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#2.0.0":
-  version "2.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/acl.git#39654b2c7c555e1633cb8b9a2b4be59fa16706f9"
+"@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#2.0.1":
+  version "2.0.1"
+  resolved "git+ssh://git@github.com/rumbleship/acl.git#653f2d72089033111e572cfb4f60e7002288eee1"
   dependencies:
     jsonwebtoken "^8.5.1"
 
@@ -991,9 +991,9 @@
     graphql-tools "^4.0.0"
     graphql-upload "^10.0.0"
 
-"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#1.0.0":
-  version "1.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/config.git#9c6c07f9b411fb92ffa261b7de90cb943628f985"
+"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#1.0.2":
+  version "1.0.2"
+  resolved "git+ssh://git@github.com/rumbleship/config.git#d1775cc611f9042ca7da179dabb11384070bde12"
   dependencies:
     convict-format-with-validator "^6.0.0"
 
