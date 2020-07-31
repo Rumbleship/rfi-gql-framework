@@ -189,6 +189,7 @@ export function createReadOnlyBaseResolver<
               oid
             );
           } catch (error) {
+            context.beeline.addTraceContext(error);
             if (error instanceof NotFoundError) {
               context.beeline.addTraceContext({ 'subscription.filter.result': false });
               return false;
