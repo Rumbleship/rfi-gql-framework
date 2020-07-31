@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Ability to filter by id on all default `onChange` subscriptions
+    * Exposes static `BaseResolver.filterById` for custom subscriptions to use downstream
+  * SequelizeBaseService.getOne() throws `NotFoundError` instead of generic `Error` if not found
 ### Removed
 ### Changed
 ### Fixed
