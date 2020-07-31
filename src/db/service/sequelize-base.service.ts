@@ -43,7 +43,7 @@ import {
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
-import { NotFoundError } from 'src/app/errors';
+import { NotFoundError } from '../../app/errors';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,

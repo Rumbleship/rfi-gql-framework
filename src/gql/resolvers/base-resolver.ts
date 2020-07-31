@@ -1,4 +1,3 @@
-import { Context } from './../../app/rumbleship-context/rumbleship-context.interface';
 import { Scopes } from '@rumbleship/acl';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
@@ -14,6 +13,8 @@ import {
   Authorized
 } from 'type-graphql';
 import { RumbleshipContext } from '../../app/rumbleship-context';
+import { NodeChangePayload } from '../../app/server/rfi-pub-sub-engine.interface';
+import { NotFoundError } from '../../app/errors';
 import { ClassType } from '../../helpers';
 import {
   Node,
@@ -25,8 +26,6 @@ import {
 } from '../relay';
 import { BaseResolverInterface, BaseReadableResolverInterface } from './base-resolver.interface';
 import { RawPayload, createNodeNotification } from './create-node-notification';
-import { NodeChangePayload } from 'src/app';
-import { NotFoundError } from 'src/app/errors';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -170,7 +169,7 @@ export function createReadOnlyBaseResolver<
     }: {
       payload: RawPayload;
       args?: { id?: string };
-      context: Context;
+      context: RumbleshipContext;
     }): Promise<boolean> {
       return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
         if (!args?.id) {
