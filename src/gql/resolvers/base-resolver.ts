@@ -1,3 +1,4 @@
+import { Context } from './../../app/rumbleship-context/rumbleship-context.interface';
 import { Scopes } from '@rumbleship/acl';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
@@ -19,10 +20,13 @@ import {
   Connection,
   RelayService,
   NodeNotification,
-  NODE_CHANGE_NOTIFICATION
+  NODE_CHANGE_NOTIFICATION,
+  NodeService
 } from '../relay';
 import { BaseResolverInterface, BaseReadableResolverInterface } from './base-resolver.interface';
 import { RawPayload, createNodeNotification } from './create-node-notification';
+import { NodeChangePayload } from 'src/app';
+import { NotFoundError } from 'src/app/errors';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -152,10 +156,50 @@ export function createReadOnlyBaseResolver<
     @Subscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
-      nullable: true
+      nullable: true,
+      filter: BaseResolver.filterById
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       return createNodeNotification(rawPayload, this, notificationClsType);
+    }
+
+    static async filterById({
+      payload: rawPayload,
+      args,
+      context
+    }: {
+      payload: RawPayload;
+      args?: { id?: string };
+      context: Context;
+    }): Promise<boolean> {
+      return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
+        if (!args?.id) {
+          return true;
+        }
+        const payload: NodeChangePayload = JSON.parse(rawPayload.data.toString());
+        context.beeline.addTraceContext({ 'subscription.filter.id': args.id });
+
+        const oid = new Oid(payload.oid);
+        const { scope } = oid.unwrap();
+        let node;
+        const nodeServices = context.container.get('nodeServices') as object;
+        if (scope in nodeServices) {
+          try {
+            node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(
+              oid
+            );
+          } catch (error) {
+            if (error instanceof NotFoundError) {
+              context.beeline.addTraceContext({ 'subscription.filter.result': false });
+              return false;
+            }
+            throw error;
+          }
+        }
+        const filtered = node ? node.id.toString() === args?.id : false;
+        context.beeline.addTraceContext({ 'subscription.filter.result': filtered });
+        return filtered;
+      });
     }
   }
   return BaseResolver;

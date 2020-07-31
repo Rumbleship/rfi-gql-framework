@@ -43,6 +43,7 @@ import {
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
+import { NotFoundError } from 'src/app/errors';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -568,7 +569,7 @@ export class SequelizeBaseService<
 
     const instance = await this.model.findOne(findOptions);
     if (!instance) {
-      throw new Error(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
+      throw new NotFoundError(`${this.relayClass.constructor.name}: oid(${oid}) not found`);
     }
     return this.gqlFromDbModel(instance as any);
   }
