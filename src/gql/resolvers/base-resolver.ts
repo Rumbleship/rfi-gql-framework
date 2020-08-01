@@ -51,6 +51,43 @@ export class GQLBaseResolver<
   async update(input: TUpdate): Promise<TApi> {
     return this.service.update(input);
   }
+  static async filterById({
+    payload: rawPayload,
+    args,
+    context
+  }: {
+    payload: RawPayload;
+    args?: { id?: string };
+    context: RumbleshipContext;
+  }): Promise<boolean> {
+    return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
+      if (!args?.id) {
+        return true;
+      }
+      const payload: NodeChangePayload = JSON.parse(rawPayload.data.toString());
+      context.beeline.addTraceContext({ 'subscription.filter.id': args.id });
+
+      const oid = new Oid(payload.oid);
+      const { scope } = oid.unwrap();
+      let node;
+      const nodeServices = context.container.get('nodeServices') as object;
+      if (scope in nodeServices) {
+        try {
+          node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(oid);
+        } catch (error) {
+          context.beeline.addTraceContext(error);
+          if (error instanceof NotFoundError) {
+            context.beeline.addTraceContext({ 'subscription.filter.result': false });
+            return false;
+          }
+          throw error;
+        }
+      }
+      const filtered = node ? node.id.toString() === args?.id : false;
+      context.beeline.addTraceContext({ 'subscription.filter.result': filtered });
+      return filtered;
+    });
+  }
 }
 
 export function createBaseResolver<
@@ -156,50 +193,10 @@ export function createReadOnlyBaseResolver<
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true,
-      filter: BaseResolver.filterById
+      filter: GQLBaseResolver.filterById
     })
     async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
       return createNodeNotification(rawPayload, this, notificationClsType);
-    }
-
-    static async filterById({
-      payload: rawPayload,
-      args,
-      context
-    }: {
-      payload: RawPayload;
-      args?: { id?: string };
-      context: RumbleshipContext;
-    }): Promise<boolean> {
-      return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
-        if (!args?.id) {
-          return true;
-        }
-        const payload: NodeChangePayload = JSON.parse(rawPayload.data.toString());
-        context.beeline.addTraceContext({ 'subscription.filter.id': args.id });
-
-        const oid = new Oid(payload.oid);
-        const { scope } = oid.unwrap();
-        let node;
-        const nodeServices = context.container.get('nodeServices') as object;
-        if (scope in nodeServices) {
-          try {
-            node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(
-              oid
-            );
-          } catch (error) {
-            context.beeline.addTraceContext(error);
-            if (error instanceof NotFoundError) {
-              context.beeline.addTraceContext({ 'subscription.filter.result': false });
-              return false;
-            }
-            throw error;
-          }
-        }
-        const filtered = node ? node.id.toString() === args?.id : false;
-        context.beeline.addTraceContext({ 'subscription.filter.result': filtered });
-        return filtered;
-      });
     }
   }
   return BaseResolver;
