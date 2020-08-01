@@ -195,7 +195,10 @@ export function createReadOnlyBaseResolver<
       nullable: true,
       filter: GQLBaseResolver.filterById
     })
-    async onChange(@Root() rawPayload: RawPayload): Promise<NodeNotification<TApi>> {
+    async onChange(
+      @Root() rawPayload: RawPayload,
+      @Arg('id', type => ID, { nullable: true }) id?: string
+    ): Promise<NodeNotification<TApi>> {
       return createNodeNotification(rawPayload, this, notificationClsType);
     }
   }
