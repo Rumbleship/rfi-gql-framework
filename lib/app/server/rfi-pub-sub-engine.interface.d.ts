@@ -1,7 +1,8 @@
 import { Model } from 'sequelize-typescript';
 import { PubSubEngine } from 'type-graphql';
 import { ModelDelta } from './../../gql/relay/node-notification';
-import { NotificationOf, RfiSubscriptionOptions } from '../../gql';
+import { NotificationOf } from '../../gql/relay';
+import { RfiSubscriptionOptions } from '../../gql/resolvers/create-node-notification';
 export interface PubEngine extends PubSubEngine {
     publisher_version: string;
     getMarshalledTraceContext(trace_id: string): string;
