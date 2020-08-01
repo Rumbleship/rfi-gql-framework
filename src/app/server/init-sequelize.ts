@@ -87,7 +87,10 @@ export async function initSequelize(
   }
 
   if (config.dialectOptions) {
-    if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
+    if (
+      ['test', 'development'].includes(process.env.NODE_ENV as string) &&
+      opts?.dbSuffix?.length
+    ) {
       options.database = '';
       const temporarySequelize = new Sequelize(options);
       await temporarySequelize.query(`DROP DATABASE IF EXISTS ${db};`);

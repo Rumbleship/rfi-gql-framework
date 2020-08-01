@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * Accidental drop of dev db on startup
 ### Deprecated
 ### Security
 
