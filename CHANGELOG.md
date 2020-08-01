@@ -5,19 +5,14 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [10.3.0] -- 2020-08-01
 
 ### Added
   * Ability to filter by id on all default `onChange` subscriptions
     * Exposes static `GQLBaseResolver.filterById` for custom subscriptions to use downstream
   * SequelizeBaseService.getOne() throws `NotFoundError` instead of generic `Error` if not found
-### Removed
-### Changed
 ### Fixed
   * Accidental drop of dev db on startup
-### Deprecated
-### Security
-
 
 ## [10.2.3] -- 2020-07-30
 
