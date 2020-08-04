@@ -193,7 +193,17 @@ export function createReadOnlyBaseResolver<
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true,
-      filter: GQLBaseResolver.filterById
+      filter: ({
+        payload,
+        args,
+        context
+      }: {
+        payload: RawPayload;
+        args?: { id?: string };
+        context: RumbleshipContext;
+      }) => {
+        return BaseResolver.filterById({ payload, args, context });
+      }
     })
     async onChange(
       @Root() rawPayload: RawPayload,
