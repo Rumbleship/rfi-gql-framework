@@ -75,7 +75,7 @@ export class GQLBaseResolver<
         try {
           node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(oid);
         } catch (error) {
-          context.beeline.addTraceContext(error);
+          context.beeline.addTraceContext({ error });
           if (error instanceof NotFoundError) {
             context.beeline.addTraceContext({ 'subscription.filter.result': false });
             return false;
