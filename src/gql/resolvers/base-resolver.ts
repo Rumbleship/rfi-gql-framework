@@ -60,7 +60,7 @@ export class GQLBaseResolver<
     args?: { id?: string };
     context: RumbleshipContext;
   }): Promise<boolean> {
-    return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
+    const res = await context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
       if (!args?.id) {
         return true;
       }
@@ -80,13 +80,14 @@ export class GQLBaseResolver<
             context.beeline.addTraceContext({ 'subscription.filter.result': false });
             return false;
           }
-          return false;
+          throw error;
         }
       }
       const filtered = node ? node.id.toString() === args?.id : false;
       context.beeline.addTraceContext({ 'subscription.filter.result': filtered });
       return filtered;
     });
+    return res;
   }
 }
 
