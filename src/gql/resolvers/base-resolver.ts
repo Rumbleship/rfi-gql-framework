@@ -80,7 +80,7 @@ export class GQLBaseResolver<
             context.beeline.addTraceContext({ 'subscription.filter.result': false });
             return false;
           }
-          throw error;
+          return false;
         }
       }
       const filtered = node ? node.id.toString() === args?.id : false;
