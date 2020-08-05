@@ -60,33 +60,38 @@ export class GQLBaseResolver<
     args?: { id?: string };
     context: RumbleshipContext;
   }): Promise<boolean> {
-    return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
-      if (!args?.id) {
-        return true;
-      }
-      const payload: NodeChangePayload = JSON.parse(rawPayload.data.toString());
-      context.beeline.addTraceContext({ 'subscription.filter.id': args.id });
-
-      const oid = new Oid(payload.oid);
-      const { scope } = oid.unwrap();
-      let node;
-      const nodeServices = context.container.get('nodeServices') as object;
-      if (scope in nodeServices) {
-        try {
-          node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(oid);
-        } catch (error) {
-          context.beeline.addTraceContext(error);
-          if (error instanceof NotFoundError) {
-            context.beeline.addTraceContext({ 'subscription.filter.result': false });
-            return false;
-          }
-          throw error;
+    const res = await context.beeline.bindFunctionToTrace(async () => {
+      return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
+        if (!args?.id) {
+          return true;
         }
-      }
-      const filtered = node ? node.id.toString() === args?.id : false;
-      context.beeline.addTraceContext({ 'subscription.filter.result': filtered });
-      return filtered;
-    });
+        const payload: NodeChangePayload = JSON.parse(rawPayload.data.toString());
+        context.beeline.addTraceContext({ 'subscription.filter.id': args.id });
+
+        const oid = new Oid(payload.oid);
+        const { scope } = oid.unwrap();
+        let node;
+        const nodeServices = context.container.get('nodeServices') as object;
+        if (scope in nodeServices) {
+          try {
+            node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(
+              oid
+            );
+          } catch (error) {
+            context.beeline.addTraceContext({ error });
+            if (error instanceof NotFoundError) {
+              context.beeline.addTraceContext({ 'subscription.filter.result': false });
+              return false;
+            }
+            throw error;
+          }
+        }
+        const filtered = node ? node.id.toString() === args?.id : false;
+        context.beeline.addTraceContext({ 'subscription.filter.result': filtered });
+        return filtered;
+      });
+    })();
+    return res;
   }
 }
 
@@ -193,7 +198,17 @@ export function createReadOnlyBaseResolver<
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true,
-      filter: GQLBaseResolver.filterById
+      filter: ({
+        payload,
+        args,
+        context
+      }: {
+        payload: RawPayload;
+        args?: { id?: string };
+        context: RumbleshipContext;
+      }) => {
+        return BaseResolver.filterById({ payload, args, context });
+      }
     })
     async onChange(
       @Root() rawPayload: RawPayload,

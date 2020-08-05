@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [10.3.2] -- 2020-08-05
+
+### Fixed
+  * Explicitly wrap BaseResolver.FilterById in `bindToTrace`
+
+## [10.3.1] -- 2020-08-04
+
+### Fixed
+  * Binding of BaseResolver.filterById
+
 ## [10.3.0] -- 2020-08-01
 
 ### Added
