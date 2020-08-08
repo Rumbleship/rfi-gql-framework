@@ -5,7 +5,12 @@ export function FilterableId(options: object = {}): PropertyDecorator {
   };
 }
 export function isFilterableId(filter: any, property_name: string | symbol): boolean {
-  if (Reflect.hasMetadata(FilterableIdSymbol, filter, property_name)) {
+  const filterable = Reflect.getMetadata(
+    FilterableIdSymbol,
+    FilterableIdSymbol,
+    filter[property_name]
+  );
+  if (filterable) {
     return true;
   }
   return false;
