@@ -1,5 +1,6 @@
 import { Oid } from '@rumbleship/oid';
 import { convertToSequelizeDateFilters } from './convert-to-sequelize-date-filters';
+import { isFilterableId } from '../../gql';
 
 export function createWhereClauseWith(filter: any): any {
   if (filter.id) {
@@ -12,14 +13,13 @@ export function createWhereClauseWith(filter: any): any {
       Reflect.set(filter, 'id', databaseId);
     }
   }
-  const ids_for_filter = Object.keys(filter).filter(k => k && k.match(/_id$/));
+  const ids_for_filter = Object.keys(filter).filter(
+    k => k.match(/_id$/) && isFilterableId(filter, k)
+  );
   for (const id_field of ids_for_filter) {
-    const val = Reflect.get(filter, id_field);
-    if (typeof val === 'string') {
-      const oid = new Oid(Reflect.get(filter, id_field));
-      const { id } = oid.unwrap();
-      Reflect.set(filter, id_field, id);
-    }
+    const oid = new Oid(Reflect.get(filter, id_field));
+    const { id } = oid.unwrap();
+    Reflect.set(filter, id_field, id);
   }
   /***
    * Look for any DateRange attributes and convert to sequelize operations

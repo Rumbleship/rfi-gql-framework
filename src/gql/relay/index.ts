@@ -12,3 +12,4 @@ export * from './pagination-query.interface';
 export * from './relay.interface';
 export * from './relay_edge_connection.builder';
 export * from './mixins/';
+export * from './filterable-id.decorator';
