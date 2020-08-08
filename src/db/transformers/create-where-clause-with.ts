@@ -14,9 +14,12 @@ export function createWhereClauseWith(filter: any): any {
   }
   const ids_for_filter = Object.keys(filter).filter(k => k && k.match(/_id$/));
   for (const id_field of ids_for_filter) {
-    const oid = new Oid(Reflect.get(filter, id_field));
-    const { id } = oid.unwrap();
-    Reflect.set(filter, id_field, id);
+    const val = Reflect.get(filter, id_field);
+    if (typeof val === 'string') {
+      const oid = new Oid(Reflect.get(filter, id_field));
+      const { id } = oid.unwrap();
+      Reflect.set(filter, id_field, id);
+    }
   }
   /***
    * Look for any DateRange attributes and convert to sequelize operations
