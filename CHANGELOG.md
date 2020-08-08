@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * `createWhereClauseWith` transforms Oids passed in filter to raw db ids
 ### Fixed
 ### Deprecated
 ### Security
