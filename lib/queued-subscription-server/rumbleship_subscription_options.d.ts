@@ -1,4 +1,4 @@
-import { OnDemandRumbleshipContext } from './on-demand-rumbleship-context';
+import { OnDemandRumbleshipContext } from '../app/rumbleship-context/on-demand-rumbleship-context';
 import { SubscriptionOptions, ResolverTopicData, ArgsDictionary } from 'type-graphql';
 declare type SubscriptionTopicFunc = (resolverTopicData: ResolverTopicData<any, any, any>) => string | string[];
 /***
@@ -18,13 +18,7 @@ export declare function RumbleshipSubscriptionOptions<TPayload = any, TArgs = Ar
     name?: string | undefined;
     complexity?: number | import("graphql-query-complexity").ComplexityEstimator | undefined;
     filter?: undefined;
-    subscribe: import("graphql-subscriptions").ResolverFn; /***
-     * @NOTE We make a 'pseudo' topic by adding queued in front og the topic to subscribe to if the context
-     * has isQueuedSubscription set.
-     *
-     * @see RfiPubSub subscribe function to see how this peudo topic is handled
-     *
-     */
+    subscribe: import("graphql-subscriptions").ResolverFn;
 } | {
     topics: (args: ResolverTopicData<TPayload, TArgs, OnDemandRumbleshipContext>) => string | string[];
     nullable?: boolean | "items" | "itemsAndList" | undefined;
