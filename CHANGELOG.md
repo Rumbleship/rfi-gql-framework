@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * BREAKING CHANGE
     * Added QueuedSubscriptionRequest full stack Gql Relay
       * All framework apps now requre a table 'queued_subscription_requests' adding.
-        see QueuedSubscriptionRequestModel for details
+        see src/queued-subscription-server/queued_subscription_request/db/_example_migrations for details
       * the function initializeQueuedSubscrriptionRelay() must be called on bootscrapping the application
       * all typeGraphQl resolvers that use @Subscription decorator should now use
       @RumbleshipSubscription
