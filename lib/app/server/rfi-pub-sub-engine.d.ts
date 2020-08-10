@@ -7,7 +7,18 @@ import { ModelDelta, NotificationOf } from '../../gql';
 import { DbModelAndOidScope } from './init-sequelize';
 import { RfiPubSubEngine, RfiSubscriptionOptions } from './rfi-pub-sub-engine.interface';
 /**
- * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
+ * @NOTE This pubsub is used for both websocket graphql subscriptions (eg playground, ApolloClient)
+ * as well as graphql subscriptions delivered over a google pubsub topic. Eg 'QueuedSubscriptions'
+ *
+ * See the subscribe function and the QueuedSubscriptionServer for details of why and how.
+ *
+ * TL;DR
+ * when the runtime 'context' for a graphql subscription has an isQueuedSubscription flag set, then
+ * we will append 'queued' in front of the topic to subscribe to via the typeGraphQl @Subscription decorator.
+ *
+ * @See RumbleshipSubscriptionOptions()
+ *
+ *
  */
 export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     protected topicPrefix: string;

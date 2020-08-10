@@ -1,0 +1,1 @@
+{"version":3,"file":"permissions.js","sourceRoot":"","sources":["../../../src/queued-subscription-server/queued_subscription_request/permissions.ts"],"names":[],"mappings":";;;AAAA,yCAAsD;AAEtD,2BAA2B;AACd,QAAA,kBAAkB,GAAG;IAChC,yBAAyB,EAAE,IAAI,iBAAW,EAAE;CAC7C,CAAC;AAEW,QAAA,mBAAmB,GAAG;IACjC,yBAAyB,EAAE;QACzB,OAAO,EAAE,YAAM,CAAC,QAAQ;KACzB;CACF,CAAC"}
