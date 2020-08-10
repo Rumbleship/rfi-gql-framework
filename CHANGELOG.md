@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     * Added QueuedSubscriptionRequest full stack Gql Relay
       * All framework apps now requre a table 'queued_subscription_requests' adding.
         see src/queued-subscription-server/queued_subscription_request/db/_example_migrations for details
-      * the function initializeQueuedSubscrriptionRelay() must be called on bootscrapping the application
       * all typeGraphQl resolvers that use @Subscription decorator should now use
       @RumbleshipSubscription
+      * calls to addNodeServicesToContainer require the context to be passed in
+  
   * added lodash as a peer dependancy
   * exported unique-subscription-name-part, plugins and routes
   * Added idempotency_key to NodeChangePayload and dependants to support deduplication of subscription notifications
@@ -26,9 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   
 ### Removed
 ### Changed
-  * BREAKING CHANGES:
-    * calls to addNodeServicesToContainer require the context to be passed in
-    * initServer initializes QueuedSubscriptionServer 
+  * initServer initializes QueuedSubscriptionServer
+    * adds QueuedSubscription
   * RfiPubsub now supports both 'queued' style gql subscriptions as well as broadcast UX style gql subscriptions 
     * uses mechanism implmented via unique-subscription-name-part and @RumbleshipSubscriptions 
     coupled with the OnDemandContext to select appropriate subscription type for context
