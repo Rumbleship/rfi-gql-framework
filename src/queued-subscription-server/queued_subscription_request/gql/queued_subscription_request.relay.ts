@@ -155,6 +155,7 @@ export class QueuedSubscriptionRequestFilter
  * with parameters in the super decorator that slects them in and out of the different types...
  * Bit late now.
  */
+/*
 enum QueuedSubscriptionRequestWatchList {
   authorized_requestor_id = 'authorized_requestor_id',
   marshalled_acl = 'marshalled_acl',
@@ -167,6 +168,13 @@ enum QueuedSubscriptionRequestWatchList {
   updated_at = 'updated_at',
   deleted_at = 'deleted_at'
 }
+*/
+
+const QueuedSubscriptionRequestWatchList = buildSubscriptionWatchList(
+  new ConcreteQueuedSubscriptionRequestFilter(),
+  [],
+  []
+);
 
 registerEnumType(QueuedSubscriptionRequestWatchList, {
   name: 'QueuedSubscriptionRequestWatchList',
@@ -183,3 +191,19 @@ export class QueuedSubscriptionRequestFilterForSubscriptions
     QueuedSubscriptionRequestWatchList
   )
   implements RelayFilterBase<QueuedSubscriptionRequest> {}
+
+function buildSubscriptionWatchList(from: object, exclude: string[], add: string[]) {
+  const watchList: { [x: string]: string } = {};
+  for (const key in from) {
+    if (exclude.some(excluded => excluded === key)) {
+      continue;
+    }
+    Reflect.set(watchList, key, key);
+  }
+  for (const key in add) {
+    if (!watchList.hasOwnProperty(key)) {
+      Reflect.set(watchList, key, key);
+    }
+  }
+  return watchList;
+}
