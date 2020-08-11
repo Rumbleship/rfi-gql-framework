@@ -27,8 +27,10 @@ import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize_queued_subscription_relay';
 import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
-import { QueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued_subscription_request.resolver';
+import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued_subscription_request.resolver';
 import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued_subscription_request_models';
+import { addFrameworkServiceFactory } from './framework_node_services';
+import { getQueuedSubscriptionRequestNodeServiceEntry } from '../../queued-subscription-server/get_queued_subscription_request_node_service_entry';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -51,9 +53,14 @@ export async function initServer(
   }
 ): Promise<Hapi.Server> {
   Authorizer.initialize(config);
+  // Bootstrap the framework QueuedSubscriptionRequest Relay stack
+  //
   inititializeQueuedSubscriptionRelay(config);
   const qsrDbModelAndScope = getQueuedSubscriptionRequestDbModelAndOidScope();
   injected_models = injected_models.concat(qsrDbModelAndScope);
+  const qsrResolverClass = buildQueuedSubscriptionRequestResolver();
+  addFrameworkServiceFactory(getQueuedSubscriptionRequestNodeServiceEntry);
+
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
   const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
@@ -146,7 +153,7 @@ export async function initServer(
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
     globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
-    resolvers: [QueuedSubscriptionRequestResolver],
+    resolvers: [qsrResolverClass],
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };

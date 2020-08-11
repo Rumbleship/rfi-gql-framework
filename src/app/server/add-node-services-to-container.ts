@@ -1,15 +1,16 @@
 import { ContainerInstance } from 'typedi';
 import { NodeService } from '../../gql/relay';
 import { RumbleshipContext } from '../rumbleship-context';
-import { getQueuedSubscriptionRequestNodeServiceEntry } from '../../queued-subscription-server/inititialize_queued_subscription_relay';
+import { getFrameworkServices } from './framework_node_services';
+
 export function addNodeServicesToContainer(
   context: RumbleshipContext,
   container: ContainerInstance,
   nodeServices: object
 ) {
   // Add in any framework defined services...
-  const queuedSubscriptionNodeServiceEntry = getQueuedSubscriptionRequestNodeServiceEntry(context);
-  const mutatedNodeServices = { queuedSubscriptionNodeServiceEntry, ...nodeServices };
+  const frameworkServices = getFrameworkServices(context);
+  const mutatedNodeServices = { frameworkServices, ...nodeServices };
   container.set('nodeServices', mutatedNodeServices);
   // also create 'named services' that the framework can inject into the specialized resolvers
   for (const key in mutatedNodeServices) {
