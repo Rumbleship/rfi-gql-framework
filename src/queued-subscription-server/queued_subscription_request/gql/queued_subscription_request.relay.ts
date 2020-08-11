@@ -28,7 +28,7 @@ import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
 import { getRelayPrefix } from '../../inititialize_queued_subscription_relay';
 import { withSubscriptionFilter } from '../../with_subscription_filter.mixin';
 import { ClassType } from '../../../helpers';
-import { WatchList, buildSubscriptionWatchList } from 'src/queued-subscription-server/watchlist';
+import { WatchList, buildSubscriptionWatchList } from '../../watchlist';
 
 const MAX_QUERY_STRING_LENGTH = 65535;
 const MAX_OPERATION_NAME_LENGTH = 2000;
