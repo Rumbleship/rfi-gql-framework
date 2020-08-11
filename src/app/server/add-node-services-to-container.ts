@@ -10,7 +10,7 @@ export function addNodeServicesToContainer(
 ) {
   // Add in any framework defined services...
   const frameworkServices = getFrameworkServices(context);
-  const mutatedNodeServices = { frameworkServices, ...nodeServices };
+  const mutatedNodeServices = { ...frameworkServices, ...nodeServices };
   container.set('nodeServices', mutatedNodeServices);
   // also create 'named services' that the framework can inject into the specialized resolvers
   for (const key in mutatedNodeServices) {
