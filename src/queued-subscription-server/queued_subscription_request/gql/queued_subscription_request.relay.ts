@@ -186,7 +186,7 @@ enum QueuedSubscriptionRequestWatchList {
 export class QueuedSubscriptionRequestFilterForSubscriptions
   extends withSubscriptionFilter(
     withTimeStampsFilter(ConcreteQueuedSubscriptionRequestFilter),
-    `${getRelayPrefix()}QueuedSubscriptionRequestWatchList`
+    `QueuedSubscriptionRequestWatchList` // note this is called before the server is bootstraped, so no access to config. But that is OK as the enum should be unique within a service
   )
   implements RelayFilterBase<QueuedSubscriptionRequest> {}
 
