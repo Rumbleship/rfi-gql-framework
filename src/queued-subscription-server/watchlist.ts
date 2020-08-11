@@ -10,10 +10,10 @@ export function WatchList(target: object, key: string) {
 
 export function getWatchlistMetadata<Base extends object>(from: ClassType<Base>) {
   let metadata = Reflect.getMetadata(WATCH_LIST_METADATA, from);
-  if (!metadata) {
-    metadata = Reflect.getMetadata(WATCH_LIST_METADATA, from.prototype) ?? [];
+  if (!metadata && from.prototype) {
+    metadata = Reflect.getMetadata(WATCH_LIST_METADATA, from.prototype);
   }
-  return metadata;
+  return metadata ?? [];
 }
 
 export function buildSubscriptionWatchList<Base extends object>(
