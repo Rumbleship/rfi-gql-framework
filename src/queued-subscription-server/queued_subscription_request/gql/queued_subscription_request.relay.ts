@@ -28,6 +28,7 @@ import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
 import { getRelayPrefix } from '../../inititialize_queued_subscription_relay';
 import { withSubscriptionFilter } from '../../with_subscription_filter.mixin';
 import { ClassType } from '../../../helpers';
+import { WatchList, buildSubscriptionWatchList } from 'src/queued-subscription-server/watchlist';
 
 const MAX_QUERY_STRING_LENGTH = 65535;
 const MAX_OPERATION_NAME_LENGTH = 2000;
@@ -41,34 +42,41 @@ export function buildQueuedSubscriptionRequestBaseAttribs(
 ): ClassType<IQueuedSubscriptionRequest> {
   @GqlBaseAttribs(attribType)
   class BaseQueuedSubscriptionRequestAttribs implements IQueuedSubscriptionRequest {
+    @WatchList
     @AuthorizerTreatAs([Resource.User])
     @Field(type => ID, { nullable: true })
     authorized_requestor_id!: string;
 
+    @WatchList
     @Field({ nullable: true })
     marshalled_acl!: string;
 
+    @WatchList
     @MaxLength(MAX_QUERY_STRING_LENGTH)
     @Field({ nullable: !isInputOrObject(attribType) })
     gql_query_string!: string;
 
+    @WatchList
     @MaxLength(MAX_QUERY_STRING_LENGTH)
     @Field({ nullable: true })
     query_attributes?: string;
 
+    @WatchList
     @MaxLength(MAX_OPERATION_NAME_LENGTH)
     @Field({ nullable: true })
     operation_name?: string;
-
+    @WatchList
     @MaxLength(MAX_TOPIC_NAME_LEN)
     @MinLength(MIN_TOPIC_NAME_LEN)
     @Matches(TOPIC_REGEX)
     @Field({ nullable: !isInputOrObject(attribType) })
     publish_to_topic_name!: string;
 
+    @WatchList
     @Field({ nullable: !isInputOrObject(attribType) })
     client_request_uuid!: string;
 
+    @WatchList
     @Field(type => Boolean, { nullable: !isInputOrObject(attribType) })
     active!: boolean;
   }
@@ -171,9 +179,7 @@ enum QueuedSubscriptionRequestWatchList {
 */
 
 const QueuedSubscriptionRequestWatchList = buildSubscriptionWatchList(
-  new ConcreteQueuedSubscriptionRequestFilter(),
-  [],
-  []
+  ConcreteQueuedSubscriptionRequestFilter
 );
 
 registerEnumType(QueuedSubscriptionRequestWatchList, {
@@ -192,18 +198,3 @@ export class QueuedSubscriptionRequestFilterForSubscriptions
   )
   implements RelayFilterBase<QueuedSubscriptionRequest> {}
 
-function buildSubscriptionWatchList(from: object, exclude: string[], add: string[]) {
-  const watchList: { [x: string]: string } = {};
-  for (const key in from) {
-    if (exclude.some(excluded => excluded === key)) {
-      continue;
-    }
-    Reflect.set(watchList, key, key);
-  }
-  for (const key in add) {
-    if (!watchList.hasOwnProperty(key)) {
-      Reflect.set(watchList, key, key);
-    }
-  }
-  return watchList;
-}

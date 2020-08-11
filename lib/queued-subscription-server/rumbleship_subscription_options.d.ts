@@ -30,5 +30,10 @@ export declare function RumbleshipSubscriptionOptions<TPayload = any, TArgs = Ar
     subscribe?: undefined;
     filter?: import("type-graphql/dist/decorators/types").SubscriptionFilterFunc | undefined;
 };
+/**
+ * Decorator wrapping standard @Subscription that add in QueuedSubscription processing
+ * @param returnTypeFunc
+ * @param options
+ */
 export declare function RumbleshipSubscription(returnTypeFunc: (type: any) => any, options: SubscriptionOptions): MethodDecorator;
 export {};
