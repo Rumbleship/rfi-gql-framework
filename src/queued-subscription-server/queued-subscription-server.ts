@@ -4,7 +4,8 @@ import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
 } from './queued_subscription_request/queued_subscription_request';
-import { RumbleshipContext, IterableConnection } from '../';
+import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
+import { IterableConnection } from '../gql/relay/iterable-connection.type';
 import {
   QueuedSubscriptionRequestService,
   QueuedSubscriptionRequestFilter

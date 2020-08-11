@@ -1,4 +1,4 @@
-import { ClassType } from '../';
+import { ClassType } from '../helpers/classtype';
 import { ArgsType, Field, ID } from 'type-graphql';
 
 export interface SubscriptionWatchFilter {

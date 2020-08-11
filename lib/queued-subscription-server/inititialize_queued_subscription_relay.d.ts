@@ -1,8 +1,5 @@
 import { Oid } from '@rumbleship/oid';
 import { ISharedSchema } from '@rumbleship/config';
-import { QueuedSubscriptionRequestModel } from './queued_subscription_request/db/queued_subscription_request.model';
-import { QueuedSubscriptionRequestServiceSequelize } from './queued_subscription_request/db/queued_subscription_request.service';
-import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 /**
  * MUST be called at the beginning of the bootstrap process before any of the queued subscription
  * code is called
@@ -15,15 +12,9 @@ import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context'
  *
  *
  */
-export declare function inititializeQueuedSubscriptionRelay(config: ISharedSchema, queued_subscription_request_scope_name?: string): {
-    scope: string;
-    dbModel: typeof QueuedSubscriptionRequestModel;
-};
+export declare function inititializeQueuedSubscriptionRelay(config: ISharedSchema, queued_subscription_request_scope_name?: string): void;
 export declare function getRelayPrefix(): string;
 export declare function getRelayPrefixLowerCase(): string;
 export declare function getServiceShortCode(): string;
 export declare function getQueuedSubscriptionRequestScopeName(): string;
 export declare function isQeuedSubscriptionOidForThisService(oid: Oid): boolean;
-export declare function getQueuedSubscriptionRequestNodeServiceEntry(context: RumbleshipContext): {
-    [x: string]: QueuedSubscriptionRequestServiceSequelize;
-};

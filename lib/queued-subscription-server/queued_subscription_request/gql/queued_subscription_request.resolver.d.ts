@@ -1,4 +1,7 @@
-import { GQLBaseResolver, BaseResolverInterface, RelayService, RawPayload } from '../../../';
+import { GQLBaseResolver } from '../../../gql/resolvers/base-resolver';
+import { BaseResolverInterface } from '../../../gql/resolvers/base-resolver.interface';
+import { RelayService } from '../../../gql/relay/relay.interface';
+import { RawPayload } from '../../../gql/resolvers/create-node-notification';
 import { QueuedSubscriptionRequest, QueuedSubscriptionRequestConnection, QueuedSubscriptionRequestFilter, QueuedSubscriptionRequestNotification, QueuedSubscriptionRequestInput, QueuedSubscriptionRequestUpdate, QueuedSubscriptionRequestFilterForSubscriptions } from './queued_subscription_request.relay';
 export declare class QueuedSubscriptionRequestResolver extends GQLBaseResolver<QueuedSubscriptionRequest, QueuedSubscriptionRequestConnection, QueuedSubscriptionRequestFilter, QueuedSubscriptionRequestInput, QueuedSubscriptionRequestUpdate> implements BaseResolverInterface<QueuedSubscriptionRequest, QueuedSubscriptionRequestConnection, QueuedSubscriptionRequestFilter, QueuedSubscriptionRequestInput, QueuedSubscriptionRequestUpdate> {
     readonly service: RelayService<QueuedSubscriptionRequest, QueuedSubscriptionRequestConnection, QueuedSubscriptionRequestFilter, QueuedSubscriptionRequestInput, QueuedSubscriptionRequestUpdate>;

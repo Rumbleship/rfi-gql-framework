@@ -1,6 +1,5 @@
 import { OnDemandRumbleshipContext } from '../app/rumbleship-context/on-demand-rumbleship-context';
 import { SubscriptionOptions, ResolverTopicData, ArgsDictionary, Subscription } from 'type-graphql';
-import { isArray } from 'util';
 
 // copied from type-graphql because it is not properly exposed
 type SubscriptionTopicFunc = (
@@ -21,7 +20,7 @@ export function enableQueuedSubscriptionSupport<TPayload, TArgs>(
     if (typeof topics === 'function') {
       topics = topics(params);
     }
-    if (!isArray(topics)) {
+    if (!Array.isArray(topics)) {
       topics = [topics];
     }
   } else {

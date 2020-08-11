@@ -1,20 +1,25 @@
 import { ObjectType, Field, ID, InputType, ArgsType, registerEnumType } from 'type-graphql';
+
 import {
   Node,
-  AttribType,
   RelayService,
-  GqlBaseAttribs,
-  isInputOrObject,
-  GqlNodeNotification,
-  withTimeStamps,
-  buildEdgeClass,
-  buildConnectionClass,
   RelayInputTypeBase,
-  withOrderByFilter,
-  withPaginationFilter,
-  withTimeStampsFilter,
   RelayFilterBase
-} from '../../../';
+} from '../../../gql/relay/relay.interface';
+import { AttribType } from '../../../gql/relay/attrib.enum';
+
+import { GqlBaseAttribs, isInputOrObject } from '../../../gql/relay/base-attribs.builder';
+
+import { GqlNodeNotification } from '../../../gql/relay/node-notification.builder';
+import { withTimeStamps } from '../../../gql/relay/mixins/with_timestamps.mixin';
+import {
+  buildEdgeClass,
+  buildConnectionClass
+} from '../../../gql/relay/relay_edge_connection.builder';
+
+import { withOrderByFilter } from '../../../gql/relay/mixins/with_order_by_filter.mixin';
+import { withPaginationFilter } from '../../../gql/relay/mixins/with_pagination_filter.mixin';
+import { withTimeStampsFilter } from '../../../gql/relay/mixins/with_timestamps_filter.mixin';
 
 import { Oid } from '@rumbleship/oid';
 import { IQueuedSubscriptionRequest } from '../queued_subscription_request';

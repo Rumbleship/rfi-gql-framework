@@ -28,6 +28,7 @@ import hapiRequestIdHeader = require('hapi-request-id-header');
 import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize_queued_subscription_relay';
 import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
 import { QueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued_subscription_request.resolver';
+import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued_subscription_request_models';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -50,7 +51,8 @@ export async function initServer(
   }
 ): Promise<Hapi.Server> {
   Authorizer.initialize(config);
-  const qsrDbModelAndScope = inititializeQueuedSubscriptionRelay(config);
+  inititializeQueuedSubscriptionRelay(config);
+  const qsrDbModelAndScope = getQueuedSubscriptionRequestDbModelAndOidScope();
   injected_models = injected_models.concat(qsrDbModelAndScope);
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });

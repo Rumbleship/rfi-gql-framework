@@ -1,9 +1,6 @@
 import { capitalize, lowerFirst } from 'lodash';
 import { Oid } from '@rumbleship/oid';
 import { ISharedSchema } from '@rumbleship/config';
-import { QueuedSubscriptionRequestModel } from './queued_subscription_request/db/queued_subscription_request.model';
-import { QueuedSubscriptionRequestServiceSequelize } from './queued_subscription_request/db/queued_subscription_request.service';
-import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 
 /**
  * MUST be called at the beginning of the bootstrap process before any of the queued subscription
@@ -29,10 +26,6 @@ export function inititializeQueuedSubscriptionRelay(
   //
   Oid.RegisterScope(queued_subscription_request_scope_name, `${config.serviceShortCode}.qsr`);
   setQueuedSubscriptionRequestScopeName(queued_subscription_request_scope_name);
-  return {
-    scope: queued_subscription_request_scope_name,
-    dbModel: QueuedSubscriptionRequestModel
-  };
 }
 
 let _the_service_name: string;
@@ -72,13 +65,6 @@ export function isQeuedSubscriptionOidForThisService(oid: Oid) {
   }
   return false;
 }
-export function getQueuedSubscriptionRequestNodeServiceEntry(context: RumbleshipContext) {
-  return {
-    [getQueuedSubscriptionRequestScopeName()]: new QueuedSubscriptionRequestServiceSequelize(
-      context
-    )
-  };
-}
 
 function setServiceName(name: string, service_short_code: string) {
   _the_service_name = name;
@@ -87,4 +73,3 @@ function setServiceName(name: string, service_short_code: string) {
 function setQueuedSubscriptionRequestScopeName(name: string) {
   _queued_subscription_request_scope_name = name;
 }
-

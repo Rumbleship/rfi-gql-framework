@@ -1,4 +1,5 @@
-import { Node, AttribType, RelayService, RelayInputTypeBase, RelayFilterBase } from '../../../';
+import { Node, RelayService, RelayInputTypeBase, RelayFilterBase } from '../../../gql/relay/relay.interface';
+import { AttribType } from '../../../gql/relay/attrib.enum';
 import { Oid } from '@rumbleship/oid';
 import { IQueuedSubscriptionRequest } from '../queued_subscription_request';
 import { ClassType } from '../../../helpers';
@@ -23,10 +24,10 @@ export declare class QueuedSubscriptionRequest extends QueuedSubscriptionRequest
 declare const QueuedSubscriptionRequestNotification_base: ClassType<import("../../..").NodeNotification<QueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequestNotification extends QueuedSubscriptionRequestNotification_base {
 }
-declare const QueuedSubscriptionRequestEdge_base: ClassType<import("../../..").Edge<QueuedSubscriptionRequest>>;
+declare const QueuedSubscriptionRequestEdge_base: ClassType<import("../../../gql/relay/relay.interface").Edge<QueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequestEdge extends QueuedSubscriptionRequestEdge_base {
 }
-declare const QueuedSubscriptionRequestConnection_base: ClassType<import("../../..").Connection<QueuedSubscriptionRequest>>;
+declare const QueuedSubscriptionRequestConnection_base: ClassType<import("../../../gql/relay/relay.interface").Connection<QueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequestConnection extends QueuedSubscriptionRequestConnection_base {
 }
 declare const QueuedSubscriptionRequestInput_base: ClassType<IQueuedSubscriptionRequest>;

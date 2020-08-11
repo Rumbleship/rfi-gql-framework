@@ -1,11 +1,11 @@
 import { Service } from 'typedi';
+import { SequelizeBaseService } from '../../../db/service/sequelize-base.service';
+import { RumbleshipContext } from '../../../app/rumbleship-context/rumbleship-context';
 import {
-  SequelizeBaseService,
-  RumbleshipContext,
   NodeServiceOptions,
   NodeServiceLock,
   NodeServiceIsolationLevel
-} from '../../../';
+} from '../../../gql/relay/relay.interface';
 
 import {
   QueuedSubscriptionRequest,

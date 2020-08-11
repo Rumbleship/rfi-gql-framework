@@ -1,14 +1,17 @@
 import { Resolver, Authorized, Arg, Mutation, Query, Args, ID, Root } from 'type-graphql';
+import { GQLBaseResolver } from '../../../gql/resolvers/base-resolver';
+
+import { BaseResolverInterface } from '../../../gql/resolvers/base-resolver.interface';
+import { RelayService } from '../../../gql/relay/relay.interface';
+import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay/notification-of.enum';
+
+import { RumbleshipContext } from '../../../app/rumbleship-context/rumbleship-context';
+import { NodeChangePayload } from '../../../app/server/rfi-pub-sub-engine.interface';
 import {
-  GQLBaseResolver,
-  BaseResolverInterface,
-  RelayService,
-  NODE_CHANGE_NOTIFICATION,
   RawPayload,
-  RumbleshipContext,
-  NodeChangePayload,
   createNodeNotification
-} from '../../../';
+} from '../../../gql/resolvers/create-node-notification';
+
 import { Service, Inject } from 'typedi';
 
 import {

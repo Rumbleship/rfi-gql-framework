@@ -1,7 +1,7 @@
 import { Model } from 'sequelize-typescript';
 import { PubSubEngine } from 'type-graphql';
 import { ModelDelta } from './../../gql/relay/node-notification';
-import { NotificationOf } from '../../gql';
+import { NotificationOf } from '../../gql/relay/notification-of.enum';
 
 export interface RfiSubscriptionOptions {
   asService?: boolean;

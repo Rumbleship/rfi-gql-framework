@@ -1,4 +1,4 @@
-import { NodeChangePayload } from '../';
+import { NodeChangePayload } from '../app/server/rfi-pub-sub-engine.interface';
 
 export function payloadOnWatchList(nodePayload: NodeChangePayload, watchList?: string[]) {
   if (!watchList || watchList.length === 0) {
