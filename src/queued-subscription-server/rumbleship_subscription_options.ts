@@ -46,8 +46,8 @@ export function RumbleshipSubscriptionOptions<TPayload = any, TArgs = ArgsDictio
 
 /**
  * Decorator wrapping standard @Subscription that add in QueuedSubscription processing
- * @param returnTypeFunc 
- * @param options 
+ * @param returnTypeFunc
+ * @param options
  */
 export function RumbleshipSubscription(
   returnTypeFunc: (type: any) => any,
