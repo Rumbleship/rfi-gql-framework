@@ -7,9 +7,9 @@ export interface SubscriptionWatchFilter {
  *
  * @param Base
  */
-export declare function withSubscriptionFilter<TFilterBase extends ClassType<object>, TEnumPropertyNames extends {
-    [name: string]: any;
-}>(Base: TFilterBase, propertyNames: TEnumPropertyNames): {
+export declare function withSubscriptionFilter<TFilterBase extends ClassType<object>>(Base: TFilterBase, watchListEnumNameOrEnum: string | {
+    [x: string]: string;
+}): {
     new (...args: any[]): {
         watch_list?: string[] | undefined;
         id?: string | undefined;

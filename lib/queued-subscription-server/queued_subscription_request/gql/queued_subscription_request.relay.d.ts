@@ -79,6 +79,19 @@ declare const QueuedSubscriptionRequestFilterForSubscriptions_base: {
         deleted_between?: import("../../..").DateRange | undefined;
     };
 } & typeof ConcreteQueuedSubscriptionRequestFilter;
+/***
+ * We could create this list off the actual Relay object, but that would project into the schema
+ * internal properties suvh as _service. So although it is labourious, we explicitly create the
+ * property watch list we want to watch.
+ * TODO
+ * There is probably some fabulous way of making this all a lot more typesafe,
+ * but I really dont have time right now to work that out
+ * hints may be here: https://stackoverflow.com/questions/54058699/is-there-a-way-to-dynamically-generate-enums-on-typescript-based-on-object-keys
+ * I kind of think we are getting to the point where we may want to make some 'super decorators' that, similar to the buildAttributes builders
+ * wrap both the Gql decorators and also the TypescriptSequelize so we can trully have a singular definition of the attributes,
+ * with parameters in the super decorator that slects them in and out of the different types...
+ * Bit late now.
+ */
 /**
  * Filters for Subscriptions dont require OrderBy or Pagination. But they can use
  * Timestamps and a specialized SubscriptonFilter that watches for changes in attributes

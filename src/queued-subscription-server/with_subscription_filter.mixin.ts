@@ -1,5 +1,6 @@
 import { ClassType } from '../helpers/classtype';
-import { ArgsType, Field, ID } from 'type-graphql';
+import { ArgsType, Field, ID, registerEnumType } from 'type-graphql';
+import { buildSubscriptionWatchList } from './watchlist';
 
 export interface SubscriptionWatchFilter {
   watch_list?: string[];
@@ -10,13 +11,24 @@ export interface SubscriptionWatchFilter {
  *
  * @param Base
  */
-export function withSubscriptionFilter<
-  TFilterBase extends ClassType<object>,
-  TEnumPropertyNames extends { [name: string]: any }
->(Base: TFilterBase, propertyNames: TEnumPropertyNames) {
+export function withSubscriptionFilter<TFilterBase extends ClassType<object>>(
+  Base: TFilterBase,
+  watchListEnumNameOrEnum: string | { [x: string]: string }
+) {
+  let watchlistEnum: { [x: string]: string };
+  if (typeof watchListEnumNameOrEnum === 'string') {
+    watchlistEnum = buildSubscriptionWatchList(Base);
+    registerEnumType(watchlistEnum, {
+      name: watchListEnumNameOrEnum,
+      description: `The list of properties that can be watched for change`
+    });
+  } else {
+    watchlistEnum = watchListEnumNameOrEnum;
+  }
+
   @ArgsType()
   class SubscriptionFilter extends Base implements SubscriptionWatchFilter {
-    @Field(type => [propertyNames], {
+    @Field(type => [watchlistEnum], {
       nullable: true,
       description:
         'List of attributes to watch. Subscription only triggers when one or more of these attributes change'

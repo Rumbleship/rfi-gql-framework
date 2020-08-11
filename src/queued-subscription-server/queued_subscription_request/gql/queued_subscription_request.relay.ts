@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, InputType, ArgsType, registerEnumType } from 'type-graphql';
+import { ObjectType, Field, ID, InputType, ArgsType } from 'type-graphql';
 
 import {
   Node,
@@ -28,7 +28,7 @@ import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
 import { getRelayPrefix } from '../../inititialize_queued_subscription_relay';
 import { withSubscriptionFilter } from '../../with_subscription_filter.mixin';
 import { ClassType } from '../../../helpers';
-import { WatchList, buildSubscriptionWatchList } from '../../watchlist';
+import { WatchList } from '../../watchlist';
 
 const MAX_QUERY_STRING_LENGTH = 65535;
 const MAX_OPERATION_NAME_LENGTH = 2000;
@@ -178,14 +178,6 @@ enum QueuedSubscriptionRequestWatchList {
 }
 */
 
-const QueuedSubscriptionRequestWatchList = buildSubscriptionWatchList(
-  ConcreteQueuedSubscriptionRequestFilter
-);
-
-registerEnumType(QueuedSubscriptionRequestWatchList, {
-  name: 'QueuedSubscriptionRequestWatchList',
-  description: `The list of properties that can be watched for change in QueuedSubscriptionRequests`
-});
 /**
  * Filters for Subscriptions dont require OrderBy or Pagination. But they can use
  * Timestamps and a specialized SubscriptonFilter that watches for changes in attributes
@@ -194,7 +186,7 @@ registerEnumType(QueuedSubscriptionRequestWatchList, {
 export class QueuedSubscriptionRequestFilterForSubscriptions
   extends withSubscriptionFilter(
     withTimeStampsFilter(ConcreteQueuedSubscriptionRequestFilter),
-    QueuedSubscriptionRequestWatchList
+    `${getRelayPrefix()}QueuedSubscriptionRequestWatchList`
   )
   implements RelayFilterBase<QueuedSubscriptionRequest> {}
 
