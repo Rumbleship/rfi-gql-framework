@@ -4,8 +4,10 @@ export const WATCH_LIST_METADATA = Symbol('WatchListMetadata');
 
 export function WatchList(target: object, key: string) {
   const watchListMetadata: string[] = getWatchlistMetadata(target as any);
-  watchListMetadata.push(key);
-  Reflect.defineMetadata(WATCH_LIST_METADATA, watchListMetadata, target);
+  if (!watchListMetadata.includes(key)) {
+    watchListMetadata.push(key);
+    Reflect.defineMetadata(WATCH_LIST_METADATA, watchListMetadata, target);
+  }
 }
 
 export function getWatchlistMetadata<Base extends object>(from: ClassType<Base>) {
