@@ -1,6 +1,6 @@
-import { ClassType } from '../helpers/classtype';
+import { ClassType } from '../../../helpers/classtype';
 import { ArgsType, Field, ID, registerEnumType } from 'type-graphql';
-import { buildSubscriptionWatchList } from './watchlist';
+import { buildSubscriptionWatchList } from '../watchable';
 
 export interface SubscriptionWatchFilter {
   watch_list?: string[];

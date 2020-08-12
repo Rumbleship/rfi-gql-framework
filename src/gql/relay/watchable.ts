@@ -1,8 +1,8 @@
-import { ClassType } from '../helpers/classtype';
+import { ClassType } from '../../helpers/classtype';
 
 export const WATCH_LIST_METADATA = Symbol('WatchListMetadata');
 
-export function WatchList(target: object, key: string) {
+export function Watchable(target: object, key: string) {
   const watchListMetadata: string[] = getWatchlistMetadata(target as any);
   if (!watchListMetadata.includes(key)) {
     watchListMetadata.push(key);

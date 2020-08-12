@@ -5,14 +5,14 @@ import {
   ID,
   Arg,
   Ctx,
-  Subscription,
   Field,
   Int,
   ObjectType,
   Root,
   Mutation,
   PubSubEngine,
-  PubSub
+  PubSub,
+  Args
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
@@ -23,10 +23,20 @@ import {
   NodeNotification,
   NotificationOf,
   NodeService,
-  NODE_CHANGE_NOTIFICATION
+  NODE_CHANGE_NOTIFICATION,
+  withTimeStampsFilter
 } from '../relay';
 import { RawPayload, createNodeNotification } from './create-node-notification';
+import { RumbleshipSubscription } from './rumbleship_subscription';
+import { withSubscriptionFilter } from '../relay/mixins/with_subscription_filter.mixin';
 
+import { filterBySubscriptionFilter } from './filter_by_subscription_filter';
+
+class Empty {}
+class NodeSubscriptionFilter extends withSubscriptionFilter(
+  withTimeStampsFilter(Empty),
+  'NodeSubscriptionWatchList'
+) {}
 // we make a specific concreate type here for the concrete general Node notification
 @ObjectType()
 class ClassGqlNodeNotification extends NodeNotification<any> {
@@ -77,12 +87,16 @@ export class NodeResolver implements RelayResolver {
     return true;
   }
 
-  @Subscription(type => ClassGqlNodeNotification, {
+  @RumbleshipSubscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
     topics: `${NODE_CHANGE_NOTIFICATION}`,
+    filter: filterBySubscriptionFilter,
     nullable: true
   })
-  async onChange(@Root() rawPayload: RawPayload): Promise<ClassGqlNodeNotification> {
+  async onChange(
+    @Root() rawPayload: RawPayload,
+    @Args(type => NodeSubscriptionFilter) args: NodeSubscriptionFilter
+  ): Promise<ClassGqlNodeNotification> {
     const recieved = JSON.parse(rawPayload.data.toString());
     const strOid = recieved?.oid;
     const oid: Oid = new Oid(strOid);

@@ -32,10 +32,11 @@ import {
 } from '../../inititialize_queued_subscription_relay';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
-import { payloadOnWatchList } from '../../payload_on_watch_list';
-import { SubscriptionWatchFilter } from '../../with_subscription_filter.mixin';
-import { RumbleshipSubscription } from '../../rumbleship_subscription_options';
+
+import { SubscriptionWatchFilter } from '../../../gql/relay/mixins/with_subscription_filter.mixin';
+import { RumbleshipSubscription } from '../../../gql/resolvers/rumbleship_subscription';
 import { ClassType } from '../../../helpers';
+import { filterBySubscriptionFilter } from '../../../gql/resolvers/filter_by_subscription_filter';
 
 export function buildQueuedSubscriptionRequestResolver(): ClassType<
   BaseResolverInterface<
@@ -139,36 +140,12 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
         context: RumbleshipContext;
       }) => {
         const nodePayload: NodeChangePayload = JSON.parse(payload.data.toString());
-        let filter: SubscriptionWatchFilter = {};
-        if (args) {
-          if (args.id && args.id !== nodePayload.oid) {
-            return false;
-          }
-          if (!payloadOnWatchList(nodePayload, args?.watch_list)) {
-            return false;
-          }
-          const oid = new Oid(nodePayload.oid);
-          if (!isQeuedSubscriptionOidForThisService(oid)) {
-            return false;
-          }
+        const oid = new Oid(nodePayload.oid);
 
-          const { watch_list, ...mutated_filter } = args;
-          filter = mutated_filter ?? {};
+        if (!isQeuedSubscriptionOidForThisService(oid)) {
+          return false;
         }
-        const queuedSubscriptionRequestService = context.container.get(
-          `${getQueuedSubscriptionRequestScopeName()}Service`
-        ) as RelayService<any, any, any, any, any>;
-
-        // remove watch_list from the query to be sent to the Service
-        // as it is not handled in the underlying framework findOne... (as you would expect)
-
-        filter.id = nodePayload.oid;
-        // Does this match, and are we allowed to see it?
-        const node = await queuedSubscriptionRequestService.findOne(filter);
-        if (node) {
-          return true;
-        }
-        return false;
+        return filterBySubscriptionFilter({ payload, args, context });
       },
       nullable: true
     })

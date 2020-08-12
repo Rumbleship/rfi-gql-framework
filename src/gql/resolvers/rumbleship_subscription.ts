@@ -1,6 +1,6 @@
-import { OnDemandRumbleshipContext } from '../app/rumbleship-context/on-demand-rumbleship-context';
+import { OnDemandRumbleshipContext } from '../../app/rumbleship-context/on-demand-rumbleship-context';
 import { SubscriptionOptions, ResolverTopicData, ArgsDictionary, Subscription } from 'type-graphql';
-
+import { filterBySubscriptionFilter } from './filter_by_subscription_filter';
 // copied from type-graphql because it is not properly exposed
 type SubscriptionTopicFunc = (
   resolverTopicData: ResolverTopicData<any, any, any>
@@ -41,7 +41,11 @@ export function RumbleshipSubscriptionOptions<TPayload = any, TArgs = ArgsDictio
   const wrappedTopics = (args: ResolverTopicData<TPayload, TArgs, OnDemandRumbleshipContext>) => {
     return enableQueuedSubscriptionSupport(args, topics);
   };
-  return { ...opts, topics: wrappedTopics };
+  return {
+    ...opts,
+    topics: wrappedTopics,
+    ...(!opts.filter ? { filter: filterBySubscriptionFilter } : {})
+  };
 }
 
 /**

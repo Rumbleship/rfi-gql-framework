@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   which properties should be 'watched' for change.
   
 ### Removed
+  
 ### Changed
   * initServer initializes QueuedSubscriptionServer
     * adds QueuedSubscription

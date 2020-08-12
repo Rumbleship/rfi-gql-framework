@@ -25,9 +25,10 @@ import uuid = require('uuid');
  *
  * TL;DR
  * when the runtime 'context' for a graphql subscription has an isQueuedSubscription flag set, then
- * we will append 'queued' in front of the topic to subscribe to via the typeGraphQl @Subscription decorator.
+ * we will append 'queued' in front of the topic to subscribe to via the typeGraphQl @Subscription
+ * and @RumbleshipSubscription decorator.
  *
- * @See RumbleshipSubscriptionOptions()
+ * @See RumbleshipSubscription
  *
  *
  */
