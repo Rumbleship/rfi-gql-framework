@@ -1,4 +1,4 @@
-import { SubscriptionWatchFilter } from '../../queued-subscription-server/with_subscription_filter.mixin';
+import { SubscriptionWatchFilter } from '../relay/mixins/with_subscription_filter.mixin';
 import { RawPayload } from './create-node-notification';
 import { RumbleshipContext } from '../../app/rumbleship-context/rumbleship-context';
 /**

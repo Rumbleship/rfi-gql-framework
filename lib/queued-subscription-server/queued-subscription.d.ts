@@ -1,5 +1,5 @@
 import { GraphQLSchema, ExecutionResult } from 'graphql';
-import { GqlExecutionParams } from './gql-execution-params';
+import { GqlExecutionParams } from './helpers/gql-execution-params';
 import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued_subscription_request/queued_subscription_request';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';

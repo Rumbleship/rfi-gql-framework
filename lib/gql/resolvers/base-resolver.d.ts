@@ -3,7 +3,7 @@ import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ClassType } from '../../helpers';
 import { Node, Connection, RelayService, NodeNotification } from '../relay';
 import { BaseResolverInterface } from './base-resolver.interface';
-import { SubscriptionWatchFilter } from '../../queued-subscription-server/with_subscription_filter.mixin';
+import { SubscriptionWatchFilter } from '../relay/mixins/with_subscription_filter.mixin';
 export declare class GQLBaseResolver<TApi extends Node<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate> implements BaseResolverInterface<TApi, TConnection, TFilter, TInput, TUpdate> {
     service: RelayService<TApi, TConnection, TFilter, TInput, TUpdate>;
     ctx: RumbleshipContext;

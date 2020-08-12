@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
   
 ### Changed
+  * BREAKING CHANGE
+    * buildBaseResolver()... takes an addtional ClassType, a filter class that is built using withSubscriptionFilter
+    see Orders service for example usage
+    * @Subscription usage is deprecated and @RumbleshipSubscription MUST be used
+    * @Watchable decorator identifies properties that can be 'watched' in a subscription for change
+    
   * initServer initializes QueuedSubscriptionServer
     * adds QueuedSubscription
   * RfiPubsub now supports both 'queued' style gql subscriptions as well as broadcast UX style gql subscriptions 
