@@ -22,21 +22,21 @@ import {
   QueuedSubscriptionRequestInput,
   QueuedSubscriptionRequestUpdate,
   QueuedSubscriptionRequestFilterForSubscriptions
-} from './queued_subscription_request.relay';
+} from './queued-subscription-request.relay';
 
 import { ResolverPermissions } from '../permissions';
 import {
   getRelayPrefixLowerCase,
   isQeuedSubscriptionOidForThisService,
   getQueuedSubscriptionRequestScopeName
-} from '../../inititialize_queued_subscription_relay';
+} from '../../inititialize-queued-subscription-relay';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
 
-import { SubscriptionWatchFilter } from '../../../gql/relay/mixins/with_subscription_filter.mixin';
-import { RumbleshipSubscription } from '../../../gql/resolvers/rumbleship_subscription';
+import { SubscriptionWatchFilter } from '../../../gql/relay/mixins/with-subscription-filter.mixin';
+import { RumbleshipSubscription } from '../../../gql/resolvers/rumbleship-subscription';
 import { ClassType } from '../../../helpers';
-import { filterBySubscriptionFilter } from '../../../gql/resolvers/filter_by_subscription_filter';
+import { filterBySubscriptionFilter } from '../../../gql/resolvers/filter-by-subscription-filter';
 
 export function buildQueuedSubscriptionRequestResolver(): ClassType<
   BaseResolverInterface<

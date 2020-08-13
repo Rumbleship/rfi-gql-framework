@@ -1,5 +1,5 @@
-import { SubscriptionWatchFilter } from '../relay/mixins/with_subscription_filter.mixin';
-import { payloadOnWatchList } from './payload_on_watch_list';
+import { SubscriptionWatchFilter } from '../relay/mixins/with-subscription-filter.mixin';
+import { payloadOnWatchList } from './payload-on-watch-list';
 import { RawPayload } from './create-node-notification';
 import { RumbleshipContext } from '../../app/rumbleship-context/rumbleship-context';
 import { NodeChangePayload } from '../../app/server/rfi-pub-sub-engine.interface';

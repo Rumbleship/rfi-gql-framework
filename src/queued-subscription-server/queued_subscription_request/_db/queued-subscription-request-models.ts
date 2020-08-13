@@ -1,6 +1,6 @@
 import { DbModelAndOidScope } from '../../../app/server/init-sequelize';
-import { QueuedSubscriptionRequestModel } from '../db/queued_subscription_request.model';
-import { getQueuedSubscriptionRequestScopeName } from '../../inititialize_queued_subscription_relay';
+import { QueuedSubscriptionRequestModel } from '../db/queued-subscription-request.model';
+import { getQueuedSubscriptionRequestScopeName } from '../../inititialize-queued-subscription-relay';
 const queuedSubscriptionRequestModels: DbModelAndOidScope[] = [
   {
     scope: getQueuedSubscriptionRequestScopeName(),

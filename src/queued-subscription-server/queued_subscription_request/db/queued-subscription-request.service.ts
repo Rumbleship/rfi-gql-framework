@@ -16,8 +16,8 @@ import {
   QueuedSubscriptionRequestInput,
   QueuedSubscriptionRequestUpdate,
   QueuedSubscriptionRequestService
-} from '../gql/queued_subscription_request.relay';
-import { QueuedSubscriptionRequestModel } from './queued_subscription_request.model';
+} from '../gql/queued-subscription-request.relay';
+import { QueuedSubscriptionRequestModel } from './queued-subscription-request.model';
 import { ServicePermissions } from '../permissions';
 
 @Service() // Each Request gets its own instance

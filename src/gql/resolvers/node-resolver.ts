@@ -27,10 +27,10 @@ import {
   withTimeStampsFilter
 } from '../relay';
 import { RawPayload, createNodeNotification } from './create-node-notification';
-import { RumbleshipSubscription } from './rumbleship_subscription';
-import { withSubscriptionFilter } from '../relay/mixins/with_subscription_filter.mixin';
+import { RumbleshipSubscription } from './rumbleship-subscription';
+import { withSubscriptionFilter } from '../relay/mixins/with-subscription-filter.mixin';
 
-import { filterBySubscriptionFilter } from './filter_by_subscription_filter';
+import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
 
 class Empty {}
 class NodeSubscriptionFilter extends withSubscriptionFilter(

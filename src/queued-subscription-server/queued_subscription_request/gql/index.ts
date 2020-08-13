@@ -1,2 +1,2 @@
-export * from './queued_subscription_request.relay';
-export * from './queued_subscription_request.resolver';
+export * from './queued-subscription-request.relay';
+export * from './queued-subscription-request.resolver';

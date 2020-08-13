@@ -11,8 +11,8 @@ import { OnDemandRumbleshipContext } from '../app/rumbleship-context/on-demand-r
 import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
-} from './queued_subscription_request/queued_subscription_request';
-import { isASubscriptionOperation } from './helpers/is_subscription_operation';
+} from './queued_subscription_request/queued-subscription-request';
+import { isASubscriptionOperation } from './helpers/is-subscription-operation';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';
 

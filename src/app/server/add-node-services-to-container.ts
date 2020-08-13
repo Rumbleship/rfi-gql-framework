@@ -1,7 +1,7 @@
 import { ContainerInstance } from 'typedi';
 import { NodeService } from '../../gql/relay';
 import { RumbleshipContext } from '../rumbleship-context';
-import { getFrameworkServices } from './framework_node_services';
+import { getFrameworkServices } from './framework-node-services';
 
 export function addNodeServicesToContainer(
   context: RumbleshipContext,

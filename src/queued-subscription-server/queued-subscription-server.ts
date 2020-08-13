@@ -3,15 +3,15 @@ import { GraphQLSchema } from 'graphql';
 import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
-} from './queued_subscription_request/queued_subscription_request';
+} from './queued_subscription_request/queued-subscription-request';
 import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 import { IterableConnection } from '../gql/relay/iterable-connection.type';
 import {
   QueuedSubscriptionRequestService,
   QueuedSubscriptionRequestFilter
-} from './queued_subscription_request/gql/queued_subscription_request.relay';
+} from './queued_subscription_request/gql/queued-subscription-request.relay';
 
-import { getQueuedSubscriptionRequestScopeName } from './inititialize_queued_subscription_relay';
+import { getQueuedSubscriptionRequestScopeName } from './inititialize-queued-subscription-relay';
 import { Authorizer } from '@rumbleship/acl';
 import uuid = require('uuid');
 import { IGcpConfig } from '@rumbleship/config';

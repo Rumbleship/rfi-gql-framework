@@ -1,20 +1,13 @@
 import { Scopes } from '@rumbleship/acl';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Oid } from '@rumbleship/oid';
-import { Resolver, Query, Arg, Args, Mutation, ID, Root, Authorized } from 'type-graphql';
+import { Resolver, Query, Arg, Args, Mutation, ID, Authorized } from 'type-graphql';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ClassType } from '../../helpers';
-import {
-  Node,
-  Connection,
-  RelayService,
-  NodeNotification,
-  NODE_CHANGE_NOTIFICATION
-} from '../relay';
+import { Node, Connection, RelayService, NodeNotification } from '../relay';
 import { BaseResolverInterface, BaseReadableResolverInterface } from './base-resolver.interface';
-import { RawPayload, createNodeNotification } from './create-node-notification';
-import { RumbleshipSubscription } from './rumbleship_subscription';
-import { SubscriptionWatchFilter } from '../relay/mixins/with_subscription_filter.mixin';
+import { SubscriptionWatchFilter } from '../relay/mixins/with-subscription-filter.mixin';
+import { withSubscriptionResolver } from './base-subscription-resolver.mixin';
 
 export class GQLBaseResolver<
   TApi extends Node<TApi>,
@@ -93,22 +86,14 @@ export function createBaseResolver<
     async update(@Arg('input', type => updateClsType) input: TUpdate): Promise<TApi> {
       return super.update(input);
     }
-
-    @AddToTrace()
-    @Authorized(defaultScope)
-    @RumbleshipSubscription(type => notificationClsType, {
-      name: `on${capitalizedName}Change`,
-      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
-      nullable: true
-    })
-    async onChange(
-      @Root() rawPayload: RawPayload,
-      @Args(type => subscriptionFilterClsType) args: SubscriptionWatchFilter
-    ): Promise<NodeNotification<TApi>> {
-      return createNodeNotification(rawPayload, this, notificationClsType);
-    }
   }
-  return BaseResolver;
+  return withSubscriptionResolver(
+    capitalizedName,
+    BaseResolver,
+    notificationClsType,
+    subscriptionFilterClsType,
+    defaultScope
+  );
 }
 
 export function createReadOnlyBaseResolver<
@@ -145,20 +130,12 @@ export function createReadOnlyBaseResolver<
     async getOne(@Arg('id', type => ID) id: string): Promise<TApi> {
       return super.getOne(id);
     }
-
-    @AddToTrace()
-    @Authorized(defaultScope)
-    @RumbleshipSubscription(type => notificationClsType, {
-      name: `on${capitalizedName}Change`,
-      topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
-      nullable: true
-    })
-    async onChange(
-      @Root() rawPayload: RawPayload,
-      @Args(type => subscriptionFilterClsType) args: TSubscriptionFilter
-    ): Promise<NodeNotification<TApi>> {
-      return createNodeNotification(rawPayload, this, notificationClsType);
-    }
   }
-  return BaseResolver;
+  return withSubscriptionResolver(
+    capitalizedName,
+    BaseResolver,
+    notificationClsType,
+    subscriptionFilterClsType,
+    defaultScope
+  );
 }

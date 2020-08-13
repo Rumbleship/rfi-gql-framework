@@ -1,2 +1,2 @@
-export * from './queued_subscription_request.model';
-export * from './queued_subscription_request.service';
+export * from './queued-subscription-request.model';
+export * from './queued-subscription-request.service';

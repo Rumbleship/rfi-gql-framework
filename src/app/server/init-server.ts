@@ -25,12 +25,12 @@ import { DateRange, DateRangeGQL } from '../../gql';
 
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
-import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize_queued_subscription_relay';
+import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize-queued-subscription-relay';
 import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
-import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued_subscription_request.resolver';
-import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued_subscription_request_models';
-import { addFrameworkServiceFactory } from './framework_node_services';
-import { getQueuedSubscriptionRequestNodeServiceEntry } from '../../queued-subscription-server/get_queued_subscription_request_node_service_entry';
+import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued-subscription-request.resolver';
+import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued-subscription-request-models';
+import { addFrameworkServiceFactory } from './framework-node-services';
+import { getQueuedSubscriptionRequestNodeServiceEntry } from '../../queued-subscription-server/get-queued-subscription-request-node-service-entry';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 

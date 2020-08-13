@@ -11,22 +11,22 @@ import { AttribType } from '../../../gql/relay/attrib.enum';
 import { GqlBaseAttribs, isInputOrObject } from '../../../gql/relay/base-attribs.builder';
 
 import { GqlNodeNotification } from '../../../gql/relay/node-notification.builder';
-import { withTimeStamps } from '../../../gql/relay/mixins/with_timestamps.mixin';
+import { withTimeStamps } from '../../../gql/relay/mixins/with-timestamps.mixin';
 import {
   buildEdgeClass,
   buildConnectionClass
-} from '../../../gql/relay/relay_edge_connection.builder';
+} from '../../../gql/relay/relay-edge-connection.builder';
 
-import { withOrderByFilter } from '../../../gql/relay/mixins/with_order_by_filter.mixin';
-import { withPaginationFilter } from '../../../gql/relay/mixins/with_pagination_filter.mixin';
-import { withTimeStampsFilter } from '../../../gql/relay/mixins/with_timestamps_filter.mixin';
+import { withOrderByFilter } from '../../../gql/relay/mixins/with-order-by-filter.mixin';
+import { withPaginationFilter } from '../../../gql/relay/mixins/with-pagination-filter.mixin';
+import { withTimeStampsFilter } from '../../../gql/relay/mixins/with-timestamps-filter.mixin';
 
 import { Oid } from '@rumbleship/oid';
-import { IQueuedSubscriptionRequest } from '../queued_subscription_request';
+import { IQueuedSubscriptionRequest } from '../queued-subscription-request';
 import { MaxLength, MinLength, Matches } from 'class-validator';
 import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
-import { getRelayPrefix } from '../../inititialize_queued_subscription_relay';
-import { withSubscriptionFilter } from '../../../gql/relay/mixins/with_subscription_filter.mixin';
+import { getRelayPrefix } from '../../inititialize-queued-subscription-relay';
+import { withSubscriptionFilter } from '../../../gql/relay/mixins/with-subscription-filter.mixin';
 import { ClassType } from '../../../helpers';
 import { Watchable } from '../../../gql/relay/watchable';
 

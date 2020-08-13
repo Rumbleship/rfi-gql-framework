@@ -13,7 +13,7 @@ import {
 import { validateFromExemplar } from '../../../db/helpers/validate-from-exemplar';
 import { AttribType } from '../../../gql/relay/attrib.enum';
 
-import { buildQueuedSubscriptionRequestBaseAttribs } from '../gql/queued_subscription_request.relay';
+import { buildQueuedSubscriptionRequestBaseAttribs } from '../gql/queued-subscription-request.relay';
 
 const QueuedSubscriptionRequestValidator = class extends buildQueuedSubscriptionRequestBaseAttribs(
   AttribType.ValidateOnly
