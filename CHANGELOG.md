@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [UNRELEASED]
 
+
 ### Added
+  * Section to README.md with check list of changes needed for apps migrating from
+    version 10 to this (version 11) of framework.
   * BREAKING CHANGE
     * Added QueuedSubscriptionRequest full stack Gql Relay
       * All framework apps now requre a table 'queued_subscription_requests' adding.

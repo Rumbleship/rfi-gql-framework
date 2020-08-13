@@ -4,7 +4,8 @@ export interface SubscriptionWatchFilter {
     id?: string;
 }
 /**
- *
+ * See @Watchable decorator and buildSubscriptionWatchList for details
+ * on how to add attributes that can be watched for change
  * @param Base
  */
 export declare function withSubscriptionFilter<TFilterBase extends ClassType<object>>(Base: TFilterBase, watchListEnumNameOrEnum: string | {
