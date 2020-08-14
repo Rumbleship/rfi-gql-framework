@@ -21,7 +21,7 @@ import { RFIAuthChecker, LogErrorMiddlewareFn } from './middleware';
 import { goodRfi, logErrorsPlugin } from './plugins';
 import { RfiPubSub } from './rfi-pub-sub-engine';
 import { root_route, health_check_route } from './routes';
-import { DateRange, DateRangeGQL } from '../../gql';
+import { DateRange, DateRangeGQL, NodeResolver } from '../../gql';
 
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
@@ -153,7 +153,7 @@ export async function initServer(
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
     globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
-    resolvers: [qsrResolverClass],
+    resolvers: [NodeResolver, qsrResolverClass],
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };
