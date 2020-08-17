@@ -96,6 +96,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     getServiceFor<S extends Node<S>, V extends NodeService<S>>(cls: ClassType<S> | string): V;
     getServiceForDbModel(dbClass: Model): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
     newTransaction(params: {
+        parentTransaction?: NodeServiceTransaction;
         isolation: NodeServiceIsolationLevel;
         autocommit: boolean;
         type?: NodeServiceTransactionType;

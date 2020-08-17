@@ -15,7 +15,7 @@ import {
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
 import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
 
-import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
+import { CreateOptions, UpdateOptions, Model as SequelizeModel, Transaction } from 'sequelize';
 import { getContextId, getAuthorizedUser } from '../rumbleship-context';
 import uuid = require('uuid');
 /**
@@ -77,9 +77,16 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
         const deltas = getChangedAttributes(instance);
 
         if (options && options.transaction) {
-          const context_id = getContextId(options.transaction);
-          const authorized_user = getAuthorizedUser(options.transaction);
-          options.transaction.afterCommit(t => {
+          // we only want to publish when the 'outer most' transaction is committed
+          // a bit of nasty type assertion, as the sequelize and typescriptSequelize
+          // typings are a bit flaky in hooks.
+          let outerTransaction = options.transaction as any;
+          while (outerTransaction.transaction) {
+            outerTransaction = outerTransaction.transaction;
+          }
+          const context_id = getContextId(outerTransaction);
+          const authorized_user = getAuthorizedUser(outerTransaction);
+          (outerTransaction as Transaction).afterCommit(t => {
             pubSub.publishModelChange(
               notification_of,
               instance,
