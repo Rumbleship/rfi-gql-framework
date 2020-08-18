@@ -405,16 +405,21 @@ export class SequelizeBaseService<
 
   @AddToTrace()
   async newTransaction(params: {
+    parentTransaction?: NodeServiceTransaction;
     isolation: NodeServiceIsolationLevel;
     autocommit: boolean;
     type?: NodeServiceTransactionType;
   }): Promise<NodeServiceTransaction> {
     const txn = await this.model.sequelize!.transaction({
+      transaction: params.parentTransaction as any,
       isolationLevel: params.isolation as any,
       autocommit: params.autocommit,
       type: params.type as any
     });
     this.ctx.beeline.addTraceContext({
+      'db.parentTransaction': params.parentTransaction
+        ? (params.parentTransaction as any).id
+        : 'NONE',
       'db.transaction.isolationLevel': params.isolation,
       'db.transaction.autocommit': params.autocommit,
       'db.transaction.type': params.type,
@@ -423,7 +428,11 @@ export class SequelizeBaseService<
     setContextId(txn, this.ctx.id);
     setAuthorizedUser(txn, this.ctx.authorizer);
     this.ctx.logger.addMetadata({
-      txn: { id: (txn as any).id, options: (txn as any).options }
+      txn: {
+        parentTransaction: params.parentTransaction ? (params.parentTransaction as any).id : 'NONE',
+        id: (txn as any).id,
+        options: (txn as any).options
+      }
     });
     this.ctx.logger.info('transaction_started');
     return (txn as unknown) as NodeServiceTransaction;
@@ -730,8 +739,9 @@ export class SequelizeBaseService<
       throw new RFIAuthError();
     }
     // start a (nested) transaction
-    const updateTransaction = await this.model.sequelize!.transaction({
-      transaction: sequelizeOptions.transaction,
+    const updateTransaction = await this.newTransaction({
+      parentTransaction: sequelizeOptions.transaction,
+      isolation: NodeServiceIsolationLevel.READ_COMMITTED,
       autocommit: false
     });
     try {
@@ -757,7 +767,7 @@ export class SequelizeBaseService<
       isAuthorized = await this.checkDbIsAuthorized(
         dbId,
         Actions.UPDATE,
-        { ...sequelizeOptions, transaction: updateTransaction },
+        { ...sequelizeOptions, transaction: updateTransaction as any },
         options
       );
       if (!isAuthorized) {
