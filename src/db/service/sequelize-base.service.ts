@@ -739,11 +739,11 @@ export class SequelizeBaseService<
       throw new RFIAuthError();
     }
     // start a (nested) transaction
-    const updateTransaction = (await this.newTransaction({
+    const updateTransaction = await this.newTransaction({
       parentTransaction: sequelizeOptions.transaction,
       isolation: NodeServiceIsolationLevel.READ_COMMITTED,
       autocommit: false
-    })) as any;
+    });
     try {
       // we are definately authed to go find the model,
       //  set the context so we can do sequelize finds
@@ -767,7 +767,7 @@ export class SequelizeBaseService<
       isAuthorized = await this.checkDbIsAuthorized(
         dbId,
         Actions.UPDATE,
-        { ...sequelizeOptions, transaction: updateTransaction },
+        { ...sequelizeOptions, transaction: updateTransaction as any },
         options
       );
       if (!isAuthorized) {
