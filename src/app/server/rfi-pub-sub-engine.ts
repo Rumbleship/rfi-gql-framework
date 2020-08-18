@@ -15,7 +15,7 @@ import {
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
 import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
 
-import { CreateOptions, UpdateOptions, Model as SequelizeModel } from 'sequelize';
+import { CreateOptions, UpdateOptions, Model as SequelizeModel, Transaction } from 'sequelize';
 import { getContextId, getAuthorizedUser } from '../rumbleship-context';
 import uuid = require('uuid');
 /**
@@ -77,9 +77,12 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
         const deltas = getChangedAttributes(instance);
 
         if (options && options.transaction) {
-          const context_id = getContextId(options.transaction);
-          const authorized_user = getAuthorizedUser(options.transaction);
-          options.transaction.afterCommit(t => {
+          const outermost_transaction: Transaction = RfiPubSub.getOutermostTransaction(
+            options.transaction
+          );
+          const context_id = getContextId(outermost_transaction);
+          const authorized_user = getAuthorizedUser(outermost_transaction);
+          outermost_transaction.afterCommit(t => {
             pubSub.publishModelChange(
               notification_of,
               instance,
@@ -107,6 +110,22 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     sequelize.afterCreate(hookCb(this, NotificationOf.CREATED));
     sequelize.afterUpdate(hookCb(this, NotificationOf.UPDATED));
     // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
+  }
+
+  /**
+   *
+   * @param { Sequelize.Transaction } transaction the current transaction, which may be a child of other transactions
+   * @returns { Sequelize.Transaction } the outermost wrapping transaction of the transaction that was passed.
+   *
+   * @usage walk up the tree of nested transactions to find the outermost. Useful for finding the last transaction to
+   * be finished, and attaching hooks to *it*.
+   */
+  private static getOutermostTransaction(transaction: Transaction): Transaction {
+    let outer_transaction = transaction as any; // `as any`: sequelize + sequelize-typescript manage types badly at this level.
+    while (outer_transaction.transaction) {
+      outer_transaction = outer_transaction.transaction;
+    }
+    return outer_transaction;
   }
 
   public getMarshalledTraceContext(context_id: string): string {
