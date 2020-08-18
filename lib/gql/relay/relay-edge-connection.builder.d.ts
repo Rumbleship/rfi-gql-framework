@@ -21,6 +21,6 @@ export declare function buildEdgeClass<T extends Node<T>, TI>(options: {
 export declare function buildConnectionClass<T extends Node<T>, TEdge extends Edge<T>, TI>(options: {
     RelayClass: ClassType<T>;
     EdgeClass: ClassType<TEdge>;
-    SchemaCLass?: ClassType<TI>;
+    SchemaClass?: ClassType<TI>;
     schemaType?: AttribType;
 }): ClassType<Connection<T>>;

@@ -41,11 +41,11 @@ export function buildEdgeClass<T extends Node<T>, TI>(options: {
 export function buildConnectionClass<T extends Node<T>, TEdge extends Edge<T>, TI>(options: {
   RelayClass: ClassType<T>;
   EdgeClass: ClassType<TEdge>;
-  SchemaCLass?: ClassType<TI>;
+  SchemaClass?: ClassType<TI>;
   schemaType?: AttribType;
 }): ClassType<Connection<T>> {
-  const { EdgeClass, SchemaCLass, schemaType } = options;
-  const GqlType = SchemaCLass ?? EdgeClass;
+  const { EdgeClass, SchemaClass, schemaType } = options;
+  const GqlType = SchemaClass ?? EdgeClass;
   @GqlBaseAttribs(schemaType ?? AttribType.Obj)
   class RelayConnectionClass extends Connection<T> {
     @Field(type => PageInfo)

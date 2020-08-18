@@ -30,9 +30,10 @@ Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
   However for Filters, these are always optional. The standard pattern we have adopted in the gql world of determining `nullable: boolean` using `!isInputOrObject(attribType)` takes care of that for the schema.    
   For the Typescript type system, we have to use type manipulation and create a type that converts all the properties to optional. This can eiterh be done by creating a alias type as below or using Partial<MyRelayFilterClass> in the methods that take a filter.
 
-  While refactoring to use the SubscriptionFilter, it may be appropriate to also use this pattern. See the simple MyRelayResolver example below.
+  While refactoring to use the SubscriptionFilter, it may be appropriate to also use this pattern. See the simple MyRelayResolver example below.<br>
+  3.7 Replace the deprecated GQLEdge and GQLCOnnection with the prefered buildEdgeClass() and buildConnectionClass()
   
-  Example:<br>
+  Examples:<br>
 
 
 ```Typescript
