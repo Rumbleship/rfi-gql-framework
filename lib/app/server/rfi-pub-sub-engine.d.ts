@@ -22,6 +22,7 @@ export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
      * @description Attaches global model hooks, respecting transactions, to th
      */
     linkToSequelize(sequelize: Sequelize): void;
+    private static getOutermostNestedTransaction;
     getMarshalledTraceContext(context_id: string): string;
     publish(triggerName: string, payload: any): Promise<void>;
     subscribe(triggerName: string, onMessage: (message: string) => null, options?: RfiSubscriptionOptions): Promise<number>;

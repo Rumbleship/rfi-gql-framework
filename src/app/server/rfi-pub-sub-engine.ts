@@ -80,10 +80,10 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
           // we only want to publish when the 'outer most' transaction is committed
           // a bit of nasty type assertion, as the sequelize and typescriptSequelize
           // typings are a bit flaky in hooks.
-          let outerTransaction = options.transaction as any;
-          while (outerTransaction.transaction) {
-            outerTransaction = outerTransaction.transaction;
-          }
+          //
+          // Walk up the transaction nesting to find the outermost transaction
+          const outerTransaction = RfiPubSub.getOutermostNestedTransaction(options.transaction);
+          // use THAT transaction's commit hook to publish
           const context_id = getContextId(outerTransaction);
           const authorized_user = getAuthorizedUser(outerTransaction);
           (outerTransaction as Transaction).afterCommit(t => {
@@ -114,6 +114,14 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     sequelize.afterCreate(hookCb(this, NotificationOf.CREATED));
     sequelize.afterUpdate(hookCb(this, NotificationOf.UPDATED));
     // sequelize.afterBulkCreate((instances, options) => gqlBulkCreateHook(pubSub, instances, options));
+  }
+
+  private static getOutermostNestedTransaction(transaction: Transaction): Transaction {
+    let outerTransaction = transaction as any;
+    while (outerTransaction.transaction) {
+      outerTransaction = outerTransaction.transaction;
+    }
+    return outerTransaction;
   }
 
   public getMarshalledTraceContext(context_id: string): string {
