@@ -5,18 +5,12 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [10.3.3] -- 2020-08-18
 
-### Added
-### Removed
-### Changed
 ### Fixed
   * Fixed nested transaction not having the authorized user attached or context id in the update fiunction by: 
     - add support for nested transactions in the BaseSequelize.newTransaction() call and use in the update function
     - correctly find the outerMost transaction when publishing changes int eh sequelize hook so that nested transaction changes are ONLY published when the outer most transaction is committed
-
-### Deprecated
-### Security
 
 
 ## [10.3.2] -- 2020-08-05
