@@ -11,7 +11,10 @@ import {
   QueuedSubscriptionRequestFilter
 } from './queued_subscription_request/gql/queued-subscription-request.relay';
 
-import { getQueuedSubscriptionRequestScopeName } from './inititialize-queued-subscription-relay';
+import {
+  getQueuedSubscriptionRequestScopeName,
+  getRelayPrefixLowerCase
+} from './inititialize-queued-subscription-relay';
 import { Authorizer } from '@rumbleship/acl';
 import uuid = require('uuid');
 import { IGcpConfig } from '@rumbleship/config';
@@ -31,9 +34,11 @@ export class QueuedSubscriptionServer {
     const header = Authorizer.createServiceUserAuthHeader();
     const authorizer = Authorizer.make(header, true);
     const marshalled_acl = authorizer.marshalClaims();
+    const baseName = `${getRelayPrefixLowerCase()}`;
+    const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
     const gql_query_string = `
     subscription {
-      onOrdersQueuedSubscriptionRequestChange (  watch_list: [active]) {
+      on${capitalizedName}QueuedSubscriptionRequestChange (  watch_list: [active]) {
         idempotency_key
         node {
           id

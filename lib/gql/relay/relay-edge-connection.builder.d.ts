@@ -6,6 +6,14 @@ import { Node, Edge, Connection } from './relay.interface';
 import { ClassType } from '../../helpers/classtype';
 import { AttribType } from './attrib.enum';
 /**
+ * @see https://facebook.github.io/relay/graphql/connections.htm
+ *
+ * We have to derive a concrete class for Connections, as the typescript introspection
+ * isnt good enougth with generics ( ie the abstract edges cant be decorated successfully as a
+ * graphQL field)...but we can still pull up common beviours to this abstract
+ * class
+ */
+/**
  * @note `SchemaClass` can be passed in addition to `RelayClass` because polymorphic single-table-inheritence
  * typesafety requires it.
  */

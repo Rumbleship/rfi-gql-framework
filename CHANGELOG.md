@@ -43,6 +43,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     * uses mechanism implmented via unique-subscription-name-part and @RumbleshipSubscriptions 
     coupled with the OnDemandContext to select appropriate subscription type for context
   * upgraded version of @rumbleship/config to 1.0.3
+  * Upgrade packages:
+    - "type-graphql": "^1.0.0",
+    - "typescript": "^3.9.7",
+    - "sequelize-typescript": "^1.1.0"
+
 ### Fixed
 ### Deprecated
 ### Security

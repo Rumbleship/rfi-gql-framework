@@ -28,10 +28,9 @@ Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
   3.6 **A note on Filters**.<br>
   Usually, the BaseAttribs builders define attributes as both required and optional as the business rules dictate for the business object.<br>
   However for Filters, these are always optional. The standard pattern we have adopted in the gql world of determining `nullable: boolean` using `!isInputOrObject(attribType)` takes care of that for the schema.    
-  For the Typescript type system, we have to use type manipulation and create a type that converts all the properties to optional. This can eiterh be done by creating a alias type as below or using Partial<MyRelayFilterClass> in the methods that take a filter.
-
-  While refactoring to use the SubscriptionFilter, it may be appropriate to also use this pattern. See the simple MyRelayResolver example below.<br>
-  3.7 Replace the deprecated GQLEdge and GQLCOnnection with the prefered buildEdgeClass() and buildConnectionClass()
+  For the Typescript type system, we have to use type manipulation and create a type that converts all the properties to optional. This can eiterh be done by creating a alias type as below or using Partial<MyRelayFilterClass> in the methods that take a filter. <br>
+  Note in the example Resolver below, for the lineItems field resolver, the alias type `LineItemFilter` is used for the typescript method defnition, and the the ClassType `GqlLineItemFilter` is used in the typeGraphQL decorator. <br>
+3.  3.7 Replace the deprecated GQLEdge and GQLConnection with the prefered buildEdgeClass() and buildConnectionClass()
   
   Examples:<br>
 
@@ -134,3 +133,5 @@ export class OrderEventResolverBase extends OrderEventBaseResolver {
 Add the xxxxSubscriptionFilter class that you added as per above to the function as directed by the 'hover over'
 
 5) Look for any custom resolvers and evaluate if the onXXXChange() subscription should be replaced with the withSubscriptionsResolver() mixin.
+
+6) copy the migrations from ./src/queued-subscription-server/_db/_example_migrations to the app migration folder
