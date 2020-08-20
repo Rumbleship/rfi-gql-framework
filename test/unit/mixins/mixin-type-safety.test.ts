@@ -66,6 +66,21 @@ describe('Given: `withTimeStampsFilter` mixed in', () => {
   });
 });
 
+
+describe('Given: `withSubscriptionFilter` mixed in', () => {
+  class MixedIn extends Mixins.withSubscriptionFilter(Base, {}) {}
+  const instance = new MixedIn();
+  test('Then: types prevent an unknown attribute from being set on instance', () => {
+    // @ts-expect-error
+    instance.foo = 'foo';
+    expect(true).toBe(true);
+  });
+  test('Then: compiler can be overwritten to set a random attribute on instance', () => {
+    (instance as any).foo = 'foo';
+    expect((instance as any).foo).toBe('foo');
+  });
+});
+
 /**
  * If this test fails, you've likely added a mixin to `src/gql/relay/mixins/` and
  * not added the corresponding test here. Due to compile-time/run-time differences,
