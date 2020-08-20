@@ -66,7 +66,6 @@ describe('Given: `withTimeStampsFilter` mixed in', () => {
   });
 });
 
-
 describe('Given: `withSubscriptionFilter` mixed in', () => {
   class MixedIn extends Mixins.withSubscriptionFilter(Base, {}) {}
   const instance = new MixedIn();
