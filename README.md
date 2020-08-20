@@ -5,7 +5,11 @@ Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
 # Upgrade from version 10 to 11 check list
 
 1) Change package.json to point to latest framework and yarn
-  1.1 make sure peer dependancies are fixed
+  1.1 make sure peer dependancies are fixed especially config
+  1.2 make sure that
+    `serviceName: 'service name here',
+    serviceShortCode: '?',` are at the same level as root in config/config.ts
+
 <br>
 2) Change all `@Subscription` in code to `@RumbleshipSubscription`
 <br>
