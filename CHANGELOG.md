@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
   
 ### Changed
+  
   * BREAKING CHANGE
     * buildBaseResolver()... takes an addtional ClassType, a filter class that is built using withSubscriptionFilter
     see Orders service for example usage
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     - "type-graphql": "^1.0.0",
     - "typescript": "^3.9.7",
     - "sequelize-typescript": "^1.1.0"
+  * Explicitly set the 'type => ...' for edges in GqlConnection() and buildConnectionClass() functions to [gqlEdge] as per typeGraphQl v1.0.0 change log
 
 ### Fixed
 ### Deprecated

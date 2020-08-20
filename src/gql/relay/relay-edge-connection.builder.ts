@@ -47,6 +47,11 @@ export function buildEdgeClass<T extends Node<T>, TI>(options: {
  * typesafety requires it.
  */
 export function buildConnectionClass<T extends Node<T>, TEdge extends Edge<T>, TI>(options: {
+  /*
+   * Although we dont reference RelayClass, it seems we need to pass it in in order to
+   * get the typescript type calculus to correctly identify the Edge class when this builder is
+   * used
+   */
   RelayClass: ClassType<T>;
   EdgeClass: ClassType<TEdge>;
   SchemaClass?: ClassType<TI>;
@@ -58,7 +63,7 @@ export function buildConnectionClass<T extends Node<T>, TEdge extends Edge<T>, T
   class RelayConnectionClass extends Connection<T> {
     @Field(type => PageInfo)
     pageInfo: PageInfo = new PageInfo();
-    @Field(type => GqlType)
+    @Field(type => [GqlType])
     edges!: TEdge[];
 
     addEdges(edges: TEdge[], hasNextPage: boolean, hasPreviousPage: boolean): void {
