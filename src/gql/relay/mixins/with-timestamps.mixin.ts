@@ -1,7 +1,7 @@
 import { Field } from 'type-graphql';
 import { AttribType } from '../attrib.enum';
 import { GqlBaseAttribs } from '../base-attribs.builder';
-import { ClassType } from './../../../helpers/classtype';
+import { ClassType } from '../../../helpers/classtype';
 
 export function withTimeStamps<TBase extends ClassType<object>>(
   attribType: AttribType,

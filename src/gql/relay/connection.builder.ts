@@ -26,7 +26,7 @@ export function GQLConnection<T extends Node<T>, TEdge extends Edge<T>>(
   class GQLConnectionClass extends Connection<T> {
     @Field(type => PageInfo)
     pageInfo: PageInfo = new PageInfo();
-    @Field(type => TEdgeClass)
+    @Field(type => [TEdgeClass])
     edges!: TEdge[];
 
     addEdges(edges: TEdge[], hasNextPage: boolean, hasPreviousPage: boolean): void {

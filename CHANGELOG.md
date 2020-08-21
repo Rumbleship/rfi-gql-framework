@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+
+### Added
+  * Section to README.md with check list of changes needed for apps migrating from
+    version 10 to this (version 11) of framework.
+  * BREAKING CHANGE
+    * Added QueuedSubscriptionRequest full stack Gql Relay
+      * All framework apps now requre a table 'queued_subscription_requests' adding.
+        see src/queued-subscription-server/queued_subscription_request/db/_example_migrations for details
+      * all typeGraphQl resolvers that use @Subscription decorator should now use
+      @RumbleshipSubscription
+      * calls to addNodeServicesToContainer require the context to be passed in
+    * added `lodash` as a peer dependancy
+    * Added idempotency_key to NodeChangePayload and dependants to support deduplication of subscription notifications
+    * when a ClassGqlNodeNotifcation is constructed, a idempotency_key must be included. This is set in the publish from the sequelize hooks. However, it must be extracted from the RawPayload the graphQl resolver reieves and then set in the constructor of the return structure
+  * OnDemandContext which is a specialized RumbleshipContext that can be passed into long running processes and 'reset' by call backs. Used by QueuedSubscriptionRequest 
+  * added a 'watchList' to base Resolver subscriptions that allows clients to specifiy
+  which properties should be 'watched' for change.
+  * exported unique-subscription-name-part, plugins and routes
+  
+### Removed
+  
+### Changed
+  
+  * BREAKING CHANGE
+    * buildBaseResolver()... takes an addtional ClassType, a filter class that is built using withSubscriptionFilter see Orders service for example usage
+    * @Subscription usage is deprecated and @RumbleshipSubscription MUST be used
+    * @Watchable decorator identifies properties that can be 'watched' in a subscription for change
+    
+  * initServer initializes QueuedSubscriptionServer
+    * adds QueuedSubscription
+  * RfiPubsub now supports both 'queued' style gql subscriptions as well as broadcast UX style gql subscriptions 
+    * uses mechanism implmented via unique-subscription-name-part and @RumbleshipSubscriptions 
+    coupled with the OnDemandContext to select appropriate subscription type for context
+  * upgraded version of @rumbleship/config to 2.0.0
+  * Upgrade packages:
+    - "type-graphql": "^1.0.0",
+    - "typescript": "^3.9.7",
+    - "sequelize-typescript": "^1.1.0"
+  * Explicitly set the 'type => ...' for edges in GqlConnection() and buildConnectionClass() functions to [gqlEdge] as per typeGraphQl v1.0.0 change log
+
+### Fixed
+### Deprecated
+### Security
+
+
 ## [10.3.3] -- 2020-08-18
 
 ### Fixed

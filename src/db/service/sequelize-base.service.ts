@@ -26,7 +26,7 @@ import {
   cloneAndTransposeDeprecatedValues
 } from '../../gql';
 import { toBase64, ClassType } from '../../helpers';
-import { RumbleshipContext, setContextId, setAuthorizedUser } from '../../app/';
+import { RumbleshipContext, setContextId, setAuthorizedUser } from '../../app/rumbleship-context';
 import {
   GqlSingleTableInheritanceFactory,
   getAuthorizeContext,

@@ -4,3 +4,6 @@ export * from './rfi-pub-sub-engine';
 export * from './rfi-pub-sub-engine.interface';
 export * from './middleware';
 export * from './init-server';
+export * from './unique-subscription-name-part';
+export * from './plugins';
+export * from './routes';

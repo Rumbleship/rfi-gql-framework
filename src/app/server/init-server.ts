@@ -5,7 +5,7 @@ import * as Hoek from '@hapi/hoek';
 import Container from 'typedi';
 import { buildSchema, BuildSchemaOptions } from 'type-graphql';
 import { ConnectionContext } from 'subscriptions-transport-ws';
-import { printSchema } from 'graphql';
+import { printSchema, GraphQLSchema } from 'graphql';
 import { writeFileSync } from 'fs';
 import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
@@ -25,6 +25,14 @@ import { DateRange, DateRangeGQL } from '../../gql';
 
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
+import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize-queued-subscription-relay';
+import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
+import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued-subscription-request.resolver';
+import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued-subscription-request-models';
+import { addFrameworkServiceFactory } from './framework-node-services';
+import { getQueuedSubscriptionRequestNodeServiceEntry } from '../../queued-subscription-server/get-queued-subscription-request-node-service-entry';
+
+export let globalGraphQlSchema: GraphQLSchema | undefined;
 
 export async function initServer(
   config: ISharedSchema,
@@ -45,6 +53,14 @@ export async function initServer(
   }
 ): Promise<Hapi.Server> {
   Authorizer.initialize(config);
+  // Bootstrap the framework QueuedSubscriptionRequest Relay stack
+  //
+  inititializeQueuedSubscriptionRelay(config);
+  const qsrDbModelAndScope = getQueuedSubscriptionRequestDbModelAndOidScope();
+  injected_models = injected_models.concat(qsrDbModelAndScope);
+  const qsrResolverClass = buildQueuedSubscriptionRequestResolver();
+  addFrameworkServiceFactory(getQueuedSubscriptionRequestNodeServiceEntry);
+
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
   const serverOptions: Hapi.ServerOptions = config.HapiServerOptions;
@@ -115,6 +131,7 @@ export async function initServer(
 
   const pubSub = new RfiPubSub(
     config.Gcp.gaeVersion,
+    config.serviceName,
     config.PubSub,
     config.Gcp.Auth,
     InjectedBeeline
@@ -132,15 +149,16 @@ export async function initServer(
     }
   }
 
-  const default_schema_options: Omit<BuildSchemaOptions, 'resolvers'> = {
+  const default_schema_options: BuildSchemaOptions = {
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
     globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
+    resolvers: [qsrResolverClass],
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };
   const schema_options = Hoek.merge(default_schema_options, injected_schema_options);
-  const schema = await buildSchema(schema_options).catch(err => {
+  globalGraphQlSchema = await buildSchema(schema_options).catch(err => {
     serverLogger.error(err.stack);
     if (err.details && Array.isArray(err.details)) {
       for (const detail of err.details) {
@@ -149,14 +167,14 @@ export async function initServer(
     }
     throw err;
   });
-  const schemaAsString = printSchema(schema);
+  const schemaAsString = printSchema(globalGraphQlSchema);
   if (config.GqlSchema.schemaPrintFile) {
     writeFileSync(config.GqlSchema.schemaPrintFile, schemaAsString);
   }
 
   pubSub.linkToSequelize(sequelize);
   const apolloServer = new ApolloServer({
-    schema,
+    schema: globalGraphQlSchema,
     introspection: true,
     subscriptions: {
       onConnect: (connectionParams, webSocket, context: ConnectionContext) => {
@@ -227,7 +245,43 @@ export async function initServer(
   await apolloServer.applyMiddleware({
     app: server
   });
+  // Set up subscriptions for websocket clients
   apolloServer.installSubscriptionHandlers(server.listener);
+  // setup subscription server for GooglePubSub  clients
+  const queuedSubscriptionServer = new QueuedSubscriptionServer(globalGraphQlSchema, config.Gcp);
+
+  server.events.on('start', async () => {
+    try {
+      const rumbleshipContext = RumbleshipContext.make(__filename);
+      try {
+        // this function starts all the active queued subscriptions and then returns
+        await queuedSubscriptionServer.start(rumbleshipContext);
+      } finally {
+        await rumbleshipContext.release();
+      }
+    } catch (error) {
+      serverLogger.error('Error starting QueuedSubscriptionServer', {
+        stack: error.stack,
+        message: error.message
+      });
+      throw error;
+    }
+  });
+  // setup the routines to gracefully shut down the Event Dispatcher and pubsub.
+  // Note that startServer calls server.stop() on receipt of a SIGTERM signel, which in turn will
+  // emit the 'stop' event
+  server.events.on('stop', async () => {
+    try {
+      await queuedSubscriptionServer.stop();
+    } catch (error) {
+      serverLogger.error('Error stopping QueuedSubscriptionServer', {
+        stack: error.stack,
+        message: error.message
+      });
+      throw error;
+    }
+  });
+
   await server.register(hapi_plugins);
   await server.route([root_route, health_check_route, ...injected_routes]);
 

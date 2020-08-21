@@ -11,6 +11,14 @@ import { GqlBaseAttribs } from './base-attribs.builder';
 import { PageInfo } from './page-info.type';
 
 /**
+ * @see https://facebook.github.io/relay/graphql/connections.htm
+ *
+ * We have to derive a concrete class for Connections, as the typescript introspection
+ * isnt good enougth with generics ( ie the abstract edges cant be decorated successfully as a
+ * graphQL field)...but we can still pull up common beviours to this abstract
+ * class
+ */
+/**
  * @note `SchemaClass` can be passed in addition to `RelayClass` because polymorphic single-table-inheritence
  * typesafety requires it.
  */
@@ -39,18 +47,23 @@ export function buildEdgeClass<T extends Node<T>, TI>(options: {
  * typesafety requires it.
  */
 export function buildConnectionClass<T extends Node<T>, TEdge extends Edge<T>, TI>(options: {
+  /*
+   * Although we dont reference RelayClass, it seems we need to pass it in in order to
+   * get the typescript type calculus to correctly identify the Edge class when this builder is
+   * used
+   */
   RelayClass: ClassType<T>;
   EdgeClass: ClassType<TEdge>;
-  SchemaCLass?: ClassType<TI>;
+  SchemaClass?: ClassType<TI>;
   schemaType?: AttribType;
 }): ClassType<Connection<T>> {
-  const { EdgeClass, SchemaCLass, schemaType } = options;
-  const GqlType = SchemaCLass ?? EdgeClass;
+  const { EdgeClass, SchemaClass, schemaType } = options;
+  const GqlType = SchemaClass ?? EdgeClass;
   @GqlBaseAttribs(schemaType ?? AttribType.Obj)
   class RelayConnectionClass extends Connection<T> {
     @Field(type => PageInfo)
     pageInfo: PageInfo = new PageInfo();
-    @Field(type => GqlType)
+    @Field(type => [GqlType])
     edges!: TEdge[];
 
     addEdges(edges: TEdge[], hasNextPage: boolean, hasPreviousPage: boolean): void {

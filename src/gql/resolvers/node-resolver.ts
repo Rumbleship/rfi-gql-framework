@@ -5,14 +5,14 @@ import {
   ID,
   Arg,
   Ctx,
-  Subscription,
   Field,
   Int,
   ObjectType,
   Root,
   Mutation,
   PubSubEngine,
-  PubSub
+  PubSub,
+  Args
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
@@ -23,21 +23,31 @@ import {
   NodeNotification,
   NotificationOf,
   NodeService,
-  NODE_CHANGE_NOTIFICATION
+  NODE_CHANGE_NOTIFICATION,
+  withTimeStampsFilter
 } from '../relay';
 import { RawPayload, createNodeNotification } from './create-node-notification';
+import { RumbleshipSubscription } from './rumbleship-subscription';
+import { withSubscriptionFilter } from '../relay/mixins/with-subscription-filter.mixin';
 
+import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
+
+class Empty {}
+class NodeSubscriptionFilter extends withSubscriptionFilter(
+  withTimeStampsFilter(Empty),
+  'NodeSubscriptionWatchList'
+) {}
 // we make a specific concreate type here for the concrete general Node notification
 @ObjectType()
 class ClassGqlNodeNotification extends NodeNotification<any> {
   @Field(type => Int)
-  sequence!: number;
+  idempotency_key!: string;
   @Field(type => NotificationOf)
   notificationOf!: NotificationOf;
   @Field(type => Node, { nullable: true })
   node!: Node<any>;
-  constructor(notificationOf: NotificationOf, node: Node<any>) {
-    super(notificationOf, node);
+  constructor(notificationOf: NotificationOf, idempotency_key: string, node: Node<any>) {
+    super(notificationOf, idempotency_key, node);
   }
 }
 
@@ -77,12 +87,16 @@ export class NodeResolver implements RelayResolver {
     return true;
   }
 
-  @Subscription(type => ClassGqlNodeNotification, {
+  @RumbleshipSubscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
     topics: `${NODE_CHANGE_NOTIFICATION}`,
+    filter: filterBySubscriptionFilter,
     nullable: true
   })
-  async onChange(@Root() rawPayload: RawPayload): Promise<ClassGqlNodeNotification> {
+  async onChange(
+    @Root() rawPayload: RawPayload,
+    @Args(type => NodeSubscriptionFilter) args: NodeSubscriptionFilter
+  ): Promise<ClassGqlNodeNotification> {
     const recieved = JSON.parse(rawPayload.data.toString());
     const strOid = recieved?.oid;
     const oid: Oid = new Oid(strOid);

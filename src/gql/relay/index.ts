@@ -10,5 +10,6 @@ export * from './notification-of.enum';
 export * from './page-info.type';
 export * from './pagination-query.interface';
 export * from './relay.interface';
-export * from './relay_edge_connection.builder';
-export * from './mixins/';
+export * from './relay-edge-connection.builder';
+export * from './mixins';
+export * from './watchable';
