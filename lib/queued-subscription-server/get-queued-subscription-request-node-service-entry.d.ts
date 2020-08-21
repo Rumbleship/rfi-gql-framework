@@ -4,5 +4,5 @@ import { NodeService } from '../gql/relay';
  * Helps reduce cyclic dependancies....
  */
 export declare function getQueuedSubscriptionRequestNodeServiceEntry(context: RumbleshipContext): {
-    [x: string]: NodeService<any>;
+    [index: string]: NodeService<any>;
 };

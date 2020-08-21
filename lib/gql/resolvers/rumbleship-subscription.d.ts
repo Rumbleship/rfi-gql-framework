@@ -1,12 +1,16 @@
 import { OnDemandRumbleshipContext } from '../../app/rumbleship-context/on-demand-rumbleship-context';
 import { SubscriptionOptions, ResolverTopicData, ArgsDictionary } from 'type-graphql';
 import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
+/**
+ * @chore
+ * * Copied from type-graphql as the type is not exported
+ */
 declare type SubscriptionTopicFunc = (resolverTopicData: ResolverTopicData<any, any, any>) => string | string[];
 /***
- * @NOTE We make a 'pseudo' topic by adding queued in front og the topic to subscribe to if the context
+ * @NOTE We make a 'faux' topic by adding queued in front og the topic to subscribe to if the context
  * has isQueuedSubscription set.
  *
- * @see RfiPubSub subscribe function to see how this peudo topic is handled
+ * @see RfiPubSub subscribe function to see how this faux topic is handled
  *
  */
 export declare function enableQueuedSubscriptionSupport<TPayload, TArgs>(params: ResolverTopicData<TPayload, TArgs, OnDemandRumbleshipContext>, topics: string | string[] | SubscriptionTopicFunc | undefined): string | string[];

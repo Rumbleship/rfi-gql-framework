@@ -2,7 +2,7 @@ import { OnDemandRumbleshipContext } from '../../app/rumbleship-context/on-deman
 import { SubscriptionOptions, ResolverTopicData, ArgsDictionary, Subscription } from 'type-graphql';
 import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
 /**
- * @chore 
+ * @chore
  * * Copied from type-graphql as the type is not exported
  */
 type SubscriptionTopicFunc = (

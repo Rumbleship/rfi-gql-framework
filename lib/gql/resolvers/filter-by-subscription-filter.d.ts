@@ -19,6 +19,11 @@ export declare function filterBySubscriptionFilter({ payload: rawPayload, args, 
     args?: SubscriptionWatchFilter;
     context: RumbleshipContext;
 }): Promise<boolean>;
+/**
+ * @chore https://www.pivotaltracker.com/n/projects/2437211/stories/174433505
+ * @deprecated use filterBySubscriptionFilter instead
+ * @param param0
+ */
 export declare function filterById({ payload: rawPayload, args, context }: {
     payload: RawPayload;
     args?: {
