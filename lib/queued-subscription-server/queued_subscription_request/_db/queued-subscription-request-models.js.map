@@ -1,0 +1,1 @@
+{"version":3,"file":"queued-subscription-request-models.js","sourceRoot":"","sources":["../../../../src/queued-subscription-server/queued_subscription_request/_db/queued-subscription-request-models.ts"],"names":[],"mappings":";;;AAAA,+FAAyF;AACzF,yGAAqG;AAErG,SAAgB,8CAA8C;IAC5D,OAAO;QACL;YACE,KAAK,EAAE,8EAAqC,EAAE;YAC9C,OAAO,EAAE,kEAA8B;SACxC;KACF,CAAC;AACJ,CAAC;AAPD,wGAOC"}

@@ -5,57 +5,53 @@ import { hostname } from 'os';
 import { IPubSubConfig, IGcpAuthConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
-import {
-  ModelDelta,
-  NotificationOf,
-  RfiSubscriptionOptions,
-  uniqueSubscriptionNamePart,
-  NODE_CHANGE_NOTIFICATION
-} from '../../gql';
+import { ModelDelta, NotificationOf, NODE_CHANGE_NOTIFICATION } from '../../gql';
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
-import { RfiPubSubEngine, NodeChangePayload } from './rfi-pub-sub-engine.interface';
+import {
+  RfiPubSubEngine,
+  NodeChangePayload,
+  RfiSubscriptionOptions
+} from './rfi-pub-sub-engine.interface';
 
+import { uniqueSubscriptionNamePart } from './unique-subscription-name-part';
 import { CreateOptions, UpdateOptions, Model as SequelizeModel, Transaction } from 'sequelize';
 import { getContextId, getAuthorizedUser } from '../rumbleship-context';
 import uuid = require('uuid');
 /**
- * @NOTE THIS IS IS ONLY FOR CLIENT SUBSCRIPTIONS
+ * @NOTE This pubsub is used for both websocket graphql subscriptions (eg playground, ApolloClient)
+ * as well as graphql subscriptions delivered over a google pubsub topic. Eg 'QueuedSubscriptions'
+ *
+ * See the subscribe function and the QueuedSubscriptionServer for details of why and how.
+ *
+ * TL;DR
+ * when the runtime 'context' for a graphql subscription has an isQueuedSubscription flag set, then
+ * we will append 'queued' in front of the topic to subscribe to via the typeGraphQl @Subscription
+ * and @RumbleshipSubscription decorator.
+ *
+ * @See RumbleshipSubscription
+ *
+ *
  */
 export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   protected topicPrefix: string;
+  protected serviceName: string;
   public publisher_version: string;
   protected subscription_ids: number[];
   protected beeline_cls: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline;
   constructor(
     publisher_version: string,
+    serviceName: string,
     config: IPubSubConfig,
     auth: IGcpAuthConfig,
     beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
   ) {
-    // RfiPubSub.validatePubSubConfig(config);
     super(auth, uniqueSubscriptionNamePart);
     this.topicPrefix = config.topicPrefix;
+    this.serviceName = serviceName;
     this.publisher_version = publisher_version;
     this.beeline_cls = beeline;
     this.subscription_ids = [];
   }
-
-  // static validatePubSubConfig(config: RfiPubSubConfig) {
-  //   if (['test', 'development'].includes(process.env.NODE_ENV as string)) {
-  //     if (['test', 'development'].includes(config.topicPrefix)) {
-  //       /**
-  //        * Each instance of a dev environment (which really means each instance of the database)
-  //        * e.g. when running locally needs to have a prefix for the topics so they dont clash with others
-  //        * as we share a development queue in GCP pub sub
-  //        *
-  //        * Alternatively, use an emulator!
-  //        */
-  //       throw new Error(
-  //         'PubSub.topicPrefix MUST be set to a non-clashing value i.e your username.: See @rumbleship/gql: RfiPubSub'
-  //       );
-  //     }
-  //   }
-  // }
 
   /**
    *
@@ -85,6 +81,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
           outermost_transaction.afterCommit(t => {
             pubSub.publishModelChange(
               notification_of,
+              uuid.v4(),
               instance,
               deltas,
               context_id,
@@ -102,7 +99,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
               notification_of
             })
           );
-          pubSub.publishModelChange(notification_of, instance, deltas);
+          pubSub.publishModelChange(notification_of, uuid.v4(), instance, deltas);
         }
       };
     };
@@ -143,10 +140,34 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     onMessage: (message: string) => null,
     options?: RfiSubscriptionOptions
   ): Promise<number> {
-    const topicName = `${this.topicPrefix}_${triggerName}`;
+    // This function is called deep within the type-graphql library, and
+    // there is no way to pass in the 'options'
+    //
+    // So we distinguish what type of subscription to do via
+    // a naming convention on the trigger name. Basically, do we want a unique subscription or a shared subscription
+    //
+    // If the triggerName passed in beginning in 'queued_...' means a service type subscription, i.e. it
+    // acts liker a classic 'worker queue' where each instance that is subscribes gets
+    // ie we share the subscription across all instances of this service.. On one of which will be notified of an
+    // message published to the underlyging topic
+    // the superclass subscribe uses uniqueSubscriptionNamePart() in the subscribe to find the name
+    // of the subscription to use, and that function takes the SubscriptionOptions and creates the appropriate suscription name
+    // depending on the asService option
+    let topicName;
+    const queuedString = 'queued-';
+    let opts: RfiSubscriptionOptions = { ...options };
+    if (triggerName.startsWith(queuedString)) {
+      topicName = `${this.topicPrefix}_${triggerName.substring(queuedString.length)}`;
+
+      opts = { ...options, asService: true, serviceName: `queued-${this.serviceName}` };
+    } else {
+      topicName = `${this.topicPrefix}_${triggerName}`;
+    }
     await this.createTopicIfNotExist(topicName);
-    const sub_id = await super.subscribe(topicName, onMessage, options);
+    // the googlePubSub lib uses the
+    const sub_id = await super.subscribe(topicName, onMessage, opts);
     this.subscription_ids.push(sub_id);
+
     return sub_id;
   }
 
@@ -173,6 +194,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
    */
   publishModelChange(
     notification: NotificationOf,
+    idempotency_key: string,
     model: Model,
     deltas: ModelDelta[],
     context_id?: string,
@@ -180,6 +202,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
   ): void {
     const rval = payloadFromModel(model) as NodeChangePayload;
     rval.action = notification;
+    rval.idempotency_key = idempotency_key;
     rval.deltas = deltas;
     rval.publisher_version = this.publisher_version;
     rval.marshalled_trace = context_id ? this.getMarshalledTraceContext(context_id) : undefined;

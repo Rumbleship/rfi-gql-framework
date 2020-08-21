@@ -4,7 +4,7 @@ import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
 import { Connection, Edge, Node, NodeService, NodeServiceOptions, NodeServiceTransaction, NodeServiceIsolationLevel, NodeServiceTransactionType, RelayFilterBase } from '../../gql';
 import { ClassType } from '../../helpers';
-import { RumbleshipContext } from '../../app/';
+import { RumbleshipContext } from '../../app/rumbleship-context';
 import { GqlSingleTableInheritanceFactory } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<any, any, any, any, any, any>;

@@ -1,12 +1,23 @@
 import { Model } from 'sequelize-typescript';
 import { PubSubEngine } from 'type-graphql';
 import { ModelDelta } from './../../gql/relay/node-notification';
-import { NotificationOf } from '../../gql/relay';
-import { RfiSubscriptionOptions } from '../../gql/resolvers/create-node-notification';
+import { NotificationOf } from '../../gql/relay/notification-of.enum';
+
+export interface RfiSubscriptionOptions {
+  asService?: boolean;
+  serviceName?: string;
+}
 export interface PubEngine extends PubSubEngine {
   publisher_version: string;
   getMarshalledTraceContext(trace_id: string): string;
-  publishModelChange(notificationType: NotificationOf, model: Model, deltas: any[]): void;
+  publishModelChange(
+    notification: NotificationOf,
+    idempotency_key: string,
+    model: Model,
+    deltas: ModelDelta[],
+    context_id?: string,
+    authorized_user?: string
+  ): void;
   subscribe(
     triggerName: string,
     onMessage: (message: string) => null,
@@ -34,6 +45,7 @@ export interface Payload<T extends PayloadTypes> {
 }
 export interface NodeChangePayload extends Payload<PayloadTypes.NODE_CHANGE> {
   publisher_version: string;
+  idempotency_key: string;
   oid: string;
   id: string;
   action: string;
