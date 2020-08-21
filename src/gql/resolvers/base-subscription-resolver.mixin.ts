@@ -7,7 +7,7 @@ import {
 import { ClassType } from '../../helpers/classtype';
 import { Scopes } from '@rumbleship/acl';
 import { AddToTrace } from '@rumbleship/o11y';
-import { Authorized, Root, Args } from 'type-graphql';
+import { Authorized, Root, Args, Resolver } from 'type-graphql';
 import { RumbleshipSubscription } from './rumbleship-subscription';
 import { createNodeNotification, RawPayload } from './create-node-notification';
 import { BaseReadableResolverInterface } from './base-resolver.interface';
@@ -24,6 +24,7 @@ export function withSubscriptionResolver<
   subscriptionFilterClsType: ClassType<TSubscriptionFilter>,
   defaultScope: Scopes | Scopes[]
 ) {
+  @Resolver({ isAbstract: true })
   class SubscriptionResolver extends Base {
     @AddToTrace()
     @Authorized(defaultScope)
