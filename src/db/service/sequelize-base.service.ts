@@ -1,6 +1,6 @@
 import { Service } from 'typedi';
 import { Transaction, FindOptions, Op } from 'sequelize';
-import { Model } from 'sequelize-typescript';
+import { Model, AssociationCountOptions } from 'sequelize-typescript';
 import {
   Actions,
   RFIAuthError,
@@ -501,7 +501,7 @@ export class SequelizeBaseService<
 
     this.addAuthorizationFilters(findOptions, options ?? {});
 
-    const { rows, count } = await this.model.findAndCountAll(findOptions);
+    const { rows, count } = await this.model.unscoped().findAndCountAll(findOptions);
     // prime the cache
     // this.sequelizeDataloaderCtx.prime(rows);
     const { pageBefore, pageAfter } = calculateBeforeAndAfter(limits.offset, limits.limit, count);
@@ -562,7 +562,7 @@ export class SequelizeBaseService<
       ...sequelizeOptions
     };
     this.addAuthorizationFilters(findOptions, options ?? {});
-    return this.model.count(findOptions);
+    return this.model.unscoped().count(findOptions);
   }
 
   @AddToTrace()
@@ -832,7 +832,8 @@ export class SequelizeBaseService<
         order: orderClause
       };
 
-      const countOptions: FindOptions = {
+      const countOptions: AssociationCountOptions = {
+        scope: false,
         where: whereClause,
         attributes: [],
         order: orderClause
