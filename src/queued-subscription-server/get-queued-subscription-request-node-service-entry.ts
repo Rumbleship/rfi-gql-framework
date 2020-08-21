@@ -7,7 +7,7 @@ import { NodeService } from '../gql/relay';
  */
 export function getQueuedSubscriptionRequestNodeServiceEntry(
   context: RumbleshipContext
-): { [x: string]: NodeService<any> } {
+): { [index: string]: NodeService<any> } {
   return {
     [getQueuedSubscriptionRequestScopeName()]: new QueuedSubscriptionRequestServiceSequelize(
       context

@@ -34,17 +34,17 @@ export async function filterBySubscriptionFilter({
       async () => {
         const nodePayload: NodeChangePayload = JSON.parse(rawPayload.data.toString());
         context.beeline.addTraceContext({ subscription: { filter: args, payload: nodePayload } });
-        const traceReturn = (ret: boolean): boolean => {
+        const traceResult = (ret: boolean): boolean => {
           context.beeline.addTraceContext({ subscription: { filter: { result: ret } } });
           return ret;
         };
         let filter: SubscriptionWatchFilter = {};
         if (args) {
           if (args.id && args.id !== nodePayload.oid) {
-            return traceReturn(false);
+            return traceResult(false);
           }
           if (!payloadOnWatchList(nodePayload, args?.watch_list)) {
-            return traceReturn(false);
+            return traceResult(false);
           }
 
           const { watch_list, ...rest } = args;
@@ -67,16 +67,21 @@ export async function filterBySubscriptionFilter({
             any
           >).findOne(filter);
           if (node) {
-            return traceReturn(true);
+            return traceResult(true);
           }
         }
-        return traceReturn(false);
+        return traceResult(false);
       }
     );
   })();
   return res;
 }
 
+/**
+ * @chore https://www.pivotaltracker.com/n/projects/2437211/stories/174433505
+ * @deprecated use filterBySubscriptionFilter instead
+ * @param param0 
+ */
 export async function filterById({
   payload: rawPayload,
   args,

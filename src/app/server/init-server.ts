@@ -245,7 +245,7 @@ export async function initServer(
   await apolloServer.applyMiddleware({
     app: server
   });
-  // Set up seubcriptions for websocket clients
+  // Set up subscriptions for websocket clients
   apolloServer.installSubscriptionHandlers(server.listener);
   // setup subscription server for GooglePubSub  clients
   const queuedSubscriptionServer = new QueuedSubscriptionServer(globalGraphQlSchema, config.Gcp);

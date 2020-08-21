@@ -5,7 +5,9 @@ const _frameworkNodeServiceFactories: Array<(
   context: RumbleshipContext
 ) => { [x: string]: NodeService<any> }> = [];
 export function getFrameworkServices(context: RumbleshipContext): object {
-  const frameworkNodeServiceInstance = _frameworkNodeServiceFactories.map(aFact => aFact(context));
+  const frameworkNodeServiceInstance = _frameworkNodeServiceFactories.map(aFactory =>
+    aFactory(context)
+  );
   const merged = Object.assign({}, ...frameworkNodeServiceInstance);
   return merged;
 }

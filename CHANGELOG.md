@@ -18,23 +18,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
       * all typeGraphQl resolvers that use @Subscription decorator should now use
       @RumbleshipSubscription
       * calls to addNodeServicesToContainer require the context to be passed in
-  
-  * added lodash as a peer dependancy
-  * exported unique-subscription-name-part, plugins and routes
-  * Added idempotency_key to NodeChangePayload and dependants to support deduplication of subscription notifications
-    * BREAKING_CHANGE when a ClassGqlNodeNotifcation is constructed, a change_uuid must be included. This is set in the publish from the 
-    sequelize hooks. However, it must be extracted from the RawPayload the graphQl resolver reieves and then set in the constructor of the return structure
+    * added `lodash` as a peer dependancy
+    * Added idempotency_key to NodeChangePayload and dependants to support deduplication of subscription notifications
+    * when a ClassGqlNodeNotifcation is constructed, a idempotency_key must be included. This is set in the publish from the sequelize hooks. However, it must be extracted from the RawPayload the graphQl resolver reieves and then set in the constructor of the return structure
   * OnDemandContext which is a specialized RumbleshipContext that can be passed into long running processes and 'reset' by call backs. Used by QueuedSubscriptionRequest 
   * added a 'watchList' to base Resolver subscriptions that allows clients to specifiy
   which properties should be 'watched' for change.
+  * exported unique-subscription-name-part, plugins and routes
   
 ### Removed
   
 ### Changed
   
   * BREAKING CHANGE
-    * buildBaseResolver()... takes an addtional ClassType, a filter class that is built using withSubscriptionFilter
-    see Orders service for example usage
+    * buildBaseResolver()... takes an addtional ClassType, a filter class that is built using withSubscriptionFilter see Orders service for example usage
     * @Subscription usage is deprecated and @RumbleshipSubscription MUST be used
     * @Watchable decorator identifies properties that can be 'watched' in a subscription for change
     
@@ -43,7 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * RfiPubsub now supports both 'queued' style gql subscriptions as well as broadcast UX style gql subscriptions 
     * uses mechanism implmented via unique-subscription-name-part and @RumbleshipSubscriptions 
     coupled with the OnDemandContext to select appropriate subscription type for context
-  * upgraded version of @rumbleship/config to 1.0.3
+  * upgraded version of @rumbleship/config to 2.0.0
   * Upgrade packages:
     - "type-graphql": "^1.0.0",
     - "typescript": "^3.9.7",
