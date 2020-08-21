@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * SequelizeBaseService .getAll(), .getAssociatedMany() and .count() to do the countAll with 
+  unscoped queries. As using default scopes on models messes the count up (number of rows returned, rather than the actual number of entries).
+
 ### Deprecated
 ### Security
 
