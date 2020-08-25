@@ -39,7 +39,8 @@ import {
   modelKey,
   reloadNodeFromModel,
   AuthIncludeEntry,
-  createOrderClause
+  createOrderClause,
+  gqlToDb
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
@@ -357,6 +358,13 @@ export class SequelizeBaseService<
     //   }
     // }
     return gqlObject;
+  }
+
+  /***
+   * ONLY to be used from the implmentation of another SequelizeService.
+   */
+  dbModelFromGql(relayObject: TApi): TModel {
+    return gqlToDb(relayObject);
   }
 
   dbModel() {

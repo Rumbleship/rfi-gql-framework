@@ -12,6 +12,7 @@ export interface SequelizeBaseServiceInterface<
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
   gqlFromDbModel(dao: object): TApi;
+  dbModelFromGql(relayObject: TApi): TModel;
   addAuthorizationFilters(
     findOptions: object,
     nodeServiceOptions: NodeServiceOptions,

@@ -37,3 +37,4 @@ export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<T
  */
 export declare function dbToGql<T extends Node<T>, V extends Model<V>>(nodeService: NodeService<T>, to: ClassType<T>, from: V, oidScope?: string): T;
 export declare function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb?: boolean): Promise<T>;
+export declare function gqlToDb<T extends Node<T>, V extends Model<V>>(node: T): V;
