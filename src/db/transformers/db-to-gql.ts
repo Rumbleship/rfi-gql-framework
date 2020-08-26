@@ -98,3 +98,10 @@ export async function reloadNodeFromModel<T extends Node<T>>(node: T, fromDb = t
   }
   return node;
 }
+
+export function gqlToDb<T extends Node<T>, V extends Model<V>>(node: T): V {
+  if (modelKey in node) {
+    return Reflect.get(node, modelKey) as V;
+  }
+  throw new Error(`Node: ${JSON.stringify(node)} doesn't have an associated Sequelize Model`);
+}
