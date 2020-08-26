@@ -90,6 +90,9 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param dbModel
      */
     gqlFromDbModel(dbModel: TModel): TApi;
+    /***
+     * ONLY to be used from the implmentation of another SequelizeService.
+     */
     dbModelFromGql(relayObject: TApi): TModel;
     dbModel(): ModelClass<TModel> & typeof Model;
     getContext(): RumbleshipContext;
