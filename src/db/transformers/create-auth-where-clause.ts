@@ -62,7 +62,7 @@ export function createAuthWhereClause(
   authorizer: Authorizer,
   action: Actions,
   targetClass: Record<string, any>,
-  associationName?: string
+  associationName?: string | symbol
 ): WhereOptions {
   const authorizingAttributes = getAuthorizerTreatAs(targetClass, false);
   let whereAuthClause = {};
@@ -75,7 +75,7 @@ export function createAuthWhereClause(
     });
     if (identifiersThatCan.length) {
       for (const key of keys) {
-        const whereKey = associationName ? `$${associationName}.${key}$` : key;
+        const whereKey = associationName ? `$${associationName.toString()}.${key}$` : key;
         whereAuthClause = {
           [Op.or]: [{ [whereKey]: { [Op.in]: identifiersThatCan } }, whereAuthClause]
         };

@@ -10,7 +10,7 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
   raw: RawPayload,
   resolver: BaseReadableResolverInterface<TApi, any, any>,
   NotificationType: ClassType<NodeNotification<TApi>>
-): Promise<NodeNotification<Node<unknown>>> {
+): Promise<NodeNotification<TApi>> {
   const ctx = resolver.ctx;
   return ctx.beeline.bindFunctionToTrace(async () => {
     return ctx.beeline.withAsyncSpan({ name: 'createPayload' }, async _span => {
@@ -20,7 +20,7 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
         'payload.action': received.action
       });
       const node = await resolver.getOne(received.oid);
-      const gql_node_notification: NodeNotification<any> = new NotificationType(
+      const gql_node_notification = new NotificationType(
         received.action,
         received.idempotency_key,
         node

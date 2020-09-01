@@ -12,6 +12,7 @@ export declare function withSubscriptionFilter<TFilterBase extends ClassType<Rec
     [x: string]: string;
 }): {
     new (...args: any[]): {
+        [x: string]: any;
         watch_list?: string[] | undefined;
         id?: string | undefined;
     };

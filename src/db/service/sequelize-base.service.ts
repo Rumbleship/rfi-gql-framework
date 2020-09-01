@@ -221,7 +221,7 @@ export class SequelizeBaseService<
         ) as any).dbModel() as ClassType<Model> & typeof Model;
         eagerLoads.push({
           model: assocModel,
-          as: authEntry.associationName,
+          as: authEntry.associationName.toString(),
           // If we're counting, force the omission of all attributes on eager includes.
           // Otherwise, let Sequelize inflect its defaults and load whatever it wants
           attributes: forCountQuery ? [] : undefined
