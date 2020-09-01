@@ -1,3 +1,4 @@
-export declare function convertToSequelizeEnum<TEnum extends object>(toConvert: TEnum, options?: {
+import { EnumDataType } from 'sequelize/types';
+export declare function convertToSequelizeEnum<TEnum extends Record<string, any>>(toConvert: TEnum, options?: {
     exclude: string[];
-}): import("sequelize/types").EnumDataType<string>;
+}): EnumDataType<string>;

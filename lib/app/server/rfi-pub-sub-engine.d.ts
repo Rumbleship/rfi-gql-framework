@@ -45,7 +45,7 @@ export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
      */
     private static getOutermostTransaction;
     getMarshalledTraceContext(context_id: string): string;
-    publish(triggerName: string, payload: any): Promise<void>;
+    publish(triggerName: string, payload: string): Promise<void>;
     subscribe(triggerName: string, onMessage: (message: string) => null, options?: RfiSubscriptionOptions): Promise<number>;
     unsubscribe(subId: number): void;
     unsubscribeAll(): void;

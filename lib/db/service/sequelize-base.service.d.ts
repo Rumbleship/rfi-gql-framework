@@ -1,4 +1,4 @@
-import { Transaction, FindOptions } from 'sequelize';
+import { Transaction, FindOptions, LOCK } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { Actions, Permissions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
@@ -7,7 +7,8 @@ import { ClassType } from '../../helpers';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { GqlSingleTableInheritanceFactory } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
-export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface<any, any, any, any, any, any>;
+import { NodeServiceMap } from '../../app/server/add-node-services-to-container';
+export declare function getSequelizeServiceInterfaceFor<TApi extends Node<TApi>, TModel extends Model<TModel>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, V extends NodeService<TApi>>(service: V): SequelizeBaseServiceInterface;
 export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extends Model<TModel>, TEdge extends Edge<TApi>, TConnection extends Connection<TApi>, TFilter, TInput, TUpdate, TDiscriminatorEnum> implements SequelizeBaseServiceInterface<TApi, TModel, TConnection, TFilter, TInput, TUpdate> {
     protected relayClass: ClassType<TApi>;
     protected edgeClass: ClassType<TEdge>;
@@ -47,7 +48,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      */
     can(params: {
         action: Actions;
-        authorizable: object;
+        authorizable: Record<string, any>;
         options?: NodeServiceOptions;
         treatAsAuthorizerMap?: AuthorizerTreatAsMap;
     }): boolean;
@@ -59,7 +60,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param nodeServiceOptions The framework options passed into the API
      * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
      */
-    addAuthorizationFilters(findOptions: object, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<any>, forCountQuery?: boolean): object;
+    addAuthorizationFilters(findOptions: FindOptions, nodeServiceOptions: NodeServiceOptions, authorizableClass?: ClassType<Record<string, any>>, forCountQuery?: boolean): FindOptions;
     /**
      *
      * Called by the setAuthorizeContext. Dont call directly unless you have totally overridden
@@ -68,7 +69,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param findOptions
      * @param nodeServiceOptions
      */
-    protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<any>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions, forCountQuery?: boolean): FindOptions;
+    protected addAuthorizationToWhere(authorizableClasses: Array<ClassType<Record<string, any>>>, findOptions: FindOptions, nodeServiceOptions?: NodeServiceOptions, forCountQuery?: boolean): FindOptions;
     /**
      * This should be called ONLY by the service contructor and adds the authorization check
      * to the sequelize Model Class.
@@ -78,11 +79,11 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     static addAuthCheckHook(modelClass: typeof Model): void;
     addAuthorizationFiltersAndWrapWithTransaction<T>(options: {
         opts: NodeServiceOptions;
-        authorizableClass?: ClassType<any>;
+        authorizableClass?: ClassType<Record<string, any>>;
     }, theFunctionToWrap: (sequelizeOptions: {
         transaction?: Transaction;
     }) => Promise<T>): Promise<T>;
-    setServiceRegister(services: any): void;
+    setServiceRegister(services: NodeServiceMap): void;
     nodeType(): string;
     /**
      * Creates the appropriate gql Relay object from the sequelize
@@ -107,18 +108,14 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     }): Promise<NodeServiceTransaction>;
     endTransaction(transaction: NodeServiceTransaction, action: 'commit' | 'rollback'): Promise<void>;
     convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions): {
-        paranoid: boolean | undefined;
-        transaction: Transaction | undefined;
-        lock: any;
-    } | {
-        paranoid?: undefined;
-        transaction?: undefined;
-        lock?: undefined;
+        paranoid?: boolean;
+        transaction?: Transaction;
+        lock?: LOCK;
     };
     getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection>;
     findOne(filterBy: TFilter, options?: NodeServiceOptions): Promise<TApi | undefined>;
     findEach(filterBy: TFilter, apply: (gqlObj: TApi, options?: NodeServiceOptions) => Promise<boolean>, options?: NodeServiceOptions): Promise<void>;
-    count(filterBy: any, options?: NodeServiceOptions): Promise<number>;
+    count(filterBy: TFilter, options?: NodeServiceOptions): Promise<number>;
     getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi>;
     /**
      * Authorization on create is against the createInput object OR via the resolver

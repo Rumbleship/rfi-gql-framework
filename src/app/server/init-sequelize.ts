@@ -13,7 +13,7 @@ export function getSequelizeInstance(): Sequelize | null {
 /**
  * Nulls the global sequelize instance (for testing purposes)
  */
-export function nullSequelizeInstance() {
+export function nullSequelizeInstance(): void {
   theSequelizeInstance = null;
 }
 
@@ -23,16 +23,16 @@ export interface DbModelAndOidScope {
 }
 const theDbModels: DbModelAndOidScope[] = [];
 
-export function getScopeFor(model: Model) {
+export function getScopeFor(model: Model): string | undefined {
   const found = theDbModels.find(entry => model instanceof entry.dbModel);
   return found?.scope;
 }
-export function getOidFor(model: Model) {
+export function getOidFor(model: Model): Oid {
   const scope = getScopeFor(model);
   if (!scope) {
     throw new Error(`Cant find Scope for model: ${model.constructor.name}`);
   }
-  return Oid.create(scope, model.id);
+  return Oid.Create(scope, model.id);
 }
 /**
  * initializes sequelize for the app and sets up a global sequelize

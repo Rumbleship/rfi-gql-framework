@@ -26,7 +26,8 @@ class FilterWithDeprecatedAttribs
   extends withOrderByFilter(withPaginationFilter(withTimeStampsFilter(HasDeprecatedAttribs)))
   implements RelayFilterBase<HasDeprecatedAttribs> {}
 
-class InputWithDeprecatedAttribs extends HasDeprecatedAttribs
+class InputWithDeprecatedAttribs
+  extends HasDeprecatedAttribs
   implements RelayInputTypeBase<HasDeprecatedAttribs> {}
 
 class NoDeprecatedAttribs {
@@ -36,7 +37,8 @@ class NoDeprecatedAttribs {
 class FilterNothingDeprecated
   extends withOrderByFilter(withPaginationFilter(withTimeStampsFilter(NoDeprecatedAttribs)))
   implements RelayFilterBase<NoDeprecatedAttribs> {}
-class InputNothingDeprecated extends NoDeprecatedAttribs
+class InputNothingDeprecated
+  extends NoDeprecatedAttribs
   implements RelayInputTypeBase<NoDeprecatedAttribs> {}
 
 /**

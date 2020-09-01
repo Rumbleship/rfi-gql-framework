@@ -149,7 +149,6 @@ export class QueuedSubscriptionRequestFilter
     withPaginationFilter(withTimeStampsFilter(ConcreteQueuedSubscriptionRequestFilter))
   )
   implements RelayFilterBase<QueuedSubscriptionRequest> {}
-
 /**
  * Filters for Subscriptions dont require OrderBy or Pagination. But they can use
  * Timestamps and a specialized SubscriptonFilter that watches for changes in attributes

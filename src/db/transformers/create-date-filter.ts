@@ -1,12 +1,19 @@
 import { Op } from 'sequelize';
 import { DateRange } from '../../gql';
 
-export function create_date_filter(
-  filterBy: any,
+/**
+ *
+ * @param filterBy
+ * @param date_key
+ * @param between
+ * @param test_for_any
+ */
+export function create_date_filter<TFilter extends Record<string, any>>(
+  filterBy: TFilter,
   date_key: string,
   between?: DateRange,
   test_for_any?: boolean
-) {
+): TFilter /* & lots of potential nested sequelize types we'll ignore for now*/ {
   if (between && between instanceof DateRange) {
     if (between.from && between.to) {
       Reflect.set(filterBy, date_key, {

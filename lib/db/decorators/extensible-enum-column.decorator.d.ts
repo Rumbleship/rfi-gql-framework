@@ -6,4 +6,4 @@ import { ModelAttributeColumnOptions } from 'sequelize';
  *
  * If the raw value includes spaces, we replace them with `_` on retrieval from the db
  */
-export declare function ExtensibleEnumColumn<T extends object>(target_enum: T, options?: Pick<ModelAttributeColumnOptions, 'allowNull'> & Pick<ModelAttributeColumnOptions, 'defaultValue'>): (target: object, property_name: string) => any;
+export declare function ExtensibleEnumColumn<T extends Record<string, any>>(target_enum: T, options?: Pick<ModelAttributeColumnOptions, 'allowNull'> & Pick<ModelAttributeColumnOptions, 'defaultValue'>): PropertyDecorator;

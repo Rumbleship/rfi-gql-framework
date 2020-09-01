@@ -11,15 +11,15 @@ export interface Context {
 }
 
 export interface SpyglassLogger {
-  addMetadata: (object: object) => void;
-  log: (message: any, metadata?: object) => void;
-  emerg: (message: any, metadata?: object) => void;
-  alert: (message: any, metadata?: object) => void;
-  crit: (message: any, metadata?: object) => void;
-  error: (message: any, metadata?: object) => void;
-  warn: (message: any, metadata?: object) => void;
-  warning: (message: any, metadata?: object) => void;
-  notice: (message: any, metadata?: object) => void;
-  info: (message: any, metadata?: object) => void;
-  debug: (message: any, metadata?: object) => void;
+  addMetadata: (object: Record<string, any>) => void;
+  log: (message: any, metadata?: Record<string, any>) => void;
+  emerg: (message: any, metadata?: Record<string, any>) => void;
+  alert: (message: any, metadata?: Record<string, any>) => void;
+  crit: (message: any, metadata?: Record<string, any>) => void;
+  error: (message: any, metadata?: Record<string, any>) => void;
+  warn: (message: any, metadata?: Record<string, any>) => void;
+  warning: (message: any, metadata?: Record<string, any>) => void;
+  notice: (message: any, metadata?: Record<string, any>) => void;
+  info: (message: any, metadata?: Record<string, any>) => void;
+  debug: (message: any, metadata?: Record<string, any>) => void;
 }

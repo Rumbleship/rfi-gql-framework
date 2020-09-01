@@ -1,5 +1,8 @@
 import { RumbleshipContext } from '.';
 import { Authorizer } from '@rumbleship/acl';
+import { ContainerInstance } from 'typedi';
+import { HoneycombSpan, RumbleshipBeeline } from '@rumbleship/o11y';
+import { SpyglassLogger } from '@rumbleship/spyglass';
 export declare class OnDemandRumbleshipContext implements RumbleshipContext {
     private marshalled_acl;
     isQueuedSubscription: boolean;
@@ -9,11 +12,11 @@ export declare class OnDemandRumbleshipContext implements RumbleshipContext {
     private getAuthorizer;
     private get wrappedContext();
     get authorizer(): Authorizer;
-    get container(): import("typedi").ContainerInstance;
+    get container(): ContainerInstance;
     get id(): string;
-    get beeline(): import("@rumbleship/o11y").RumbleshipBeeline;
-    get logger(): import("./rumbleship-context.interface").SpyglassLogger;
-    get trace(): import("@rumbleship/o11y").HoneycombSpan | undefined;
+    get beeline(): RumbleshipBeeline;
+    get logger(): SpyglassLogger;
+    get trace(): HoneycombSpan | undefined;
     release(): Promise<void>;
     reset(): Promise<void>;
 }

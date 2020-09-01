@@ -1,13 +1,13 @@
 import { ContainerInstance } from 'typedi';
-import { NodeService } from '../../gql/relay';
+import { NodeService, Node } from '../../gql/relay';
 import { RumbleshipContext } from '../rumbleship-context';
 import { getFrameworkServices } from './framework-node-services';
 
 export function addNodeServicesToContainer(
   context: RumbleshipContext,
   container: ContainerInstance,
-  nodeServices: object
-) {
+  nodeServices: NodeServiceMap<string>
+): void {
   // Add in any framework defined services...
   const frameworkServices = getFrameworkServices(context);
   const mutatedNodeServices = { ...frameworkServices, ...nodeServices };
@@ -21,3 +21,8 @@ export function addNodeServicesToContainer(
     }
   }
 }
+
+export type NodeServiceMap<TServiceName extends string = string> = Record<
+  TServiceName,
+  NodeService<Node<unknown>>
+>;

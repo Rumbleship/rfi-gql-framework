@@ -15,7 +15,7 @@ export declare class GqlSingleTableInheritanceFactory<TEnum, TGql extends Node<T
     constructor(oidScope: string, // the scope is the base class scope.
     discriminatorKey: string, concreteClassMap: Map<keyof TEnum, () => ClassType<TGql>>);
     makeFrom(from: TDb, nodeService: NodeService<TGql>): TGql;
-    getClassFor(discriminator: keyof TEnum): (() => ClassType<TGql>) | undefined;
+    getClassFor(discriminator: keyof TEnum): undefined | (() => ClassType<TGql>);
     getClasses(): ClassType<TGql>[];
 }
 /**

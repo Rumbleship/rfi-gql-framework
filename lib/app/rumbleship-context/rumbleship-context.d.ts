@@ -9,7 +9,7 @@ export interface RumbleshipContextOptionsPlain {
     authorizer?: Authorizer;
     logger?: SpyglassLogger;
     container?: ContainerInstance;
-    initial_trace_metadata?: object;
+    initial_trace_metadata?: Record<string, any>;
     marshalled_trace?: string;
     linked_span?: HoneycombSpan;
 }
@@ -29,12 +29,16 @@ export declare class RumbleshipContext implements Context {
     static releaseAllContexts(): Promise<void>;
     static make(filename: string, options?: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
     static withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
-    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: object, marshalled_trace?: string, linked_span?: HoneycombSpan);
+    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: Record<string, any>, marshalled_trace?: string, linked_span?: HoneycombSpan);
     release(): Promise<void>;
 }
 export declare const RumbleshipContextIdKey = "_@RumbleshipContextId";
-export declare function setContextId(target: object, context_id: string): object;
-export declare function getContextId(target: object): string | undefined;
+export declare function setContextId<T extends Record<string, any>>(target: T, context_id: string): T & {
+    [RumbleshipContextIdKey]: string;
+};
+export declare function getContextId(target: Record<string, any>): string | undefined;
 export declare const RumbleshipActingUserKey = "_@RumbleshipActingUserKey";
-export declare function setAuthorizedUser(target: object, authorizer: Authorizer): object;
-export declare function getAuthorizedUser(target: object): string | undefined;
+export declare function setAuthorizedUser<T extends Record<string, any>>(target: T, authorizer: Authorizer): T & {
+    [RumbleshipActingUserKey]: string;
+};
+export declare function getAuthorizedUser(target: Record<string, any>): string | undefined;

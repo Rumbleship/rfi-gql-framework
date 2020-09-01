@@ -63,7 +63,7 @@ export class QueuedSubscriptionRequestModel extends Model<QueuedSubscriptionRequ
   deleted_at?: Date;
 
   @AfterValidate
-  static afterValidateHook(instance: QueuedSubscriptionRequestModel, options: any): void {
+  static afterValidateHook(instance: QueuedSubscriptionRequestModel, options: unknown): void {
     validateFromExemplar(instance, QueuedSubscriptionRequestValidator);
   }
 }
