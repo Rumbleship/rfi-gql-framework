@@ -35,9 +35,17 @@ module.exports = {
     {
       // Attrib/Builder/Mixin files define functions that need to use TypeScript's inflection to generate types
       // Route files define handlers in the Hapi ecosystem and it's annoying to boilerplate copy it.
-      files: ['**/*.attribs.ts', '**/*.builder.ts',  '**/*.mixin.*.ts',  '**/*.mixin.ts', '**/*.route.ts'],
+      files: ['**/*.attribs.ts', '**/*.builder.ts', '**/*.mixin.ts', '**/*.route.ts'],
       rules: {
         '@typescript-eslint/explicit-module-boundary-types': 0
+      }
+    },
+    {
+      // Mixins *also* need to be able to extend `ClassType<object>` to get type-inflection working.
+      // (**not** ClassType<Record<string,any>> as eslint suggests**)
+      files: ['src/gql/relay/mixins/*.mixin.ts'],
+      rules: {
+        '@typescript-eslint/ban-types': 0,
       }
     }
   ]

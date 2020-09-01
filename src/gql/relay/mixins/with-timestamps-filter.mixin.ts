@@ -3,9 +3,7 @@ import { ClassType } from '../../../helpers/classtype';
 import { DateRangeGQL, DateRange } from '../../scalars/daterange.scalar';
 import { Watchable } from '../watchable';
 
-export function withTimeStampsFilter<TFilterBase extends ClassType<Record<string, any>>>(
-  Base: TFilterBase
-) {
+export function withTimeStampsFilter<TFilterBase extends ClassType<object>>(Base: TFilterBase) {
   @ArgsType()
   class TimeStampsFilter extends Base {
     @Watchable

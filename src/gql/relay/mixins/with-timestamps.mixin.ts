@@ -3,7 +3,7 @@ import { AttribType } from '../attrib.enum';
 import { GqlBaseAttribs } from '../base-attribs.builder';
 import { ClassType } from '../../../helpers/classtype';
 
-export function withTimeStamps<TBase extends ClassType<Record<string, any>>>(
+export function withTimeStamps<TBase extends ClassType<object>>(
   attribType: AttribType,
   Base: TBase
 ) {

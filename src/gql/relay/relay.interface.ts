@@ -106,7 +106,6 @@ export interface RelayFilterBase<T> {
   deleted_at?: Date;
   deleted_between?: DateRange;
 }
-
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RelayInputTypeBase<T> {}
 

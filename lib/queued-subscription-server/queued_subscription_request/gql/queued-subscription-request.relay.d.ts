@@ -12,7 +12,6 @@ declare class QueuedSubscriptionRequestConcrete extends QueuedSubscriptionReques
 }
 declare const QueuedSubscriptionRequest_base: {
     new (...args: any[]): {
-        [x: string]: any;
         created_at?: Date | undefined;
         updated_at?: Date | undefined;
         deleted_at?: Date | undefined;
@@ -43,12 +42,10 @@ declare class ConcreteQueuedSubscriptionRequestFilter extends ConcreteQueuedSubs
 }
 declare const QueuedSubscriptionRequestFilter_base: {
     new (...args: any[]): {
-        [x: string]: any;
         order_by?: import("../../..").RelayOrderBy<any> | undefined;
     };
 } & {
     new (...args: any[]): {
-        [x: string]: any;
         first?: number | undefined;
         after?: string | undefined;
         last?: number | undefined;
@@ -57,7 +54,6 @@ declare const QueuedSubscriptionRequestFilter_base: {
     };
 } & {
     new (...args: any[]): {
-        [x: string]: any;
         created_at?: Date | undefined;
         created_between?: import("../../..").DateRange | undefined;
         updated_at?: Date | undefined;
@@ -70,13 +66,11 @@ export declare class QueuedSubscriptionRequestFilter extends QueuedSubscriptionR
 }
 declare const QueuedSubscriptionRequestFilterForSubscriptions_base: {
     new (...args: any[]): {
-        [x: string]: any;
         watch_list?: string[] | undefined;
         id?: string | undefined;
     };
 } & {
     new (...args: any[]): {
-        [x: string]: any;
         created_at?: Date | undefined;
         created_between?: import("../../..").DateRange | undefined;
         updated_at?: Date | undefined;

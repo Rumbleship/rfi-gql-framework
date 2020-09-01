@@ -7,13 +7,11 @@ declare class Empty {
 }
 declare const NodeSubscriptionFilter_base: {
     new (...args: any[]): {
-        [x: string]: any;
         watch_list?: string[] | undefined;
         id?: string | undefined;
     };
 } & {
     new (...args: any[]): {
-        [x: string]: any;
         created_at?: Date | undefined;
         created_between?: import("..").DateRange | undefined;
         updated_at?: Date | undefined;

@@ -2,9 +2,9 @@ import { ObjectType, Field } from 'type-graphql';
 
 @ObjectType()
 export class PageInfo {
-  @Field()
+  @Field(type => Boolean)
   hasNextPage = false;
-  @Field()
+  @Field(type => Boolean)
   hasPreviousPage = false;
   @Field({ nullable: true })
   startCursor?: string;
