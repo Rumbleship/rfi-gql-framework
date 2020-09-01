@@ -4,8 +4,8 @@ import { AttribType } from './attrib.enum';
 // tslint:disable-next-line: ban-types
 export function GqlBaseAttribs(attribType: AttribType): ClassDecorator {
   // tslint:disable-next-line: only-arrow-functions
-  return function(target: object): any {
-    // tslint:disable-next-line: ban-types
+  return function (target: Record<string, any>): any {
+    // eslint-disable-next-line @typescript-eslint/ban-types
     const clazz: Function = target as Function;
     switch (attribType) {
       case AttribType.Input:

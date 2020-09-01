@@ -118,7 +118,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   /**
    * publishes repsononses to the QueuedSubscriptionRequest
    */
-  async publishResponse(response: SubscriptionResponse) {
+  async publishResponse(response: SubscriptionResponse): Promise<string> {
     const message: QueuedSubscriptionMessage = {
       service_id: this.authorized_requestor_id,
       clientRequestUuid: this.client_request_uuid,
@@ -152,7 +152,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     }
     return this._topic;
   }
-  async start() {
+  async start(): Promise<void> {
     // The subscribe function returns a long lived AsyncIterable
     // So rather than just having a standard RumbleshipContext
     // we create a 'resetable' context that wraps a real context.
@@ -207,7 +207,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     }
   }
 
-  async stop() {
+  async stop(): Promise<void> {
     // force the iterator to finish
     if (this.activeSubscription?.return) {
       await this.activeSubscription.return();

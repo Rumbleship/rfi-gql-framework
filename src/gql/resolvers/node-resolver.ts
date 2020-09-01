@@ -31,6 +31,7 @@ import { RumbleshipSubscription } from './rumbleship-subscription';
 import { withSubscriptionFilter } from '../relay/mixins/with-subscription-filter.mixin';
 
 import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
+import { RumbleshipContext } from './../../app/rumbleship-context';
 
 class Empty {}
 class NodeSubscriptionFilter extends withSubscriptionFilter(
@@ -63,7 +64,10 @@ export class NodeResolver implements RelayResolver {
   // this is the generic resolver givin an ID, it can always resolcve to one of the domain objects..
   @AddToTrace()
   @Query(returns => Node, { nullable: true })
-  async node(@Arg('id', type => ID) oidString: string, @Ctx() ctx: any): Promise<Node<any> | null> {
+  async node(
+    @Arg('id', type => ID) oidString: string,
+    @Ctx() ctx: RumbleshipContext
+  ): Promise<Node<any> | null> {
     const oid = new Oid(oidString);
     const { scope } = oid.unwrap();
     if (scope in this.nodeServices) {
@@ -77,7 +81,7 @@ export class NodeResolver implements RelayResolver {
   publishLastKnownState(
     @Arg('id', type => ID) oidString: string,
     @PubSub() pubSub: PubSubEngine,
-    @Ctx() ctx: any
+    @Ctx() ctx: RumbleshipContext
   ): boolean {
     const oid = new Oid(oidString);
     const { scope } = oid.unwrap();
@@ -110,7 +114,10 @@ export class NodeResolver implements RelayResolver {
   }
   // for developers and system support,
   @Query(returns => String)
-  async unWrapOid(@Arg('id', type => ID) oidString: string, @Ctx() ctx: any): Promise<string> {
+  async unWrapOid(
+    @Arg('id', type => ID) oidString: string,
+    @Ctx() ctx: RumbleshipContext
+  ): Promise<string> {
     const oid = new Oid(oidString);
     const { scope, id } = oid.unwrap();
     return scope + ':' + id;
@@ -120,7 +127,7 @@ export class NodeResolver implements RelayResolver {
   async makeOid(
     @Arg('scope', type => String) scope: string,
     @Arg('id', type => String) id: string,
-    @Ctx() ctx: any
+    @Ctx() ctx: RumbleshipContext
   ): Promise<string> {
     const oid = Oid.Create(scope, `${id}`);
     return oid.toString();

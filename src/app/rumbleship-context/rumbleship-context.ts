@@ -1,4 +1,4 @@
-import Container, { ContainerInstance } from 'typedi';
+import { Container, ContainerInstance } from 'typedi';
 import uuid = require('uuid');
 import { Authorizer, Scopes } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
@@ -13,7 +13,7 @@ export interface RumbleshipContextOptionsPlain {
   authorizer?: Authorizer;
   logger?: SpyglassLogger;
   container?: ContainerInstance;
-  initial_trace_metadata?: object;
+  initial_trace_metadata?: Record<string, any>;
   marshalled_trace?: string;
   linked_span?: HoneycombSpan;
 }
@@ -23,7 +23,7 @@ class RumbleshipContextOptionsWithDefaults {
   private readonly _container: ContainerInstance;
   private readonly _authorizer: Authorizer;
   private readonly _id: string;
-  private readonly _initial_trace_metadata: object;
+  private readonly _initial_trace_metadata: Record<string, any>;
   private readonly _marshalled_trace?: string;
   private readonly _linked_span?: HoneycombSpan;
   get authorizer() {
@@ -80,7 +80,7 @@ class RumbleshipContextOptionsWithDefaults {
 export class RumbleshipContext implements Context {
   // Shouldn't generally be needed, but is useful when handing one trace off to a different one.
   public trace: HoneycombSpan | undefined;
-  private static initialized: boolean = false;
+  private static initialized = false;
   private static _serviceFactories: Map<string, RFIFactory<any>>;
   private static ActiveContexts: Map<string, RumbleshipContext> = new Map();
   private static config: ISharedSchema;
@@ -89,13 +89,13 @@ export class RumbleshipContext implements Context {
     serviceFactories: Map<string, RFIFactory<any>>,
     addSequelizeServicesToContext: (c: RumbleshipContext) => RumbleshipContext,
     config: ISharedSchema
-  ) {
+  ): void {
     this._serviceFactories = serviceFactories;
     this.addSequelizeServicesToContext = addSequelizeServicesToContext;
     this.config = config;
     this.initialized = true;
   }
-  static async releaseAllContexts() {
+  static async releaseAllContexts(): Promise<void> {
     for (const ctx of RumbleshipContext.ActiveContexts.values()) {
       setImmediate(() => ctx.release());
     }
@@ -184,7 +184,7 @@ export class RumbleshipContext implements Context {
     public logger: SpyglassLogger,
     public authorizer: Authorizer,
     public beeline: RumbleshipBeeline,
-    initial_trace_metadata: object,
+    initial_trace_metadata: Record<string, any>,
     marshalled_trace?: string,
     linked_span?: HoneycombSpan
   ) {
@@ -197,11 +197,11 @@ export class RumbleshipContext implements Context {
     );
     this.beeline.addTraceContext(initial_trace_metadata);
     if (linked_span) {
-      this.beeline.linkToSpan(linked_span!);
+      this.beeline.linkToSpan(linked_span);
     }
   }
 
-  async release() {
+  async release(): Promise<void> {
     interface TextRow {
       Variable_name: string;
       Value: string;
@@ -240,20 +240,26 @@ function isPromise(p: any) {
 }
 
 export const RumbleshipContextIdKey = '_@RumbleshipContextId';
-export function setContextId(target: object, context_id: string) {
+export function setContextId<T extends Record<string, any>>(
+  target: T,
+  context_id: string
+): T & { [RumbleshipContextIdKey]: string } {
   Reflect.set(target, RumbleshipContextIdKey, context_id);
-  return target;
+  return target as T & { [RumbleshipContextIdKey]: string };
 }
-export function getContextId(target: object): string | undefined {
+export function getContextId(target: Record<string, any>): string | undefined {
   return Reflect.get(target, RumbleshipContextIdKey);
 }
 
 export const RumbleshipActingUserKey = '_@RumbleshipActingUserKey';
-export function setAuthorizedUser(target: object, authorizer: Authorizer) {
+export function setAuthorizedUser<T extends Record<string, any>>(
+  target: T,
+  authorizer: Authorizer
+): T & { [RumbleshipActingUserKey]: string } {
   Reflect.set(target, RumbleshipActingUserKey, authorizer.getUser());
-  return target;
+  return target as T & { [RumbleshipActingUserKey]: string };
 }
 
-export function getAuthorizedUser(target: object): string | undefined {
+export function getAuthorizedUser(target: Record<string, any>): string | undefined {
   return Reflect.get(target, RumbleshipActingUserKey);
 }

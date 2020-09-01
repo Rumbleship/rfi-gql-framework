@@ -1,7 +1,7 @@
 import { withTimeStamps, AttribType } from './../../../src';
 
 class Base {
-  base_attr: string = 'base_attr';
+  base_attr = 'base_attr';
 }
 describe('Given: an object decorated with timestamps', () => {
   class HasTimestamps extends withTimeStamps(AttribType.Obj, Base) {}

@@ -36,6 +36,7 @@ export function enableQueuedSubscriptionSupport<TPayload, TArgs>(
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function RumbleshipSubscriptionOptions<TPayload = any, TArgs = ArgsDictionary>(
   opts: SubscriptionOptions
 ) {

@@ -1,7 +1,7 @@
 import { withPaginationFilter } from './../../../src';
 
 class Base {
-  base_attr: string = 'base_attr';
+  base_attr = 'base_attr';
 }
 describe('Given: an object decorated with orderBy filter', () => {
   class HasTimestampsFilter extends withPaginationFilter(Base) {}

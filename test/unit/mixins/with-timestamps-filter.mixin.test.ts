@@ -1,7 +1,7 @@
 import { withTimeStampsFilter } from './../../../src';
 
 class Base {
-  base_attr: string = 'base_attr';
+  base_attr = 'base_attr';
 }
 describe('Given: an object decorated with timestamp filter', () => {
   class HasTimestampsFilter extends withTimeStampsFilter(Base) {}

@@ -12,5 +12,5 @@ export declare class QueuedSubscriptionRequestModel extends Model<QueuedSubscrip
     created_at?: Date;
     updated_at?: Date;
     deleted_at?: Date;
-    static afterValidateHook(instance: QueuedSubscriptionRequestModel, options: any): void;
+    static afterValidateHook(instance: QueuedSubscriptionRequestModel, options: unknown): void;
 }

@@ -59,7 +59,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
    *
    * @description Attaches global model hooks, respecting transactions, to th
    */
-  public linkToSequelize(sequelize: Sequelize) {
+  public linkToSequelize(sequelize: Sequelize): void {
     const hookCb = (pubSub: RfiPubSub, notification_of: NotificationOf) => {
       return function publisherHook(
         sequelize_instance: SequelizeModel<any, any>,
@@ -129,7 +129,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     return this.beeline_cls.marshalTraceContext(this.beeline_cls.getTraceContext(context_id));
   }
 
-  public async publish(triggerName: string, payload: any): Promise<void> {
+  public async publish(triggerName: string, payload: string): Promise<void> {
     const topicName = `${this.topicPrefix}_${triggerName}`;
     await this.createTopicIfNotExist(topicName);
     return super.publish(topicName, payload);
@@ -211,18 +211,18 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     const payload = JSON.stringify(rval);
 
     const oidScope = getScopeFor(model);
-    const topicName: string = `${NODE_CHANGE_NOTIFICATION}_${oidScope}`;
+    const topicName = `${NODE_CHANGE_NOTIFICATION}_${oidScope}`;
 
     // Publish the change on most generic topic
-    // tslint:disable-next-line: no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.publish(NODE_CHANGE_NOTIFICATION, payload);
 
     // Also publish the change topic specific to _this_ model
-    // tslint:disable-next-line: no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.publish(topicName, payload);
   }
 
-  public async deleteCurrentSubscriptionsMatchingPrefix() {
+  public async deleteCurrentSubscriptionsMatchingPrefix(): Promise<void> {
     const [subscriptions] = await this.pubSubClient.getSubscriptions();
     const mySubscriptions = subscriptions.filter((s: any) =>
       s.name.match(new RegExp(`${this.topicPrefix}`))
@@ -233,7 +233,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     });
   }
 
-  public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]) {
+  public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]): Promise<void> {
     await P.map(dbModels, async ({ scope }) => {
       const triggerName = `${this.topicPrefix}_NODE_CHANGE_NOTIFICATION_${scope}`;
       await this.createTopicIfNotExist(triggerName);

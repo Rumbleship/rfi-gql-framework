@@ -1,10 +1,8 @@
 import { ClassType } from '../../helpers/classtype';
 export declare const WATCH_LIST_METADATA: unique symbol;
-export declare function Watchable(target: object, key: string): void;
-export declare function getWatchlistMetadata<Base extends object>(from: ClassType<Base>): any;
-export declare function buildSubscriptionWatchList<Base extends object>(from: ClassType<Base>, options?: {
+export declare const Watchable: PropertyDecorator;
+export declare function getWatchlistMetadata<Base extends Record<string, any>>(from: ClassType<Base>): Array<string>;
+export declare function buildSubscriptionWatchList<Base extends Record<string, any>>(from: ClassType<Base>, options?: {
     exclude?: string[];
     add?: string[];
-}): {
-    [x: string]: string;
-};
+}): Record<string, string>;

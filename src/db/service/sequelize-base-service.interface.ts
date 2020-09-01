@@ -1,6 +1,7 @@
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
 import { Node, Connection, RelayService, NodeServiceOptions } from '../../gql';
+import { FindOptions } from 'sequelize';
 export type ModelClass<T> = new (values?: any, options?: any) => T;
 export interface SequelizeBaseServiceInterface<
   TApi extends Node<TApi> = any,
@@ -11,12 +12,12 @@ export interface SequelizeBaseServiceInterface<
   TUpdate = any
 > extends RelayService<TApi, TConnection, TFilter, TInput, TUpdate> {
   dbModel(): ModelClass<TModel> & typeof Model;
-  gqlFromDbModel(dao: object): TApi;
+  gqlFromDbModel(dao: TModel): TApi;
   dbModelFromGql(relayObject: TApi): TModel;
   addAuthorizationFilters(
-    findOptions: object,
+    findOptions: FindOptions,
     nodeServiceOptions: NodeServiceOptions,
-    authorizableClass?: ClassType<any>,
+    authorizableClass?: ClassType<Record<string, any>>,
     forCountQuery?: boolean
-  ): object;
+  ): FindOptions;
 }

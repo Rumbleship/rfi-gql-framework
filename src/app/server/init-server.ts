@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import * as Hapi from '@hapi/hapi';
 import * as Boom from '@hapi/boom';
 import * as Hoek from '@hapi/hoek';
-import Container from 'typedi';
+import { Container } from 'typedi';
 import { buildSchema, BuildSchemaOptions } from 'type-graphql';
 import { ConnectionContext } from 'subscriptions-transport-ws';
 import { printSchema, GraphQLSchema } from 'graphql';
@@ -20,7 +20,7 @@ import { RFIAuthChecker, LogErrorMiddlewareFn } from './middleware';
 
 import { goodRfi, logErrorsPlugin } from './plugins';
 import { RfiPubSub } from './rfi-pub-sub-engine';
-import { root_route, health_check_route } from './routes';
+import { root_route, health_check_route } from './routes/health-checks.route';
 import { DateRange, DateRangeGQL } from '../../gql';
 
 import hapiRequireHttps = require('hapi-require-https');

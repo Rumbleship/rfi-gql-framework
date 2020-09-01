@@ -7,17 +7,20 @@ import { ModelAttributeColumnOptions } from 'sequelize';
  *
  * If the raw value includes spaces, we replace them with `_` on retrieval from the db
  */
-export function ExtensibleEnumColumn<T extends object>(
+export function ExtensibleEnumColumn<T extends Record<string, any>>(
   target_enum: T,
   options: Pick<ModelAttributeColumnOptions, 'allowNull'> &
     Pick<ModelAttributeColumnOptions, 'defaultValue'> = {}
-) {
+): PropertyDecorator {
   if (!Reflect.get(target_enum, 'UNKNOWN')) {
     throw new Error(
       'Enum passed to `ExtensibleEnumColumn` must contain an value `UNKNOWN = UKNOWN`'
     );
   }
-  return (target: object, property_name: string): any => {
+  const decorator: PropertyDecorator = (
+    target: Record<string, any>,
+    property_name: string | symbol
+  ): any => {
     const column_options = {
       type: DataType.STRING,
       get(this: any): T | undefined {
@@ -38,4 +41,5 @@ export function ExtensibleEnumColumn<T extends object>(
 
     return Column(column_options)(target, property_name);
   };
+  return decorator;
 }

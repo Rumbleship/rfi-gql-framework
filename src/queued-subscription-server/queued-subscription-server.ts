@@ -30,7 +30,7 @@ export class QueuedSubscriptionServer {
    * look for changes to active flag.
    * @param schema
    */
-  initializeRequestObserver(schema: GraphQLSchema) {
+  initializeRequestObserver(schema: GraphQLSchema): QueuedSubscription {
     const header = Authorizer.createServiceUserAuthHeader();
     const authorizer = Authorizer.make(header, true);
     const marshalled_acl = authorizer.marshalClaims();
@@ -82,9 +82,9 @@ export class QueuedSubscriptionServer {
       this.config
     );
   }
-  async start(ctx: RumbleshipContext) {
+  async start(ctx: RumbleshipContext): Promise<void> {
     // Should be an independant promise chain
-    // tslint:disable-next-line: no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedSubscriptionRequestObserver.start();
 
     // load up active subscriptions
@@ -103,12 +103,12 @@ export class QueuedSubscriptionServer {
       const queuedSubscription = this.addSubscription(key, activeSubscription);
       // todo add tracing
       // These are independant promise chains
-      // tslint:disable-next-line: no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       queuedSubscription.start();
     }
   }
 
-  async stop() {
+  async stop(): Promise<void> {
     await this.queuedSubscriptionRequestObserver.stop();
     await Promise.all(
       Array.from(this.queuedSubscriptions, async queuedSubscription => {
@@ -122,7 +122,7 @@ export class QueuedSubscriptionServer {
    * Adds and starts the subscription
    * @param request
    */
-  addSubscription(key: string, request: IQueuedSubscriptionRequest) {
+  addSubscription(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription {
     if (this.queuedSubscriptions.has(key)) {
       throw new Error(`QueuedSubscription: ${request.client_request_uuid} already running`);
     }
@@ -131,7 +131,7 @@ export class QueuedSubscriptionServer {
     this.queuedSubscriptions.set(key, queuedSubscription);
     return queuedSubscription;
   }
-  async removeSubscription(key: string) {
+  async removeSubscription(key: string): Promise<void> {
     const queuedSubscription = this.queuedSubscriptions.get(key);
     if (queuedSubscription) {
       // remove from list first, as await can switch promise chains

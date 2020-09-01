@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { Transaction, FindOptions, Op } from 'sequelize';
+import { Transaction, FindOptions, Op, LOCK } from 'sequelize';
 import { Model, AssociationCountOptions } from 'sequelize-typescript';
 import {
   Actions,
@@ -45,6 +45,7 @@ import {
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
 import { NotFoundError } from '../../app/errors';
+import { NodeServiceMap } from '../../app/server/add-node-services-to-container';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -54,7 +55,7 @@ export function getSequelizeServiceInterfaceFor<
   TInput,
   TUpdate,
   V extends NodeService<TApi>
->(service: V) {
+>(service: V): SequelizeBaseServiceInterface {
   return (service as unknown) as SequelizeBaseServiceInterface;
 }
 
@@ -109,10 +110,10 @@ export class SequelizeBaseService<
    */
   can(params: {
     action: Actions;
-    authorizable: object;
+    authorizable: Record<string, any>;
     options?: NodeServiceOptions;
     treatAsAuthorizerMap?: AuthorizerTreatAsMap;
-  }) {
+  }): boolean {
     const can =
       params?.options?.transaction ||
       params?.options?.skipAuthorizationCheck ||
@@ -134,11 +135,11 @@ export class SequelizeBaseService<
    * @param authorizableClass The decorated class to use to determine what attributes are to used as filters
    */
   addAuthorizationFilters(
-    findOptions: object,
+    findOptions: FindOptions,
     nodeServiceOptions: NodeServiceOptions,
-    authorizableClass?: ClassType<any>,
-    forCountQuery: boolean = false
-  ) {
+    authorizableClass?: ClassType<Record<string, any>>,
+    forCountQuery = false
+  ): FindOptions {
     let authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions);
     if (!authorizeContext) {
       authorizeContext = {};
@@ -176,10 +177,10 @@ export class SequelizeBaseService<
    * @param nodeServiceOptions
    */
   protected addAuthorizationToWhere(
-    authorizableClasses: Array<ClassType<any>>,
+    authorizableClasses: Array<ClassType<Record<string, any>>>,
     findOptions: FindOptions,
     nodeServiceOptions: NodeServiceOptions = {},
-    forCountQuery: boolean = false
+    forCountQuery = false
   ): FindOptions {
     if (nodeServiceOptions?.skipAuthorizationCheck) {
       return findOptions;
@@ -220,7 +221,7 @@ export class SequelizeBaseService<
         ) as any).dbModel() as ClassType<Model> & typeof Model;
         eagerLoads.push({
           model: assocModel,
-          as: authEntry.associationName,
+          as: authEntry.associationName.toString(),
           // If we're counting, force the omission of all attributes on eager includes.
           // Otherwise, let Sequelize inflect its defaults and load whatever it wants
           attributes: forCountQuery ? [] : undefined
@@ -247,7 +248,7 @@ export class SequelizeBaseService<
    *
    * @param modelClass
    */
-  static addAuthCheckHook(modelClass: typeof Model) {
+  static addAuthCheckHook(modelClass: typeof Model): void {
     // We keep a set of models that have already had a hook added.
     // Its kind of ugly but seems the best way. Although I'm inclined to have a global
     // hook so ALL finds are checked for auth filters...
@@ -289,12 +290,12 @@ export class SequelizeBaseService<
   async addAuthorizationFiltersAndWrapWithTransaction<T>(
     options: {
       opts: NodeServiceOptions;
-      authorizableClass?: ClassType<any>;
+      authorizableClass?: ClassType<Record<string, any>>;
     },
     theFunctionToWrap: (sequelizeOptions: { transaction?: Transaction }) => Promise<T>
-  ) {
+  ): Promise<T> {
     const { opts, authorizableClass } = options;
-    let transactionCreated: boolean = false;
+    let transactionCreated = false;
     if (!opts.transaction) {
       opts.transaction = await this.newTransaction({
         isolation: NodeServiceIsolationLevel.READ_COMMITTED,
@@ -328,7 +329,7 @@ export class SequelizeBaseService<
     }
   }
 
-  setServiceRegister(services: any): void {
+  setServiceRegister(services: NodeServiceMap): void {
     this.nodeServices = services;
   }
   nodeType(): string {
@@ -367,7 +368,7 @@ export class SequelizeBaseService<
     return gqlToDb(relayObject);
   }
 
-  dbModel() {
+  dbModel(): ModelClass<TModel> & typeof Model {
     return this.model;
   }
 
@@ -418,12 +419,12 @@ export class SequelizeBaseService<
     autocommit: boolean;
     type?: NodeServiceTransactionType;
   }): Promise<NodeServiceTransaction> {
-    const txn = await this.model.sequelize!.transaction({
+    const txn: Transaction = (await this.model.sequelize?.transaction({
       transaction: params.parentTransaction as any,
       isolationLevel: params.isolation as any,
       autocommit: params.autocommit,
       type: params.type as any
-    });
+    })) as Transaction;
     this.ctx.beeline.addTraceContext({
       'db.parentTransaction': params.parentTransaction
         ? (params.parentTransaction as any).id
@@ -462,7 +463,9 @@ export class SequelizeBaseService<
     }
   }
 
-  convertServiceOptionsToSequelizeOptions(options?: NodeServiceOptions) {
+  convertServiceOptionsToSequelizeOptions(
+    options?: NodeServiceOptions
+  ): { paranoid?: boolean; transaction?: Transaction; lock?: LOCK } {
     if (options) {
       const transaction: Transaction | undefined = options
         ? ((options.transaction as unknown) as Transaction)
@@ -563,13 +566,12 @@ export class SequelizeBaseService<
   }
 
   @AddToTrace()
-  async count(filterBy: any, options?: NodeServiceOptions) {
+  async count(filterBy: TFilter, options?: NodeServiceOptions): Promise<number> {
     this.addTraceContext(filterBy);
     // const filters = [];
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
-    filterBy = createWhereClauseWith(filterBy);
     const findOptions: FindOptions = {
-      where: filterBy,
+      where: createWhereClauseWith(filterBy),
       ...sequelizeOptions
     };
     this.addAuthorizationFilters(findOptions, options ?? {});
@@ -665,7 +667,7 @@ export class SequelizeBaseService<
     action: Actions,
     sequelizeOptions: FindOptions,
     options?: NodeServiceOptions
-  ) {
+  ): Promise<boolean> {
     if (options?.skipAuthorizationCheck) {
       return true;
     }
@@ -869,9 +871,7 @@ export class SequelizeBaseService<
     // TODO TODO TODO - need to put this in the associated service... and know what
     // type its creating
     //
-    let edges: Array<Edge<TAssocApi>>;
-
-    edges = associated.map(instance => {
+    const edges = associated.map(instance => {
       const edge = new assocEdgeClass();
       edge.cursor = toBase64(limits.offset++);
       edge.node = assocService.gqlFromDbModel(instance) as TAssocApi;
