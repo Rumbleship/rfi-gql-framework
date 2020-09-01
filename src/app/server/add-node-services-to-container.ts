@@ -22,7 +22,6 @@ export function addNodeServicesToContainer(
   }
 }
 
-export type NodeServiceMap<TServiceName extends string = string> = Record<
-  TServiceName,
-  NodeService<Node<unknown>>
+export type NodeServiceMap<TServiceName extends string = string> = Partial<
+  Record<TServiceName, NodeService<Node<unknown>>>
 >;
