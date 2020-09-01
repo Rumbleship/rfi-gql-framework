@@ -3,8 +3,8 @@ import { AttribType } from './../../../src/gql/relay/attrib.enum';
 import * as Mixins from './../../../src/gql/relay/mixins';
 
 class Base {
-  static instantiation_count: number = 0;
-  base_attr: string = 'base_attr';
+  static instantiation_count = 0;
+  base_attr = 'base_attr';
   constructor() {
     Base.instantiation_count++;
   }

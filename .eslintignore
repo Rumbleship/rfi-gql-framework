@@ -1,0 +1,10 @@
+node_modules/**/*
+node_modules.mac/**/*
+lib/**/*
+coverage/**/*
+**/*.sql
+.eslintrc.js
+jest.config.js
+jest.environment.js
+jest.setup.js
+package.json

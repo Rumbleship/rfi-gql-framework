@@ -80,7 +80,7 @@ class RumbleshipContextOptionsWithDefaults {
 export class RumbleshipContext implements Context {
   // Shouldn't generally be needed, but is useful when handing one trace off to a different one.
   public trace: HoneycombSpan | undefined;
-  private static initialized: boolean = false;
+  private static initialized = false;
   private static _serviceFactories: Map<string, RFIFactory<any>>;
   private static ActiveContexts: Map<string, RumbleshipContext> = new Map();
   private static config: ISharedSchema;

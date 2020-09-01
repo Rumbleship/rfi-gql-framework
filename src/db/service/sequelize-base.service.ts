@@ -137,7 +137,7 @@ export class SequelizeBaseService<
     findOptions: object,
     nodeServiceOptions: NodeServiceOptions,
     authorizableClass?: ClassType<any>,
-    forCountQuery: boolean = false
+    forCountQuery = false
   ) {
     let authorizeContext: AuthorizeContext = getAuthorizeContext(findOptions);
     if (!authorizeContext) {
@@ -179,7 +179,7 @@ export class SequelizeBaseService<
     authorizableClasses: Array<ClassType<any>>,
     findOptions: FindOptions,
     nodeServiceOptions: NodeServiceOptions = {},
-    forCountQuery: boolean = false
+    forCountQuery = false
   ): FindOptions {
     if (nodeServiceOptions?.skipAuthorizationCheck) {
       return findOptions;
@@ -294,7 +294,7 @@ export class SequelizeBaseService<
     theFunctionToWrap: (sequelizeOptions: { transaction?: Transaction }) => Promise<T>
   ) {
     const { opts, authorizableClass } = options;
-    let transactionCreated: boolean = false;
+    let transactionCreated = false;
     if (!opts.transaction) {
       opts.transaction = await this.newTransaction({
         isolation: NodeServiceIsolationLevel.READ_COMMITTED,

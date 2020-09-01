@@ -1,7 +1,7 @@
 import { withSubscriptionFilter } from '../../../src';
 
 class Base {
-  base_attr: string = 'base_attr';
+  base_attr = 'base_attr';
 }
 describe('Given: an object decorated withSubscriptionFilter', () => {
   class HasSubscriptionFilter extends withSubscriptionFilter(Base, {}) {}

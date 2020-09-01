@@ -22,6 +22,5 @@ export interface BaseResolverInterface<
   TFilter,
   TInput,
   TUpdate
->
-  extends BaseReadableResolverInterface<TApi, TConnection, TFilter>,
+> extends BaseReadableResolverInterface<TApi, TConnection, TFilter>,
     BaseWritableResolverInterface<TApi, TInput, TUpdate> {}
