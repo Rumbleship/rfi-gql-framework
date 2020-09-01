@@ -6,4 +6,4 @@ export * from './middleware';
 export * from './init-server';
 export * from './unique-subscription-name-part';
 export * from './plugins';
-export * from './routes';
+export * from './routes/health-checks.route';

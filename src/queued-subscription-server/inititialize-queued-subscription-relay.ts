@@ -17,7 +17,7 @@ import { ISharedSchema } from '@rumbleship/config';
 export function inititializeQueuedSubscriptionRelay(
   config: ISharedSchema,
   queued_subscription_request_scope_name = 'QueuedSubscriptionRequest'
-) {
+): void {
   setServiceName(config.serviceName, config.serviceShortCode);
 
   // each microservice that uses the queuedSubscriptionSerer, must locally register its own scope short code
@@ -32,22 +32,22 @@ let _the_service_name: string;
 let _the_service_short_code: string;
 let _queued_subscription_request_scope_name: string;
 
-export function getRelayPrefix() {
+export function getRelayPrefix(): string {
   return capitalize(_the_service_name ?? '');
 }
 
-export function getRelayPrefixLowerCase() {
+export function getRelayPrefixLowerCase(): string {
   return lowerFirst(_the_service_name ?? '');
 }
-export function getServiceShortCode() {
+export function getServiceShortCode(): string {
   return _the_service_short_code;
 }
 
-export function getQueuedSubscriptionRequestScopeName() {
+export function getQueuedSubscriptionRequestScopeName(): string {
   return _queued_subscription_request_scope_name;
 }
 
-export function isQeuedSubscriptionOidForThisService(oid: Oid) {
+export function isQeuedSubscriptionOidForThisService(oid: Oid): boolean {
   const { scope } = oid.unwrap();
   // the service this library is used by will
   if (scope !== getQueuedSubscriptionRequestScopeName()) {

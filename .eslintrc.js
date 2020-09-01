@@ -35,7 +35,7 @@ module.exports = {
     {
       // Attrib/Builder/Mixin files define functions that need to use TypeScript's inflection to generate types
       // Route files define handlers in the Hapi ecosystem and it's annoying to boilerplate copy it.
-      files: ['**/*.attribs.ts', '**/*.builder.ts',  '**/*.mixin.*.ts',  '**/*.route.ts'],
+      files: ['**/*.attribs.ts', '**/*.builder.ts',  '**/*.mixin.*.ts',  '**/*.mixin.ts', '**/*.route.ts'],
       rules: {
         '@typescript-eslint/explicit-module-boundary-types': 0
       }

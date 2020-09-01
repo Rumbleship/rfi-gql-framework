@@ -32,10 +32,10 @@ export class GqlSingleTableInheritanceFactory<
     }
     throw Error(`couldnt find concrete class for: ${discriminator}`);
   }
-  getClassFor(discriminator: keyof TEnum) {
+  getClassFor(discriminator: keyof TEnum): undefined | (() => ClassType<TGql>) {
     return this.concreteClassMap.get(discriminator);
   }
-  getClasses() {
+  getClasses(): ClassType<TGql>[] {
     return [...this.concreteClassMap.values()].map((concreteFn: () => ClassType<TGql>) =>
       concreteFn()
     );

@@ -3,6 +3,7 @@ import { payloadOnWatchList } from './payload-on-watch-list';
 import { RawPayload } from './create-node-notification';
 import { RumbleshipContext } from '../../app/rumbleship-context/rumbleship-context';
 import { NodeChangePayload } from '../../app/server/rfi-pub-sub-engine.interface';
+import { NodeServiceMap } from './../../app/server/add-node-services-to-container';
 import { Oid } from '@rumbleship/oid';
 import { RelayService, NodeService, Node } from '../relay/relay.interface';
 import { NotFoundError } from '../../app/errors';
@@ -56,7 +57,7 @@ export async function filterBySubscriptionFilter({
         }
         const oid = new Oid(nodePayload.oid);
         const { scope } = oid.unwrap();
-        const nodeServices = context.container.get('nodeServices') as object;
+        const nodeServices = context.container.get<NodeServiceMap<string>>('nodeServices');
         if (scope in nodeServices) {
           // Does this match, and are we allowed to see it?
           const node = await (Reflect.get(nodeServices, scope) as RelayService<
@@ -102,10 +103,10 @@ export async function filterById({
       const oid = new Oid(payload.oid);
       const { scope } = oid.unwrap();
       let node;
-      const nodeServices = context.container.get('nodeServices') as object;
+      const nodeServices = context.container.get<NodeServiceMap>('nodeServices');
       if (scope in nodeServices) {
         try {
-          node = await (Reflect.get(nodeServices, scope) as NodeService<Node<object>>).getOne(oid);
+          node = await (Reflect.get(nodeServices, scope) as NodeService<Node<unknown>>).getOne(oid);
         } catch (error) {
           context.beeline.addTraceContext({ error });
           if (error instanceof NotFoundError) {

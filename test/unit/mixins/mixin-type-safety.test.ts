@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import 'reflect-metadata';
 import { AttribType } from './../../../src/gql/relay/attrib.enum';
 import * as Mixins from './../../../src/gql/relay/mixins';

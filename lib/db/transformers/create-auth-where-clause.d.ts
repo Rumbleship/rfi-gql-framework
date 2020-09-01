@@ -8,10 +8,10 @@ export interface AuthIncludeEntry {
 }
 export declare const AUTHORIZE_THROUGH_ENTRIES: unique symbol;
 declare class AuthThroughEntry {
-    readonly targetClass: () => ClassType<object>;
+    readonly targetClass: () => ClassType<Record<string, any>>;
     readonly propertyKey: string;
     associationName: string;
-    constructor(targetClass: () => ClassType<object>, propertyKey: string, associationName?: string);
+    constructor(targetClass: () => ClassType<Record<string, any>>, propertyKey: string, associationName?: string);
 }
 export declare function getAuthorizeThroughEntries(target: object): AuthThroughEntry[];
 export declare function addAuthorizeThrough(target: object, authThroughEntry: AuthThroughEntry): AuthThroughEntry[];
@@ -21,7 +21,7 @@ export declare function addAuthorizeThrough(target: object, authThroughEntry: Au
  * authorization filter attrributes and Resources
  * @param associationName if the name of the property is NOT the name of the association, then can be overridden here
  */
-export declare function AuthorizeThrough(targetClass: () => ClassType<object>, associationName?: string): (target: object, propertyKey: string) => void;
+export declare function AuthorizeThrough(targetClass: () => ClassType<Record<string, any>>, associationName?: string): (target: object, propertyKey: string) => void;
 export declare function createAuthWhereClause(permissions: Permissions, authorizer: Authorizer, action: Actions, targetClass: object, associationName?: string): {};
 /**
  * Holds the information needed to calculate the

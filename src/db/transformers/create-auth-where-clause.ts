@@ -1,5 +1,5 @@
 import { Permissions, Authorizer, Actions, getAuthorizerTreatAs } from '@rumbleship/acl';
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
 
@@ -12,22 +12,22 @@ export interface AuthIncludeEntry {
 export const AUTHORIZE_THROUGH_ENTRIES = Symbol('AUTHORIZE_THROUGH_ENTRIES');
 
 class AuthThroughEntry {
-  associationName: string;
+  associationName: string | symbol;
   constructor(
-    public readonly targetClass: () => ClassType<object>,
-    public readonly propertyKey: string,
+    public readonly targetClass: () => ClassType<Record<string, any>>,
+    public readonly propertyKey: string | symbol,
     associationName?: string
   ) {
     // tslint:disable-next-line: prettier
     this.associationName = associationName ?? propertyKey;
   }
 }
-export function getAuthorizeThroughEntries(target: object): AuthThroughEntry[] {
+export function getAuthorizeThroughEntries(target: Record<string, any>): AuthThroughEntry[] {
   return Reflect.getMetadata(AUTHORIZE_THROUGH_ENTRIES, target) ?? [];
 }
 
 export function addAuthorizeThrough(
-  target: object,
+  target: Record<string, any>,
   authThroughEntry: AuthThroughEntry
 ): AuthThroughEntry[] {
   const authorizeThroughEntries = getAuthorizeThroughEntries(target);
@@ -43,21 +43,27 @@ export function addAuthorizeThrough(
  * authorization filter attrributes and Resources
  * @param associationName if the name of the property is NOT the name of the association, then can be overridden here
  */
-export function AuthorizeThrough(targetClass: () => ClassType<object>, associationName?: string) {
-  return (target: object, propertyKey: string) => {
+export function AuthorizeThrough(
+  targetClass: () => ClassType<Record<string, any>>,
+  associationName?: string
+): PropertyDecorator {
+  const decorator: PropertyDecorator = (
+    target: Record<string, any>,
+    propertyKey: string | symbol
+  ) => {
     const authThroughEntry = new AuthThroughEntry(targetClass, propertyKey, associationName);
     addAuthorizeThrough(target, authThroughEntry);
-    return;
   };
+  return decorator;
 }
 
 export function createAuthWhereClause(
   permissions: Permissions,
   authorizer: Authorizer,
   action: Actions,
-  targetClass: object,
+  targetClass: Record<string, any>,
   associationName?: string
-) {
+): WhereOptions {
   const authorizingAttributes = getAuthorizerTreatAs(targetClass, false);
   let whereAuthClause = {};
 
@@ -90,10 +96,13 @@ export interface AuthorizeContext {
 }
 
 export const AuthorizeContextKey = '_@RumbleshipAuthorizeContextKey';
-export function setAuthorizeContext(findOptions: object, authorizeContext: AuthorizeContext) {
+export function setAuthorizeContext(
+  findOptions: Record<string, any>,
+  authorizeContext: AuthorizeContext
+): Record<string, any> {
   Reflect.set(findOptions, AuthorizeContextKey, authorizeContext);
   return findOptions;
 }
-export function getAuthorizeContext(target: object): AuthorizeContext {
+export function getAuthorizeContext(target: Record<string, any>): AuthorizeContext {
   return Reflect.get(target, AuthorizeContextKey);
 }

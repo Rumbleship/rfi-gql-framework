@@ -24,7 +24,7 @@ export function AliasFromDeprecatedField<T, K = keyof T>(
   deprecated_prop_name: K,
   field_options: FieldOptions = {}
 ): PropertyDecorator {
-  return (target_class: object, new_prop_name: symbol | string) => {
+  return (target_class: Record<string, any>, new_prop_name: symbol | string) => {
     const map: Map<string, string> =
       Reflect.getMetadata(AliasDeprecatedFieldMap, target_class) ?? new Map<string, string>();
     map.set(String(deprecated_prop_name), String(new_prop_name));

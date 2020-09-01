@@ -21,7 +21,7 @@ export class GQLBaseResolver<
     this.ctx = service.getContext();
     service.nodeType();
   }
-  async getAll(filterBy: TFilter) {
+  async getAll(filterBy: TFilter): Promise<TConnection> {
     return this.service.getAll(filterBy);
   }
   async getOne(id: string): Promise<TApi> {

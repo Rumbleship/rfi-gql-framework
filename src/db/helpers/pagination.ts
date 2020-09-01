@@ -2,7 +2,11 @@ import { fromBase64 } from '../../helpers';
 
 const DEFAULT_LIMIT_NUM = 20;
 
-export function calculateBeforeAndAfter(offset: number, limit: number, count: number) {
+export function calculateBeforeAndAfter(
+  offset: number,
+  limit: number,
+  count: number
+): { pageBefore: boolean; pageAfter: boolean } {
   return {
     pageBefore: offset === 0 ? false : true,
     pageAfter: offset + limit < count ? true : false
@@ -14,7 +18,7 @@ export function calculateLimitAndOffset(
   first?: number,
   before?: string,
   last?: number
-) {
+): { offset: number; limit: number } {
   let offset = 0;
   let limit = first ? first : DEFAULT_LIMIT_NUM; // if we have no after, or before...
   if (after) {

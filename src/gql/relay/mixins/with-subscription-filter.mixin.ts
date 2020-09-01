@@ -12,7 +12,7 @@ export interface SubscriptionWatchFilter {
  * on how to add attributes that can be watched for change
  * @param Base
  */
-export function withSubscriptionFilter<TFilterBase extends ClassType<object>>(
+export function withSubscriptionFilter<TFilterBase extends ClassType<Record<string, any>>>(
   Base: TFilterBase,
   watchListEnumNameOrEnum: string | { [x: string]: string }
 ) {
