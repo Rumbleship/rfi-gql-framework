@@ -194,7 +194,7 @@ export class SequelizeBaseService<
     // of the tree
     //
     let authorizingAttributes = new AuthorizerTreatAsMap();
-    let authThroughEntries: AuthThroughEntry[] = [];
+    const authThroughEntries: AuthThroughEntry[] = [];
     // because they are classes not instances...
     const prototypesForClasses = authorizableClasses.map(clazz => clazz.prototype);
 

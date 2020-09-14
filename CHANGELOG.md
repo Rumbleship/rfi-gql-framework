@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * multiple generation of included associations when and authorizeThrough is defined for a single table inheritance class
+  * overwrite of @AuthorizerTreatAs attributes when used in multiple sub-classes in single table inheritence class
 ### Deprecated
 ### Security
 
