@@ -84,7 +84,10 @@ export class WebhookServiceSequelize
             webhookUpdate.subscription_url
           );
 
-          return await this.update(webhookUpdate, optionsWithTransactionAndAuth);
+          return await this.update(webhookUpdate, {
+            ...optionsWithTransactionAndAuth,
+            skipAuthorizationCheck: true
+          });
         }
       );
       return webhook;
@@ -96,9 +99,12 @@ export class WebhookServiceSequelize
     return await this.addAuthorizationFiltersAndWrapWithTransaction(
       { opts: { ...opts, ...{ lockLevel: NodeServiceLock.UPDATE } } },
       async optionsWithTransactionAndAuth => {
-        const webhook = await this.getOne(new Oid(webhookId));
+        const webhook = await this.getOne(new Oid(webhookId), optionsWithTransactionAndAuth);
         const webhookModel = this.dbModelFromGql(webhook);
-        await webhookModel.destroy(optionsWithTransactionAndAuth);
+        await webhookModel.destroy({
+          ...optionsWithTransactionAndAuth,
+          ...{ skipAuthorizationCheck: true }
+        });
       }
     );
   }
@@ -123,10 +129,16 @@ export class WebhookServiceSequelize
         >(QueuedSubscriptionRequest);
 
         input.publish_to_topic_name = webhook.topic_name;
-        const qsrRelay = await qsrService.create(input, optionsWithTransactionAndAuth);
+        const qsrRelay = await qsrService.create(input, {
+          ...optionsWithTransactionAndAuth,
+          skipAuthorizationCheck: true
+        });
         const webhookModel = this.dbModelFromGql(webhook);
         const qsrModel = qsrService.dbModelFromGql(qsrRelay);
-        await webhookModel.$add('webhookSubscription', qsrModel, optionsWithTransactionAndAuth);
+        await webhookModel.$add('webhookSubscription', qsrModel, {
+          ...optionsWithTransactionAndAuth,
+          ...{ skipAuthorizationCheck: true }
+        });
         return qsrService.gqlFromDbModel(qsrModel);
       }
     );
@@ -151,11 +163,17 @@ export class WebhookServiceSequelize
         // deactivate the qsr so all publishing will stop
         const qsrRelay = await qsrService.update(
           { id: subscriptionId, active: false },
-          optionsWithTransactionAndAuth
+          {
+            ...optionsWithTransactionAndAuth,
+            ...{ skipAuthorizationCheck: true }
+          }
         );
         // then mark as deleted
         const qsrModel = qsrService.dbModelFromGql(qsrRelay);
-        await qsrModel.destroy(optionsWithTransactionAndAuth);
+        await qsrModel.destroy({
+          ...optionsWithTransactionAndAuth,
+          ...{ skipAuthorizationCheck: true }
+        });
         return webhook;
       }
     );
