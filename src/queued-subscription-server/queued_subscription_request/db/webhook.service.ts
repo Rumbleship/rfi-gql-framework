@@ -89,7 +89,7 @@ export class WebhookServiceSequelize
       );
       return webhook;
     }
-    throw new RFIAuthError();
+    throw new RFIAuthError('Not Authorized!');
   }
 
   async removeWebhook(webhookId: string, opts: NodeServiceOptions): Promise<void> {

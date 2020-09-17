@@ -5,7 +5,7 @@ export declare const ServicePermissions: {
 };
 export declare const ResolverPermissions: {
     QueuedSubscriptionRequest: {
-        default: Scopes;
+        default: Scopes[];
     };
     Webhook: {
         default: Scopes[];
