@@ -38,7 +38,7 @@ declare const AddSubscriptionInput_base: {
     };
 } & typeof Empty;
 export declare class AddSubscriptionInput extends AddSubscriptionInput_base implements Partial<QueuedSubscriptionRequestInput> {
-    webHookId: string;
+    webhook_id: string;
     gql_query_string: string;
     query_attributes?: string;
     operation_name?: string;

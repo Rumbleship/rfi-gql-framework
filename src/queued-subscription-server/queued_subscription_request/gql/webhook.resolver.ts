@@ -66,7 +66,7 @@ import {
   QueuedSubscriptionRequestInput,
   WebhookSubscription
 } from './queued-subscription-request.relay';
-import { AuthorizerTreatAs, Resource, Scopes } from '@rumbleship/acl';
+import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
 
 @ObjectType()
 export class AddWebhookPayload extends withRelayMutationPayload(Empty) {
@@ -90,7 +90,7 @@ export class AddSubscriptionInput
   extends withRelayMutationInput(Empty)
   implements Partial<QueuedSubscriptionRequestInput> {
   @Field(type => ID, { nullable: false })
-  webHookId!: string;
+  webhook_id!: string;
 
   @Field({ nullable: false })
   gql_query_string!: string;
@@ -172,13 +172,6 @@ export function buildWebhookResolver(
     }
 
     @AddToTrace()
-    @Authorized(Scopes.SYSADMIN)
-    @Mutation(type => Webhook, { name: `update${capitalizedName}` })
-    async update(@Arg('input', type => WebhookUpdate) input: WebhookUpdate): Promise<Webhook> {
-      return super.update(input);
-    }
-
-    @AddToTrace()
     @Authorized(ResolverPermissions.Webhook.default)
     @Mutation(type => AddWebhookPayload, { name: `add${capitalizedName}` })
     async addWebhook(
@@ -206,16 +199,16 @@ export function buildWebhookResolver(
 
     @AddToTrace()
     @Authorized(ResolverPermissions.Webhook.default)
-    @Mutation(type => AddSubscriptionPayload, { name: `addSubscription${capitalizedName}` })
+    @Mutation(type => AddSubscriptionPayload, { name: `add${capitalizedName}Subscription` })
     async addSubscription(
-      @Arg('webhookId', type => ID) webhookId: string,
       @Arg('input', type => AddSubscriptionInput) input: AddSubscriptionInput
     ): Promise<AddSubscriptionPayload> {
       return setClientMutationIdOnPayload(input, async () => {
         const addSubscriptionPayload = new AddSubscriptionPayload();
+        const { webhook_id, ...subscriptionInput } = input;
         addSubscriptionPayload.webhookSubscription = await this.service.addSubscription(
-          webhookId,
-          input,
+          webhook_id,
+          subscriptionInput,
           {}
         );
         return addSubscriptionPayload;
@@ -225,7 +218,7 @@ export function buildWebhookResolver(
     @AddToTrace()
     @Authorized(ResolverPermissions.Webhook.default)
     @Mutation(type => RemoveSubscriptionPayload, {
-      name: `removeSubscriptionFor${capitalizedName}`
+      name: `remove${capitalizedName}SubscriptionFor`
     })
     async removeSubscription(
       @Arg('input', type => AddSubscriptionInput) input: RemoveSubscriptionInput
