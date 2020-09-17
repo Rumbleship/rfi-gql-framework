@@ -16,7 +16,8 @@ import { ISharedSchema } from '@rumbleship/config';
  */
 export function inititializeQueuedSubscriptionRelay(
   config: ISharedSchema,
-  queued_subscription_request_scope_name = 'QueuedSubscriptionRequest'
+  queued_subscription_request_scope_name = 'QueuedSubscriptionRequest',
+  webhook_scope_name = 'Webhook'
 ): void {
   setServiceName(config.serviceName, config.serviceShortCode);
 
@@ -25,12 +26,15 @@ export function inititializeQueuedSubscriptionRelay(
   // distributed architecture level.
   //
   Oid.RegisterScope(queued_subscription_request_scope_name, `${config.serviceShortCode}.qsr`);
+  Oid.RegisterScope(webhook_scope_name, `${config.serviceShortCode}.wh`);
   setQueuedSubscriptionRequestScopeName(queued_subscription_request_scope_name);
+  setWebhookScopeName(webhook_scope_name);
 }
 
 let _the_service_name: string;
 let _the_service_short_code: string;
 let _queued_subscription_request_scope_name: string;
+let _webhook_scope_name: string;
 
 export function getRelayPrefix(): string {
   return capitalize(_the_service_name ?? '');
@@ -47,14 +51,29 @@ export function getQueuedSubscriptionRequestScopeName(): string {
   return _queued_subscription_request_scope_name;
 }
 
-export function isQeuedSubscriptionOidForThisService(oid: Oid): boolean {
+export function getWebhookScopeName(): string {
+  return _webhook_scope_name;
+}
+
+export function isQueuedSubscriptionOidForThisService(oid: Oid): boolean {
+  // the service this library is used by will
+  return isOidForThisService(oid, getQueuedSubscriptionRequestScopeName());
+}
+
+export function isWebhookOidForThisService(oid: Oid): boolean {
+  // the service this library is used by will
+  return isOidForThisService(oid, getWebhookScopeName());
+}
+
+export function isOidForThisService(oid: Oid, scopeName: string): boolean {
   const { scope } = oid.unwrap();
   // the service this library is used by will
-  if (scope !== getQueuedSubscriptionRequestScopeName()) {
+  if (scope !== scopeName) {
     return false;
   }
   const oid_string = oid.toString();
   // Find everything until the first '.' and return it:-
+  // eslint-disable-next-line no-useless-escape
   const regExp = /^([^\.]*)\./;
   const result = oid_string.match(regExp);
   if (result?.length) {
@@ -72,4 +91,7 @@ function setServiceName(name: string, service_short_code: string) {
 }
 function setQueuedSubscriptionRequestScopeName(name: string) {
   _queued_subscription_request_scope_name = name;
+}
+function setWebhookScopeName(name: string) {
+  _webhook_scope_name = name;
 }

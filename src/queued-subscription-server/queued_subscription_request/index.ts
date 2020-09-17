@@ -1,4 +1,4 @@
 export * from './db';
 export * from './gql';
 export * from './permissions';
-export * from './queued-subscription-request';
+export * from './queued-subscription-request.interface';

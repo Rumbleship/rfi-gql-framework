@@ -30,7 +30,11 @@ import { QueuedSubscriptionServer } from '../../queued-subscription-server/queue
 import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued-subscription-request.resolver';
 import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued-subscription-request-models';
 import { addFrameworkServiceFactory } from './framework-node-services';
-import { getQueuedSubscriptionRequestNodeServiceEntry } from '../../queued-subscription-server/get-queued-subscription-request-node-service-entry';
+import {
+  getQueuedSubscriptionRequestNodeServiceEntry,
+  getWebhookNodeServiceEntry
+} from '../../queued-subscription-server/get-queued-subscription-request-node-service-entry';
+import { buildWebhookResolver } from '../../queued-subscription-server/queued_subscription_request/gql/webhook.resolver';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -60,6 +64,8 @@ export async function initServer(
   injected_models = injected_models.concat(qsrDbModelAndScope);
   const qsrResolverClass = buildQueuedSubscriptionRequestResolver();
   addFrameworkServiceFactory(getQueuedSubscriptionRequestNodeServiceEntry);
+  const webhookResolverClass = buildWebhookResolver(config);
+  addFrameworkServiceFactory(getWebhookNodeServiceEntry);
 
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
@@ -153,7 +159,7 @@ export async function initServer(
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
     globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
-    resolvers: [qsrResolverClass],
+    resolvers: [qsrResolverClass, webhookResolverClass],
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };

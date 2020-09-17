@@ -1,4 +1,5 @@
 import { Model } from 'sequelize-typescript';
+import { WebhookModel } from './webhook.model';
 export declare class QueuedSubscriptionRequestModel extends Model<QueuedSubscriptionRequestModel> {
     id: number;
     authorized_requestor_id: string;
@@ -12,5 +13,7 @@ export declare class QueuedSubscriptionRequestModel extends Model<QueuedSubscrip
     created_at?: Date;
     updated_at?: Date;
     deleted_at?: Date;
+    webhook_id: number;
+    webhook?: WebhookModel;
     static afterValidateHook(instance: QueuedSubscriptionRequestModel, options: unknown): void;
 }

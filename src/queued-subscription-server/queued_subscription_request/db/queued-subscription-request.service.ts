@@ -19,6 +19,7 @@ import {
 } from '../gql/queued-subscription-request.relay';
 import { QueuedSubscriptionRequestModel } from './queued-subscription-request.model';
 import { ServicePermissions } from '../permissions';
+import { Webhook } from '../gql/webhook.relay';
 
 @Service() // Each Request gets its own instance
 export class QueuedSubscriptionRequestServiceSequelize
@@ -29,7 +30,7 @@ export class QueuedSubscriptionRequestServiceSequelize
     QueuedSubscriptionRequestConnection,
     QueuedSubscriptionRequestFilter,
     QueuedSubscriptionRequestInput,
-    QueuedSubscriptionRequestUpdate,
+    Partial<QueuedSubscriptionRequestUpdate>,
     any
   >
   implements QueuedSubscriptionRequestService {
@@ -77,5 +78,12 @@ export class QueuedSubscriptionRequestServiceSequelize
       await transaction.rollback();
       throw e;
     }
+  }
+
+  async getWebhookFor(
+    aQsr: QueuedSubscriptionRequest,
+    opts: NodeServiceOptions
+  ): Promise<Webhook | undefined> {
+    return super.getAssociated(aQsr, 'webhook', Webhook, opts);
   }
 }

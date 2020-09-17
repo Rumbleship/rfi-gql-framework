@@ -402,6 +402,7 @@ export class SequelizeBaseService<
     dbClass: Model
   ): SequelizeBaseServiceInterface<any, any, any, any, any, any> {
     for (const key in this.nodeServices) {
+      // eslint-disable-next-line no-prototype-builtins
       if (this.nodeServices.hasOwnProperty(key)) {
         const service = this.nodeServices[key];
         if (service.dbModel === dbClass) {

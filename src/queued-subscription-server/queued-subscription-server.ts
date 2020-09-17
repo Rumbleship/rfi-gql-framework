@@ -3,7 +3,7 @@ import { GraphQLSchema } from 'graphql';
 import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
-} from './queued_subscription_request/queued-subscription-request';
+} from './queued_subscription_request/queued-subscription-request.interface';
 import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 import { IterableConnection } from '../gql/relay/iterable-connection.type';
 import {
@@ -100,7 +100,10 @@ export class QueuedSubscriptionServer {
     for await (const activeSubscription of activeSubscriptions) {
       const key = activeSubscription.id.toString();
 
-      const queuedSubscription = this.addSubscription(key, activeSubscription);
+      const queuedSubscription = this.addSubscription(
+        key,
+        activeSubscription as IQueuedSubscriptionRequest
+      );
       // todo add tracing
       // These are independant promise chains
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

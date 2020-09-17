@@ -11,11 +11,11 @@ import { OnDemandRumbleshipContext } from '../app/rumbleship-context/on-demand-r
 import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
-} from './queued_subscription_request/queued-subscription-request';
+} from './queued_subscription_request/queued-subscription-request.interface';
 import { isASubscriptionOperation } from './helpers/is-subscription-operation';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';
-
+import { gcpGetTopic } from './helpers/gcp_helpers';
 interface QueuedSubscriptionMessage {
   service_id: string;
   clientRequestUuid: string;
@@ -30,13 +30,13 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   >;
   executionContext: GqlExecutionParams;
   authorized_requestor_id: string;
-  gql_query_string: string;
+  gql_query_string?: string;
   query_attributes?: string;
   operation_name?: string;
   publish_to_topic_name: string;
-  client_request_uuid: string;
+  client_request_uuid?: string;
   marshalled_acl: string;
-  active: boolean;
+  active?: boolean;
   onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
   create_unique_subscription?: boolean;
   id: string;
@@ -93,7 +93,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     subscriptionRequest: IQueuedSubscriptionRequest
   ): GqlExecutionParams {
     // parse will throw an error if there are any parse errors
-    const gqlDocument = parse(subscriptionRequest.gql_query_string);
+    const gqlDocument = parse(subscriptionRequest.gql_query_string ?? '');
     const executionParams: GqlExecutionParams = { query: gqlDocument };
 
     if (!isASubscriptionOperation(gqlDocument, subscriptionRequest.operation_name)) {
@@ -119,9 +119,10 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
    * publishes repsononses to the QueuedSubscriptionRequest
    */
   async publishResponse(response: SubscriptionResponse): Promise<string> {
+    const clientRequestUuid = this.client_request_uuid ?? '';
     const message: QueuedSubscriptionMessage = {
       service_id: this.authorized_requestor_id,
-      clientRequestUuid: this.client_request_uuid,
+      clientRequestUuid,
       subscriptionId: this.id.toString(),
       subscriptionResponse: response
     };
@@ -132,23 +133,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
 
   protected async getTopic(): Promise<Topic> {
     if (!this._topic) {
-      let topic = this.googlePublisher.topic(this.publish_to_topic_name);
-      const [exists] = await topic.exists();
-      if (!exists) {
-        try {
-          [topic] = await this.googlePublisher.createTopic(this.publish_to_topic_name);
-        } catch (e) {
-          const TOPIC_ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;
-          if (e.code === TOPIC_ALREADY_EXISTS_GCP_MAGIC_NUMBER) {
-            // It can be created during a race condition,
-            // so try again
-            topic = this.googlePublisher.topic(this.publish_to_topic_name);
-          } else {
-            throw e;
-          }
-        }
-      }
-      this._topic = topic;
+      this._topic = await gcpGetTopic(this.googlePublisher, this.publish_to_topic_name);
     }
     return this._topic;
   }

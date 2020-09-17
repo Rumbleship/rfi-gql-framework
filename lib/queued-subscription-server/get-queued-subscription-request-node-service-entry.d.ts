@@ -6,3 +6,6 @@ import { NodeService } from '../gql/relay';
 export declare function getQueuedSubscriptionRequestNodeServiceEntry(context: RumbleshipContext): {
     [index: string]: NodeService<any>;
 };
+export declare function getWebhookNodeServiceEntry(context: RumbleshipContext): {
+    [index: string]: NodeService<any>;
+};

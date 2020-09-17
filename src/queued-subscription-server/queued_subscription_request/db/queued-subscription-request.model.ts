@@ -8,12 +8,16 @@ import {
   CreatedAt,
   UpdatedAt,
   DeletedAt,
-  AutoIncrement
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo
 } from 'sequelize-typescript';
 import { validateFromExemplar } from '../../../db/helpers/validate-from-exemplar';
 import { AttribType } from '../../../gql/relay/attrib.enum';
 
 import { buildQueuedSubscriptionRequestBaseAttribs } from '../gql/queued-subscription-request.relay';
+// eslint-disable-next-line import/no-cycle
+import { WebhookModel } from './webhook.model';
 
 const QueuedSubscriptionRequestValidator = class extends buildQueuedSubscriptionRequestBaseAttribs(
   AttribType.ValidateOnly
@@ -61,6 +65,13 @@ export class QueuedSubscriptionRequestModel extends Model<QueuedSubscriptionRequ
   updated_at?: Date;
   @DeletedAt
   deleted_at?: Date;
+
+  @ForeignKey(() => WebhookModel)
+  @Column(DataType.INTEGER)
+  webhook_id!: number;
+
+  @BelongsTo(() => WebhookModel)
+  webhook?: WebhookModel;
 
   @AfterValidate
   static afterValidateHook(instance: QueuedSubscriptionRequestModel, options: unknown): void {

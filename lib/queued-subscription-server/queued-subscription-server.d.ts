@@ -1,6 +1,6 @@
 import { QueuedSubscription } from './queued-subscription';
 import { GraphQLSchema } from 'graphql';
-import { IQueuedSubscriptionRequest } from './queued_subscription_request/queued-subscription-request';
+import { IQueuedSubscriptionRequest } from './queued_subscription_request/queued-subscription-request.interface';
 import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 import { IGcpConfig } from '@rumbleship/config';
 export declare class QueuedSubscriptionServer {
