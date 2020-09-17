@@ -5,6 +5,7 @@ export declare class WebhookModel extends Model<WebhookModel> {
     division_id: string;
     subscription_url: string;
     subscription_name: string;
+    topic_name: string;
     active: string;
     webhookSubscriptions?: [QueuedSubscriptionRequestModel];
     created_at?: Date;

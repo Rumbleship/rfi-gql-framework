@@ -41,6 +41,9 @@ export class WebhookModel extends Model<WebhookModel> {
   @Column(DataType.TEXT)
   subscription_name!: string;
 
+  @Column(DataType.TEXT)
+  topic_name!: string;
+
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false

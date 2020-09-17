@@ -13,6 +13,16 @@ declare const AddWebhookPayload_base: {
 export declare class AddWebhookPayload extends AddWebhookPayload_base {
     webhook: Webhook;
 }
+declare const AddWebhookInput_base: {
+    new (...args: any[]): {
+        [x: string]: any;
+        clientMutationId?: string | undefined;
+    };
+} & typeof Empty;
+export declare class AddWebhookInput extends AddWebhookInput_base {
+    division_id: string;
+    subscription_url: string;
+}
 declare const RemoveWebhookPayload_base: {
     new (...args: any[]): {
         [x: string]: any;

@@ -66,14 +66,22 @@ import {
   QueuedSubscriptionRequestInput,
   WebhookSubscription
 } from './queued-subscription-request.relay';
-import { Scopes } from '@rumbleship/acl';
+import { AuthorizerTreatAs, Resource, Scopes } from '@rumbleship/acl';
 
 @ObjectType()
 export class AddWebhookPayload extends withRelayMutationPayload(Empty) {
   @Field(type => Webhook)
   webhook!: Webhook;
 }
+@InputType()
+export class AddWebhookInput extends withRelayMutationInput(Empty) {
+  @AuthorizerTreatAs([Resource.Division])
+  @Field(type => ID, { nullable: false })
+  division_id!: string;
 
+  @Field({ nullable: false })
+  subscription_url!: string;
+}
 @ObjectType()
 export class RemoveWebhookPayload extends withRelayMutationPayload(Empty) {}
 
@@ -174,7 +182,7 @@ export function buildWebhookResolver(
     @Authorized(ResolverPermissions.Webhook.default)
     @Mutation(type => AddWebhookPayload, { name: `add${capitalizedName}` })
     async addWebhook(
-      @Arg('input', type => WebhookInput) input: WebhookInput
+      @Arg('input', type => AddWebhookInput) input: AddWebhookInput
     ): Promise<AddWebhookPayload> {
       return setClientMutationIdOnPayload(input, async () => {
         const addWebhookPayload = new AddWebhookPayload();

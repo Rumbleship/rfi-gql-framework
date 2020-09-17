@@ -5,6 +5,7 @@ import { GqlBaseAttribs, isInputOrObject } from '../../../gql/relay/base-attribs
 import { AttribType } from '../../../gql/relay/attrib.enum';
 import { Watchable } from '../../../gql/relay/watchable';
 import { ClassType } from '../../../helpers/classtype';
+import { MaxLength, MinLength } from 'class-validator';
 
 /**
  * Required because the builder needs to be correctly typed, as this is a library and
@@ -15,9 +16,9 @@ import { ClassType } from '../../../helpers/classtype';
 export interface WebhookBase {
   division_id: string;
   subscription_url: string;
-  subscription_name: string;
-  topic_name: string;
-  active: boolean;
+  subscription_name?: string;
+  topic_name?: string;
+  active?: boolean;
 }
 export function buildWebhookBaseAttribs(attribType: AttribType): ClassType<WebhookBase> {
   @GqlBaseAttribs(attribType)
@@ -29,11 +30,17 @@ export function buildWebhookBaseAttribs(attribType: AttribType): ClassType<Webho
     @Watchable
     @Field({ nullable: true })
     subscription_url!: string;
+
     @Watchable
+    @MaxLength(255)
+    @MinLength(3)
     @Field({ nullable: true })
-    subscription_name!: string;
+    subscription_name?: string;
+
+    @MaxLength(255)
+    @MinLength(3)
     @Field({ nullable: true })
-    topic_name!: string;
+    topic_name?: string;
 
     @Watchable
     @Field(type => Boolean, { nullable: !isInputOrObject(attribType) })

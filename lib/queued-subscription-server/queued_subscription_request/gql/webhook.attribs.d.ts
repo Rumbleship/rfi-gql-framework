@@ -9,8 +9,8 @@ import { ClassType } from '../../../helpers/classtype';
 export interface WebhookBase {
     division_id: string;
     subscription_url: string;
-    subscription_name: string;
-    topic_name: string;
-    active: boolean;
+    subscription_name?: string;
+    topic_name?: string;
+    active?: boolean;
 }
 export declare function buildWebhookBaseAttribs(attribType: AttribType): ClassType<WebhookBase>;
