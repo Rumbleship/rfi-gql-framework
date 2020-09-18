@@ -81,7 +81,7 @@ export class WebhookServiceSequelize
             gcpConfig,
             webhookUpdate.topic_name,
             webhookUpdate.subscription_name,
-            webhookUpdate.subscription_url
+            webhookRelay.subscription_url
           );
 
           return await this.update(webhookUpdate, {
