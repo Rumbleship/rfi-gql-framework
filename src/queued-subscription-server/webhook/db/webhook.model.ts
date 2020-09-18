@@ -39,7 +39,7 @@ export class WebhookModel extends Model<WebhookModel> {
   subscription_url!: string;
 
   @Column(DataType.TEXT)
-  gclound_subscription!: string;
+  gcloud_subscription!: string;
 
   @Column(DataType.TEXT)
   topic_name!: string;

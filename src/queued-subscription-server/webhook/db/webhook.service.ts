@@ -77,12 +77,12 @@ export class WebhookServiceSequelize
           webhookUpdate.topic_name = `${pubSubConfig.topicPrefix}_${config.serviceName}webhooks_${
             webhookRelay.owner_id
           }_${webhookRelay.id.toString()}`;
-          webhookUpdate.gclound_subscription = webhookUpdate.topic_name;
+          webhookUpdate.gcloud_subscription = webhookUpdate.topic_name;
 
           await this.createTopicAndSubscriptionForGooglePubSub(
             gcpConfig,
             webhookUpdate.topic_name,
-            webhookUpdate.gclound_subscription,
+            webhookUpdate.gcloud_subscription,
             webhookRelay.subscription_url
           );
 
@@ -202,11 +202,11 @@ export class WebhookServiceSequelize
   private async createTopicAndSubscriptionForGooglePubSub(
     gcpConfig: IGcpConfig,
     topic_name: string,
-    gclound_subscription: string,
+    gcloud_subscription: string,
     subscription_url: string
   ): Promise<void> {
     const googlePubSub = new GooglePubSub(gcpConfig.Auth);
     const topic = await gcpGetTopic(googlePubSub, topic_name);
-    await gcpCreatePushSubscription(topic, gclound_subscription, subscription_url);
+    await gcpCreatePushSubscription(topic, gcloud_subscription, subscription_url);
   }
 }

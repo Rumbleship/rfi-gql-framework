@@ -4,7 +4,7 @@ export declare class WebhookModel extends Model<WebhookModel> {
     id: number;
     owner_id: string;
     subscription_url: string;
-    gclound_subscription: string;
+    gcloud_subscription: string;
     topic_name: string;
     active: string;
     webhookSubscriptions?: [QueuedSubscriptionRequestModel];

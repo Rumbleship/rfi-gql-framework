@@ -136,13 +136,13 @@ export class QueuedSubscriptionServer {
     });
 
     for await (const webhook of activeWebhooks) {
-      if (webhook.topic_name && webhook.gclound_subscription) {
+      if (webhook.topic_name && webhook.gcloud_subscription) {
         try {
           const gcloudPubSub = new GooglePubsub(this.config.Auth);
           const topic = await gcpGetTopic(gcloudPubSub, webhook.topic_name);
           await gcpCreatePushSubscription(
             topic,
-            webhook.gclound_subscription,
+            webhook.gcloud_subscription,
             webhook.subscription_url
           );
         } catch (error) {

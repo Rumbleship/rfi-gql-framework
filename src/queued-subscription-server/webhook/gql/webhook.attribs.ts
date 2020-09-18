@@ -16,7 +16,7 @@ import { MaxLength, MinLength } from 'class-validator';
 export interface WebhookBase {
   owner_id: string;
   subscription_url: string;
-  gclound_subscription?: string;
+  gcloud_subscription?: string;
   topic_name?: string;
   active?: boolean;
 }
@@ -35,7 +35,7 @@ export function buildWebhookBaseAttribs(attribType: AttribType): ClassType<Webho
     @MaxLength(255)
     @MinLength(3)
     @Field({ nullable: true })
-    gclound_subscription?: string;
+    gcloud_subscription?: string;
 
     @MaxLength(255)
     @MinLength(3)

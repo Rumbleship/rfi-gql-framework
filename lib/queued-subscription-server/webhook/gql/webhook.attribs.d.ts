@@ -9,7 +9,7 @@ import { ClassType } from '../../../helpers/classtype';
 export interface WebhookBase {
     owner_id: string;
     subscription_url: string;
-    gclound_subscription?: string;
+    gcloud_subscription?: string;
     topic_name?: string;
     active?: boolean;
 }
