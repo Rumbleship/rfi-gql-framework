@@ -186,7 +186,10 @@ export function buildWebhookResolver(
 
     @AddToTrace()
     @Authorized(ResolverPermissions.Webhook.default)
-    @Mutation(type => RemoveWebhookPayload, { name: `remove${capitalizedName}` })
+    @Mutation(type => RemoveWebhookPayload, {
+      description: 'warning: not completely implemented. deactivate associated qsrs manually',
+      name: `remove${capitalizedName}`
+    })
     async removeWebhook(
       @Arg('input', type => RemoveWebhookInput) input: RemoveWebhookInput
     ): Promise<RemoveWebhookPayload> {
@@ -221,7 +224,7 @@ export function buildWebhookResolver(
       name: `remove${capitalizedName}SubscriptionFor`
     })
     async removeSubscription(
-      @Arg('input', type => AddSubscriptionInput) input: RemoveSubscriptionInput
+      @Arg('input', type => RemoveSubscriptionInput) input: RemoveSubscriptionInput
     ): Promise<RemoveSubscriptionPayload> {
       return setClientMutationIdOnPayload(input, async () => {
         const removesubscriptionPayload = new RemoveSubscriptionPayload();
