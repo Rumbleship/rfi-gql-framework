@@ -146,10 +146,13 @@ export class QueuedSubscriptionServer {
             webhook.subscription_url
           );
         } catch (error) {
-          ctx.logger.error(
-            `Webhook: ${webhook.id.toString()} failed to validate topic/subscription`,
-            { error }
-          );
+          const ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;
+          if (error.code !== ALREADY_EXISTS_GCP_MAGIC_NUMBER) {
+            ctx.logger.error(
+              `Webhook: ${webhook.id.toString()} failed to validate topic/subscription`,
+              { error }
+            );
+          }
         }
       }
     }
