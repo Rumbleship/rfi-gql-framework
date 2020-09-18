@@ -130,6 +130,7 @@ export class WebhookServiceSequelize
 
         input.publish_to_topic_name = webhook.topic_name;
         input.authorized_requestor_id = webhook.division_id;
+        input.marshalled_acl = this.ctx.authorizer.marshalClaims();
         const qsrRelay = await qsrService.create(input, {
           ...optionsWithTransactionAndAuth,
           skipAuthorizationCheck: true
