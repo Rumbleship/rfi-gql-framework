@@ -10,12 +10,12 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
         [key: string]: any;
     }>>;
     executionContext: GqlExecutionParams;
-    authorized_requestor_id: string;
+    owner_id: string;
     gql_query_string?: string;
     query_attributes?: string;
     operation_name?: string;
     publish_to_topic_name: string;
-    client_request_uuid?: string;
+    subscription_name?: string;
     marshalled_acl: string;
     active?: boolean;
     onResponseHook?: (response: SubscriptionResponse) => Promise<void>;

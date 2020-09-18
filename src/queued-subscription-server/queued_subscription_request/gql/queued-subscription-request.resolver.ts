@@ -112,8 +112,8 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
     ): Promise<QueuedSubscriptionRequest> {
       const ctx = this.service.getContext();
       input.marshalled_acl = ctx.authorizer.marshalClaims();
-      if (!input.authorized_requestor_id) {
-        input.authorized_requestor_id = ctx.authorizer.getUser();
+      if (!input.owner_id) {
+        input.owner_id = ctx.authorizer.getUser();
       }
       return super.create(input);
     }

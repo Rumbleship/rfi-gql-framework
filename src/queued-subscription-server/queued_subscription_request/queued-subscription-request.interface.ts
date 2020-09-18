@@ -5,7 +5,7 @@ export type SubscriptionResponse = ExecutionResult;
 
 // tslint:disable-next-line: interface-name
 export interface IQueuedSubscriptionRequest extends IWebhookSubscription {
-  authorized_requestor_id: string;
+  owner_id: string;
   marshalled_acl: string;
   publish_to_topic_name: string;
   id?: string | Oid;

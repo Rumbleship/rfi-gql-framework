@@ -7,9 +7,9 @@ import { ClassType } from '../../../helpers/classtype';
  *
  */
 export interface WebhookBase {
-    system_id: string;
+    owner_id: string;
     subscription_url: string;
-    subscription_name?: string;
+    gclound_subscription?: string;
     topic_name?: string;
     active?: boolean;
 }

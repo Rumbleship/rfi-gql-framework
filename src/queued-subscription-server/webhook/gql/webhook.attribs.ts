@@ -14,9 +14,9 @@ import { MaxLength, MinLength } from 'class-validator';
  *
  */
 export interface WebhookBase {
-  system_id: string;
+  owner_id: string;
   subscription_url: string;
-  subscription_name?: string;
+  gclound_subscription?: string;
   topic_name?: string;
   active?: boolean;
 }
@@ -24,9 +24,9 @@ export function buildWebhookBaseAttribs(attribType: AttribType): ClassType<Webho
   @GqlBaseAttribs(attribType)
   class BaseWebhookAttribs implements WebhookBase {
     @Watchable
-    @AuthorizerTreatAs([Resource.Division])
-    @Field(type => ID, { description: 'Rumbleship provided system_id/divsion_id', nullable: true })
-    system_id!: string;
+    @AuthorizerTreatAs([Resource.Division, Resource.User])
+    @Field(type => ID, { description: 'Rumbleship provided owner_id/divsion_id', nullable: true })
+    owner_id!: string;
     @Watchable
     @Field({ nullable: true })
     subscription_url!: string;
@@ -35,7 +35,7 @@ export function buildWebhookBaseAttribs(attribType: AttribType): ClassType<Webho
     @MaxLength(255)
     @MinLength(3)
     @Field({ nullable: true })
-    subscription_name?: string;
+    gclound_subscription?: string;
 
     @MaxLength(255)
     @MinLength(3)

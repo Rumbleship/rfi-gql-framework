@@ -33,13 +33,13 @@ export class WebhookModel extends Model<WebhookModel> {
   id!: number;
 
   @Column
-  system_id!: string;
+  owner_id!: string;
 
   @Column(DataType.TEXT)
   subscription_url!: string;
 
   @Column(DataType.TEXT)
-  subscription_name!: string;
+  gclound_subscription!: string;
 
   @Column(DataType.TEXT)
   topic_name!: string;

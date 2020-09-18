@@ -75,14 +75,14 @@ export class WebhookServiceSequelize
           const webhookUpdate = new WebhookUpdate();
           webhookUpdate.id = webhookRelay.id.toString();
           webhookUpdate.topic_name = `${pubSubConfig.topicPrefix}_${config.serviceName}webhooks_${
-            webhookRelay.system_id
+            webhookRelay.owner_id
           }_${webhookRelay.id.toString()}`;
-          webhookUpdate.subscription_name = webhookUpdate.topic_name;
+          webhookUpdate.gclound_subscription = webhookUpdate.topic_name;
 
           await this.createTopicAndSubscriptionForGooglePubSub(
             gcpConfig,
             webhookUpdate.topic_name,
-            webhookUpdate.subscription_name,
+            webhookUpdate.gclound_subscription,
             webhookRelay.subscription_url
           );
 
@@ -103,6 +103,7 @@ export class WebhookServiceSequelize
       async optionsWithTransactionAndAuth => {
         const webhook = await this.getOne(new Oid(webhookId), optionsWithTransactionAndAuth);
         const webhookModel = this.dbModelFromGql(webhook);
+        // check that associated qsr is correctly managed
         await webhookModel.destroy({
           ...optionsWithTransactionAndAuth,
           ...{ skipAuthorizationCheck: true }
@@ -131,7 +132,7 @@ export class WebhookServiceSequelize
         >(QueuedSubscriptionRequest);
 
         input.publish_to_topic_name = webhook.topic_name;
-        input.authorized_requestor_id = webhook.system_id;
+        input.owner_id = webhook.owner_id;
         input.marshalled_acl = this.ctx.authorizer.marshalClaims();
         const qsrRelay = await qsrService.create(input, {
           ...optionsWithTransactionAndAuth,
@@ -201,11 +202,11 @@ export class WebhookServiceSequelize
   private async createTopicAndSubscriptionForGooglePubSub(
     gcpConfig: IGcpConfig,
     topic_name: string,
-    subscription_name: string,
+    gclound_subscription: string,
     subscription_url: string
   ): Promise<void> {
     const googlePubSub = new GooglePubSub(gcpConfig.Auth);
     const topic = await gcpGetTopic(googlePubSub, topic_name);
-    await gcpCreatePushSubscription(topic, subscription_name, subscription_url);
+    await gcpCreatePushSubscription(topic, gclound_subscription, subscription_url);
   }
 }

@@ -45,7 +45,7 @@ export class QueuedSubscriptionServer {
           marshalled_acl
           gql_query_string
           active
-          authorized_requestor_id
+          owner_id
           operation_name
           query_attributes
           publish_to_topic_name
@@ -70,11 +70,11 @@ export class QueuedSubscriptionServer {
       schema,
       {
         id: 'qsrObserver',
-        authorized_requestor_id: '',
+        owner_id: '',
         marshalled_acl,
         gql_query_string,
         publish_to_topic_name: '',
-        client_request_uuid: uuid.v4(),
+        subscription_name: uuid.v4(),
         active: true,
         create_unique_subscription: true, // EVERY instance of this service needs to respond
         onResponseHook
@@ -127,7 +127,9 @@ export class QueuedSubscriptionServer {
    */
   addSubscription(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription {
     if (this.queuedSubscriptions.has(key)) {
-      throw new Error(`QueuedSubscription: ${request.client_request_uuid} already running`);
+      throw new Error(
+        `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
+      );
     }
     const queuedSubscription = new QueuedSubscription(this.schema, request, this.config);
 

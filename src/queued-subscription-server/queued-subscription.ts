@@ -17,10 +17,10 @@ import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';
 import { gcpGetTopic } from './helpers/gcp_helpers';
 interface QueuedSubscriptionMessage {
-  service_id: string;
-  clientRequestUuid: string;
-  subscriptionId: string;
-  subscriptionResponse: SubscriptionResponse;
+  owner_id: string;
+  subscription_name: string;
+  subscription_id: string;
+  subscription_response: SubscriptionResponse;
 }
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
@@ -29,12 +29,12 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     }>
   >;
   executionContext: GqlExecutionParams;
-  authorized_requestor_id: string;
+  owner_id: string;
   gql_query_string?: string;
   query_attributes?: string;
   operation_name?: string;
   publish_to_topic_name: string;
-  client_request_uuid?: string;
+  subscription_name?: string;
   marshalled_acl: string;
   active?: boolean;
   onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
@@ -62,12 +62,12 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     //
     let id;
     ({
-      authorized_requestor_id: this.authorized_requestor_id,
+      owner_id: this.owner_id,
       gql_query_string: this.gql_query_string,
       query_attributes: this.query_attributes,
       operation_name: this.operation_name,
       publish_to_topic_name: this.publish_to_topic_name,
-      client_request_uuid: this.client_request_uuid,
+      subscription_name: this.subscription_name,
       marshalled_acl: this.marshalled_acl,
       onResponseHook: this.onResponseHook,
       create_unique_subscription: this.create_unique_subscription,
@@ -119,12 +119,12 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
    * publishes repsononses to the QueuedSubscriptionRequest
    */
   async publishResponse(response: SubscriptionResponse): Promise<string> {
-    const clientRequestUuid = this.client_request_uuid ?? '';
+    const subscription_name = this.subscription_name ?? '';
     const message: QueuedSubscriptionMessage = {
-      service_id: this.authorized_requestor_id,
-      clientRequestUuid,
-      subscriptionId: this.id.toString(),
-      subscriptionResponse: response
+      owner_id: this.owner_id,
+      subscription_name,
+      subscription_id: this.id.toString(),
+      subscription_response: response
     };
     const topic = await this.getTopic();
     const payload = JSON.stringify(message);
@@ -166,7 +166,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         this.activeSubscription = result;
         for await (const executionResult of this.activeSubscription) {
           logger.info(`contextid: ${onDemandContext.id}: Ready to send Subscription response for ${
-            this.client_request_uuid
+            this.subscription_name
           } to ${this.publish_to_topic_name}: 
         ${JSON.stringify(executionResult, undefined, 2)}`);
           if (this.publish_to_topic_name.length) {
@@ -177,11 +177,11 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
           }
           await onDemandContext.reset();
         }
-        logger.info(`exited QueuedSubscription: ${this.client_request_uuid} `);
+        logger.info(`exited QueuedSubscription: ${this.subscription_name} `);
       } else {
         const error_payload = { errors: result };
         const error_message = `Error trying to subscribe to: ${
-          this.client_request_uuid
+          this.subscription_name
         }: ${JSON.stringify(error_payload, undefined, 2)} `;
 
         logger.error(error_message);

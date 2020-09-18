@@ -20,7 +20,7 @@ declare const AddWebhookInput_base: {
     };
 } & typeof Empty;
 export declare class AddWebhookInput extends AddWebhookInput_base {
-    system_id: string;
+    owner_id: string;
     subscription_url: string;
 }
 declare const RemoveWebhookPayload_base: {
@@ -42,7 +42,7 @@ export declare class AddSubscriptionInput extends AddSubscriptionInput_base impl
     gql_query_string: string;
     query_attributes?: string;
     operation_name?: string;
-    client_request_uuid: string;
+    subscription_name: string;
     active: boolean;
 }
 declare const AddSubscriptionPayload_base: {

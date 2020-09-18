@@ -49,7 +49,7 @@ export function buildQueuedSubscriptionRequestBaseAttribs(
     @Watchable
     @AuthorizerTreatAs([Resource.User])
     @Field(type => ID, { nullable: true })
-    authorized_requestor_id?: string;
+    owner_id?: string;
 
     @Watchable
     @Field({ nullable: true })
@@ -78,7 +78,7 @@ export function buildQueuedSubscriptionRequestBaseAttribs(
 
     @Watchable
     @Field({ nullable: !isInputOrObject(attribType) })
-    client_request_uuid!: string;
+    subscription_name!: string;
 
     @Watchable
     @Field(type => Boolean, { nullable: !isInputOrObject(attribType) })
@@ -116,7 +116,7 @@ export class WebhookSubscription implements IWebhookSubscription {
   operation_name?: string;
 
   @Field({ nullable: true })
-  client_request_uuid?: string;
+  subscription_name?: string;
 
   @Field(type => Boolean, { nullable: false })
   active?: boolean;

@@ -4,7 +4,7 @@ export interface IWebhookSubscription {
   gql_query_string?: string;
   query_attributes?: string;
   operation_name?: string;
-  client_request_uuid?: string;
+  subscription_name?: string;
   active?: boolean;
   id?: string | Oid;
 }

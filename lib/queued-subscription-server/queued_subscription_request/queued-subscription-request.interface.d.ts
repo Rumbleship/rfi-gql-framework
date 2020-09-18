@@ -3,7 +3,7 @@ import { Oid } from '@rumbleship/oid';
 import { IWebhookSubscription } from './webhook_subscription.interface';
 export declare type SubscriptionResponse = ExecutionResult;
 export interface IQueuedSubscriptionRequest extends IWebhookSubscription {
-    authorized_requestor_id: string;
+    owner_id: string;
     marshalled_acl: string;
     publish_to_topic_name: string;
     id?: string | Oid;

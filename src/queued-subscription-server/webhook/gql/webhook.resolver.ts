@@ -76,9 +76,9 @@ export class AddWebhookPayload extends withRelayMutationPayload(Empty) {
 }
 @InputType()
 export class AddWebhookInput extends withRelayMutationInput(Empty) {
-  @AuthorizerTreatAs([Resource.Division])
+  @AuthorizerTreatAs([Resource.Division, Resource.User])
   @Field(type => ID, { nullable: false })
-  system_id!: string;
+  owner_id!: string;
 
   @Field({ nullable: false })
   subscription_url!: string;
@@ -103,7 +103,7 @@ export class AddSubscriptionInput
   operation_name?: string;
 
   @Field({ nullable: true })
-  client_request_uuid!: string;
+  subscription_name!: string;
 
   @Field(type => Boolean, { nullable: false })
   active!: boolean;

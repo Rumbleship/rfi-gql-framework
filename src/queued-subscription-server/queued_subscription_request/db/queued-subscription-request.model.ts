@@ -37,7 +37,7 @@ export class QueuedSubscriptionRequestModel extends Model<QueuedSubscriptionRequ
   id!: number;
 
   @Column
-  authorized_requestor_id!: string;
+  owner_id!: string;
 
   @Column
   marshalled_acl!: string;
@@ -55,7 +55,7 @@ export class QueuedSubscriptionRequestModel extends Model<QueuedSubscriptionRequ
   publish_to_topic_name!: string;
 
   @Column
-  client_request_uuid!: string;
+  subscription_name!: string;
 
   @Column(DataType.BOOLEAN)
   active!: boolean;
