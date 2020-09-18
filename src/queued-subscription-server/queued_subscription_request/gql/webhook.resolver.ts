@@ -160,7 +160,7 @@ export function buildWebhookResolver(
 
     @AddToTrace()
     @Authorized(ResolverPermissions.Webhook.default)
-    @Query(type => Webhook, { name: `${baseName}s` })
+    @Query(type => WebhookConnection, { name: `${baseName}s` })
     async getAll(@Args(type => WebhookFilter) filterBy: WebhookFilter): Promise<WebhookConnection> {
       return super.getAll(filterBy);
     }

@@ -89,7 +89,7 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
 
     @AddToTrace()
     @Authorized(ResolverPermissions.QueuedSubscriptionRequest.default)
-    @Query(type => QueuedSubscriptionRequest, { name: `${baseName}s` })
+    @Query(type => QueuedSubscriptionRequestConnection, { name: `${baseName}s` })
     async getAll(
       @Args(type => QueuedSubscriptionRequestFilter) filterBy: QueuedSubscriptionRequestFilter
     ): Promise<QueuedSubscriptionRequestConnection> {
