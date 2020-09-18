@@ -1,4 +1,4 @@
-import { Permissions, Authorizer, Actions, getAuthorizerTreatAs } from '@rumbleship/acl';
+import { Permissions, Authorizer, Actions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 import { Op, WhereOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
@@ -11,7 +11,7 @@ export interface AuthIncludeEntry {
 
 export const AUTHORIZE_THROUGH_ENTRIES = Symbol('AUTHORIZE_THROUGH_ENTRIES');
 
-class AuthThroughEntry {
+export class AuthThroughEntry {
   associationName: string | symbol;
   constructor(
     public readonly targetClass: () => ClassType<Record<string, any>>,
@@ -61,10 +61,9 @@ export function createAuthWhereClause(
   permissions: Permissions,
   authorizer: Authorizer,
   action: Actions,
-  targetClass: Record<string, any>,
+  authorizingAttributes: AuthorizerTreatAsMap,
   associationName?: string | symbol
 ): WhereOptions {
-  const authorizingAttributes = getAuthorizerTreatAs(targetClass, false);
   let whereAuthClause = {};
 
   for (const [role, keys] of authorizingAttributes) {
@@ -105,4 +104,24 @@ export function setAuthorizeContext(
 }
 export function getAuthorizeContext(target: Record<string, any>): AuthorizeContext {
   return Reflect.get(target, AuthorizeContextKey);
+}
+
+export function mergeAuthorizerTreatAsMaps(
+  map1: AuthorizerTreatAsMap,
+  map2: AuthorizerTreatAsMap
+): AuthorizerTreatAsMap {
+  const mergedMaps = cloneAuthorizerTreatAsMap(map1);
+  for (const key of map2.keys()) {
+    // the acl library returns an empty set if the key is not found
+    // it adds the values to the existing values rather then overwriting
+    mergedMaps.add(key, [...map2.get(key)]);
+  }
+  return mergedMaps;
+}
+export function cloneAuthorizerTreatAsMap(map: AuthorizerTreatAsMap): AuthorizerTreatAsMap {
+  const cloned = new AuthorizerTreatAsMap();
+  for (const [k, v] of map) {
+    cloned.add(k, [...v]);
+  }
+  return cloned;
 }

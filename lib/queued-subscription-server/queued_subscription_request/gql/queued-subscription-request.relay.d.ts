@@ -1,14 +1,21 @@
-import { Node, RelayService, RelayInputTypeBase, RelayFilterBase } from '../../../gql/relay/relay.interface';
+import { Node, RelayService, RelayInputTypeBase, RelayFilterBase, NodeServiceOptions } from '../../../gql/relay/relay.interface';
 import { AttribType } from '../../../gql/relay/attrib.enum';
 import { Oid } from '@rumbleship/oid';
-import { IQueuedSubscriptionRequest } from '../queued-subscription-request';
+import { IQueuedSubscriptionRequest } from '../queued-subscription-request.interface';
 import { ClassType } from '../../../helpers';
-export declare function buildQueuedSubscriptionRequestBaseAttribs(attribType: AttribType): ClassType<IQueuedSubscriptionRequest>;
+import { IWebhookSubscription } from '../webhook_subscription.interface';
+import { Webhook } from '../../webhook/gql/webhook.relay';
+export declare function buildQueuedSubscriptionRequestBaseAttribs(attribType: AttribType): ClassType<Partial<IQueuedSubscriptionRequest>>;
 export interface QueuedSubscriptionRequestService extends RelayService<QueuedSubscriptionRequest, QueuedSubscriptionRequestConnection, QueuedSubscriptionRequestFilter, QueuedSubscriptionRequestInput, QueuedSubscriptionRequestUpdate> {
     createAndCommit(subscriptionControlInput: QueuedSubscriptionRequestInput): Promise<void>;
+    getWebhookFor(aQsr: QueuedSubscriptionRequest, opts: NodeServiceOptions): Promise<Webhook | undefined>;
 }
-declare const QueuedSubscriptionRequestConcrete_base: ClassType<IQueuedSubscriptionRequest>;
-declare class QueuedSubscriptionRequestConcrete extends QueuedSubscriptionRequestConcrete_base {
+export declare class WebhookSubscription implements IWebhookSubscription {
+    gql_query_string?: string;
+    query_attributes?: string;
+    operation_name?: string;
+    subscription_name?: string;
+    active?: boolean;
 }
 declare const QueuedSubscriptionRequest_base: {
     new (...args: any[]): {
@@ -16,7 +23,7 @@ declare const QueuedSubscriptionRequest_base: {
         updated_at?: Date | undefined;
         deleted_at?: Date | undefined;
     };
-} & typeof QueuedSubscriptionRequestConcrete;
+} & ClassType<Partial<IQueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequest extends QueuedSubscriptionRequest_base implements Node<QueuedSubscriptionRequest> {
     _service: QueuedSubscriptionRequestService;
     id: Oid;
@@ -30,14 +37,14 @@ export declare class QueuedSubscriptionRequestEdge extends QueuedSubscriptionReq
 declare const QueuedSubscriptionRequestConnection_base: ClassType<import("../../../gql/relay/relay.interface").Connection<QueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequestConnection extends QueuedSubscriptionRequestConnection_base {
 }
-declare const QueuedSubscriptionRequestInput_base: ClassType<IQueuedSubscriptionRequest>;
+declare const QueuedSubscriptionRequestInput_base: ClassType<Partial<IQueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequestInput extends QueuedSubscriptionRequestInput_base implements RelayInputTypeBase<unknown> {
 }
-declare const QueuedSubscriptionRequestUpdate_base: ClassType<IQueuedSubscriptionRequest>;
+declare const QueuedSubscriptionRequestUpdate_base: ClassType<Partial<IQueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequestUpdate extends QueuedSubscriptionRequestUpdate_base implements RelayInputTypeBase<unknown> {
     id: string;
 }
-declare const ConcreteQueuedSubscriptionRequestFilter_base: ClassType<IQueuedSubscriptionRequest>;
+declare const ConcreteQueuedSubscriptionRequestFilter_base: ClassType<Partial<IQueuedSubscriptionRequest>>;
 declare class ConcreteQueuedSubscriptionRequestFilter extends ConcreteQueuedSubscriptionRequestFilter_base {
 }
 declare const QueuedSubscriptionRequestFilter_base: {

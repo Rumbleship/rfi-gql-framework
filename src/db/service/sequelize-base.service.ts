@@ -40,7 +40,9 @@ import {
   reloadNodeFromModel,
   AuthIncludeEntry,
   createOrderClause,
-  gqlToDb
+  gqlToDb,
+  mergeAuthorizerTreatAsMaps,
+  AuthThroughEntry
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
@@ -185,58 +187,95 @@ export class SequelizeBaseService<
     if (nodeServiceOptions?.skipAuthorizationCheck) {
       return findOptions;
     }
+    // Authorizable classes will be the subclsses used in apiClassFactory
+    // we must search all of them for @AuthorizerTreatAs decorators.
+    // in the the sequelize model they will all be on the same table, so we
+    // must remove any duplicate entries caused by the same attribute decorated in different parts
+    // of the tree
+    //
+    let authorizingAttributes = new AuthorizerTreatAsMap();
+    const authThroughEntries: AuthThroughEntry[] = [];
     // because they are classes not instances...
-    const protypesForClasses = authorizableClasses.map(clazz => clazz.prototype);
-    let whereAuthClause: FindOptions = {};
-    for (const authProtos of protypesForClasses) {
-      whereAuthClause = {
-        ...whereAuthClause,
-        ...createAuthWhereClause(
-          this.permissions,
-          this.ctx.authorizer,
-          nodeServiceOptions?.action ?? Actions.QUERY,
-          authProtos
-        )
-      };
+    const prototypesForClasses = authorizableClasses.map(clazz => clazz.prototype);
+
+    for (const prototype of prototypesForClasses) {
+      authorizingAttributes = mergeAuthorizerTreatAsMaps(
+        authorizingAttributes,
+        getAuthorizerTreatAs(prototype, false)
+      );
       // any associated objects that must be scanned?
-      const authThroughEntries = protypesForClasses
-        .map(proto => getAuthorizeThroughEntries(proto))
-        .reduce((pre, val) => pre.concat(val));
-      const eagerLoads: AuthIncludeEntry[] = [];
-      let includedWhereAuthClause = {};
-      for (const authEntry of authThroughEntries) {
-        includedWhereAuthClause = {
-          ...includedWhereAuthClause,
-          ...createAuthWhereClause(
-            this.permissions,
-            this.ctx.authorizer,
-            nodeServiceOptions?.action ?? Actions.QUERY,
-            authEntry.targetClass().prototype,
-            authEntry.associationName
-          )
-        };
-        // We must also eager load the association to ensure that it is in scope of the where
-        const assocModel = (this.getServiceFor(
-          authEntry.targetClass() as any
-        ) as any).dbModel() as ClassType<Model> & typeof Model;
-        eagerLoads.push({
-          model: assocModel,
-          as: authEntry.associationName.toString(),
-          // If we're counting, force the omission of all attributes on eager includes.
-          // Otherwise, let Sequelize inflect its defaults and load whatever it wants
-          attributes: forCountQuery ? [] : undefined
-        });
-      }
-      findOptions.where = {
-        ...findOptions.where,
-        ...{ [Op.or]: [includedWhereAuthClause, whereAuthClause] }
-      };
-      if (eagerLoads.length) {
-        if (!findOptions.include) {
-          findOptions.include = [];
+      for (const authEntry of getAuthorizeThroughEntries(prototype)) {
+        if (
+          !authThroughEntries.find(existingEntry => {
+            return (
+              existingEntry.propertyKey === authEntry.propertyKey &&
+              existingEntry.targetClass === authEntry.targetClass &&
+              existingEntry.associationName === authEntry.associationName
+            );
+          })
+        ) {
+          authThroughEntries.push(authEntry);
         }
-        findOptions.include.push(...eagerLoads);
       }
+    }
+    const whereAuthClause = createAuthWhereClause(
+      this.permissions,
+      this.ctx.authorizer,
+      nodeServiceOptions?.action ?? Actions.QUERY,
+      authorizingAttributes
+    );
+
+    const eagerLoads: AuthIncludeEntry[] = [];
+    let includedWhereAuthClause = {};
+    // Note we only deal with a single hop... we dont recurse through the model
+    // as that gets very complex and unexpected
+    for (const authEntry of authThroughEntries) {
+      const throughEntryAuthorizableAttributes = getAuthorizerTreatAs(
+        authEntry.targetClass().prototype,
+        false
+      );
+      const whereClauseForThroughEntry = createAuthWhereClause(
+        this.permissions,
+        this.ctx.authorizer,
+        nodeServiceOptions?.action ?? Actions.QUERY,
+        throughEntryAuthorizableAttributes,
+        authEntry.associationName
+      );
+      if (Op.or in whereClauseForThroughEntry) {
+        if (Op.or in includedWhereAuthClause) {
+          Reflect.set(includedWhereAuthClause, Op.or, [
+            { ...whereClauseForThroughEntry },
+            { ...includedWhereAuthClause }
+          ]);
+        } else {
+          includedWhereAuthClause = { ...whereClauseForThroughEntry };
+        }
+      }
+
+      // We must also eager load the association to ensure that it is in scope of the where
+      const assocModel = (this.getServiceFor(
+        authEntry.targetClass() as any
+      ) as any).dbModel() as ClassType<Model> & typeof Model;
+      const eagerLoad = {
+        model: assocModel,
+        as: authEntry.associationName.toString(),
+        // If we're counting, force the omission of all attributes on eager includes.
+        // Otherwise, let Sequelize inflect its defaults and load whatever it wants
+        attributes: forCountQuery ? [] : undefined
+      };
+      if (!eagerLoads.some(el => el.model === eagerLoad.model && el.as === eagerLoad.as)) {
+        eagerLoads.push(eagerLoad);
+      }
+    }
+    findOptions.where = {
+      ...findOptions.where,
+      ...{ [Op.or]: [includedWhereAuthClause, whereAuthClause] }
+    };
+    if (eagerLoads.length) {
+      if (!findOptions.include) {
+        findOptions.include = [];
+      }
+      findOptions.include.push(...eagerLoads);
     }
 
     return findOptions;
@@ -402,6 +441,7 @@ export class SequelizeBaseService<
     dbClass: Model
   ): SequelizeBaseServiceInterface<any, any, any, any, any, any> {
     for (const key in this.nodeServices) {
+      // eslint-disable-next-line no-prototype-builtins
       if (this.nodeServices.hasOwnProperty(key)) {
         const service = this.nodeServices[key];
         if (service.dbModel === dbClass) {
