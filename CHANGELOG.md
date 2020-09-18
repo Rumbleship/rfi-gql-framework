@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [12.0.0] -- 2020-09-18
 
 ### Breaking Changes: 
   * Must incorporate migrations for QueuededSubscriptionServer and Webhooks. See README.md for details
@@ -31,9 +31,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
   * multiple generation of included associations when and authorizeThrough is defined for a single table inheritance class
   * overwrite of @AuthorizerTreatAs attributes when used in multiple sub-classes in single table inheritence class
-### Deprecated
-### Security
-
 
 ## [11.0.5] -- 2020-09-01
 
