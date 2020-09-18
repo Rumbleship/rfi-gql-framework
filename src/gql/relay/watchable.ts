@@ -37,6 +37,7 @@ export function buildSubscriptionWatchList<Base extends Record<string, any>>(
   }
   if (options?.add) {
     for (const key in options.add) {
+      // eslint-disable-next-line no-prototype-builtins
       if (!watchList.hasOwnProperty(key)) {
         Reflect.set(watchList, key, key);
       }

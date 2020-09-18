@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Breaking Changes: 
+  * Must incorporate migrations for QueuededSubscriptionServer and Webhooks. See README.md for details
+
+### Added
+  * RelayMutation Mixin functions to support the standard Relay 'Mutation' of a clientMutationId passed in and returned and helpers to automatically set it.
+  * eslint warning suppression as appropriate
+  * Added Webhook functionality allowing for any allowable graphQl subscription to used to 
+  fire a webhook
+    - Migrations for QueuedSubscriptionRequests and Webhooks
+    - added full Relay and database models and services for Webhook that persist the webhook configuration and service functionality to setup google pubsud to call the webhook when a QueuedSubscriptionRequest emits a subscription message.
+
+### Removed
+  * tslint.json 
+### Changed
+  * refactored folder structure of QueuedSubscriptionServer to map to rfi conventions of graphql/database models
+  * renamed QueuedSubscriptionRequest attributes 
+    - authorized_requestor_id to owner_id and 
+    - client_request_id to subscription_name
+  * changed the @AuthorizorTreatAs() on owner_id to be both User and Division.
+  * change QueuedSubscriptionServer startup to create any gcloud subscriptions and topics defined in teh webhooks table if they havn't already been created.
+
+### Fixed
+  * multiple generation of included associations when and authorizeThrough is defined for a single table inheritance class
+  * overwrite of @AuthorizerTreatAs attributes when used in multiple sub-classes in single table inheritence class
+### Deprecated
+### Security
+
+
 ## [11.0.5] -- 2020-09-01
 
 ### Changed

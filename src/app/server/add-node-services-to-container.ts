@@ -14,6 +14,7 @@ export function addNodeServicesToContainer(
   container.set('nodeServices', mutatedNodeServices);
   // also create 'named services' that the framework can inject into the specialized resolvers
   for (const key in mutatedNodeServices) {
+    // eslint-disable-next-line no-prototype-builtins
     if (mutatedNodeServices.hasOwnProperty(key)) {
       const service: NodeService<any> = (mutatedNodeServices as any)[key];
       service.setServiceRegister(mutatedNodeServices);

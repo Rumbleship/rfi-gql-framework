@@ -212,12 +212,10 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
     const oidScope = getScopeFor(model);
     const topicName = `${NODE_CHANGE_NOTIFICATION}_${oidScope}`;
-
     // Publish the change on most generic topic
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.publish(NODE_CHANGE_NOTIFICATION, payload);
-
-    // Also publish the change topic specific to _this_ model
+    // Also publish the change topic specific to _this_ model
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.publish(topicName, payload);
   }
@@ -269,6 +267,7 @@ function getChangedAttributes(instance: Model<any, any>): ModelDelta[] {
   const deltas: ModelDelta[] = [];
   const values = instance.get({ plain: true });
   for (const key in values) {
+    // eslint-disable-next-line no-prototype-builtins
     if (values.hasOwnProperty(key)) {
       if (instance.changed(key as any)) {
         const delta: ModelDelta = {

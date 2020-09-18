@@ -1,10 +1,11 @@
-import { ObjectType, Field, ID, InputType, ArgsType } from 'type-graphql';
+import { ObjectType, Field, ID, InputType, ArgsType, InterfaceType } from 'type-graphql';
 
 import {
   Node,
   RelayService,
   RelayInputTypeBase,
-  RelayFilterBase
+  RelayFilterBase,
+  NodeServiceOptions
 } from '../../../gql/relay/relay.interface';
 import { AttribType } from '../../../gql/relay/attrib.enum';
 
@@ -22,13 +23,16 @@ import { withPaginationFilter } from '../../../gql/relay/mixins/with-pagination-
 import { withTimeStampsFilter } from '../../../gql/relay/mixins/with-timestamps-filter.mixin';
 
 import { Oid } from '@rumbleship/oid';
-import { IQueuedSubscriptionRequest } from '../queued-subscription-request';
+import { IQueuedSubscriptionRequest } from '../queued-subscription-request.interface';
 import { MaxLength, MinLength, Matches } from 'class-validator';
 import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
 import { getRelayPrefix } from '../../inititialize-queued-subscription-relay';
 import { withSubscriptionFilter } from '../../../gql/relay/mixins/with-subscription-filter.mixin';
 import { ClassType } from '../../../helpers';
 import { Watchable } from '../../../gql/relay/watchable';
+import { IWebhookSubscription } from '../webhook_subscription.interface';
+// eslint-disable-next-line import/no-cycle
+import { Webhook } from '../../webhook/gql/webhook.relay';
 
 const MAX_QUERY_STRING_LENGTH = 65535;
 const MAX_OPERATION_NAME_LENGTH = 2000;
@@ -39,13 +43,13 @@ const TOPIC_REGEX = /[A-Za-z0-9-_.~+%]/;
 
 export function buildQueuedSubscriptionRequestBaseAttribs(
   attribType: AttribType
-): ClassType<IQueuedSubscriptionRequest> {
+): ClassType<Partial<IQueuedSubscriptionRequest>> {
   @GqlBaseAttribs(attribType)
-  class BaseQueuedSubscriptionRequestAttribs implements IQueuedSubscriptionRequest {
+  class BaseQueuedSubscriptionRequestAttribs implements Partial<IQueuedSubscriptionRequest> {
     @Watchable
-    @AuthorizerTreatAs([Resource.User])
+    @AuthorizerTreatAs([Resource.User, Resource.Division])
     @Field(type => ID, { nullable: true })
-    authorized_requestor_id!: string;
+    owner_id?: string;
 
     @Watchable
     @Field({ nullable: true })
@@ -74,7 +78,7 @@ export function buildQueuedSubscriptionRequestBaseAttribs(
 
     @Watchable
     @Field({ nullable: !isInputOrObject(attribType) })
-    client_request_uuid!: string;
+    subscription_name!: string;
 
     @Watchable
     @Field(type => Boolean, { nullable: !isInputOrObject(attribType) })
@@ -94,15 +98,34 @@ export interface QueuedSubscriptionRequestService
     QueuedSubscriptionRequestUpdate
   > {
   createAndCommit(subscriptionControlInput: QueuedSubscriptionRequestInput): Promise<void>;
+  getWebhookFor(
+    aQsr: QueuedSubscriptionRequest,
+    opts: NodeServiceOptions
+  ): Promise<Webhook | undefined>;
 }
 
-@ObjectType({ implements: Node, isAbstract: true })
-class QueuedSubscriptionRequestConcrete extends buildQueuedSubscriptionRequestBaseAttribs(
-  AttribType.Obj
-) {}
-@ObjectType(`${getRelayPrefix()}QueuedSubscriptionRequest`, { implements: Node })
+@InterfaceType({ implements: Node }) /*abstract*/
+export class WebhookSubscription implements IWebhookSubscription {
+  @Field({ nullable: false })
+  gql_query_string?: string;
+
+  @Field({ nullable: true })
+  query_attributes?: string;
+
+  @Field({ nullable: true })
+  operation_name?: string;
+
+  @Field({ nullable: true })
+  subscription_name?: string;
+
+  @Field(type => Boolean, { nullable: false })
+  active?: boolean;
+}
+@ObjectType(`${getRelayPrefix()}QueuedSubscriptionRequest`, {
+  implements: [Node, WebhookSubscription]
+})
 export class QueuedSubscriptionRequest
-  extends withTimeStamps(AttribType.Obj, QueuedSubscriptionRequestConcrete)
+  extends withTimeStamps(AttribType.Obj, buildQueuedSubscriptionRequestBaseAttribs(AttribType.Obj))
   implements Node<QueuedSubscriptionRequest> {
   _service!: QueuedSubscriptionRequestService;
   id!: Oid;
@@ -115,7 +138,8 @@ export class QueuedSubscriptionRequestNotification extends GqlNodeNotification(
 
 @ObjectType(`${getRelayPrefix()}QueuedSubscriptionRequestEdge`)
 export class QueuedSubscriptionRequestEdge extends buildEdgeClass({
-  RelayClass: QueuedSubscriptionRequest
+  RelayClass: QueuedSubscriptionRequest,
+  SchemaClass: WebhookSubscription
 }) {}
 
 @ObjectType(`${getRelayPrefix()}QueuedSubscriptionRequestConnection`)

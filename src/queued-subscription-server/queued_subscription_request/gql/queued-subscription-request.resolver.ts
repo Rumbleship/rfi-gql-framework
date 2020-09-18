@@ -1,8 +1,19 @@
-import { Resolver, Authorized, Arg, Mutation, Query, Args, ID, Root } from 'type-graphql';
+import {
+  Resolver,
+  Authorized,
+  Arg,
+  Mutation,
+  Query,
+  Args,
+  ID,
+  Root,
+  FieldResolver,
+  Ctx
+} from 'type-graphql';
 import { GQLBaseResolver } from '../../../gql/resolvers/base-resolver';
 
 import { BaseResolverInterface } from '../../../gql/resolvers/base-resolver.interface';
-import { RelayService } from '../../../gql/relay/relay.interface';
+
 import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay/notification-of.enum';
 
 import { RumbleshipContext } from '../../../app/rumbleship-context/rumbleship-context';
@@ -14,6 +25,7 @@ import {
 
 import { Service, Inject } from 'typedi';
 
+// eslint-disable-next-line import/no-cycle
 import {
   QueuedSubscriptionRequest,
   QueuedSubscriptionRequestConnection,
@@ -21,13 +33,14 @@ import {
   QueuedSubscriptionRequestNotification,
   QueuedSubscriptionRequestInput,
   QueuedSubscriptionRequestUpdate,
-  QueuedSubscriptionRequestFilterForSubscriptions
+  QueuedSubscriptionRequestFilterForSubscriptions,
+  QueuedSubscriptionRequestService
 } from './queued-subscription-request.relay';
 
-import { ResolverPermissions } from '../permissions';
+import { ResolverPermissions } from '../../permissions';
 import {
   getRelayPrefixLowerCase,
-  isQeuedSubscriptionOidForThisService,
+  isQueuedSubscriptionOidForThisService,
   getQueuedSubscriptionRequestScopeName
 } from '../../inititialize-queued-subscription-relay';
 import { AddToTrace } from '@rumbleship/o11y';
@@ -37,6 +50,9 @@ import { SubscriptionWatchFilter } from '../../../gql/relay/mixins/with-subscrip
 import { RumbleshipSubscription } from '../../../gql/resolvers/rumbleship-subscription';
 import { ClassType } from '../../../helpers';
 import { filterBySubscriptionFilter } from '../../../gql/resolvers/filter-by-subscription-filter';
+
+// eslint-disable-next-line import/no-cycle
+import { Webhook } from '../../webhook/gql/webhook.relay';
 
 export function buildQueuedSubscriptionRequestResolver(): ClassType<
   BaseResolverInterface<
@@ -69,20 +85,14 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
       > {
     constructor(
       @Inject(`${getQueuedSubscriptionRequestScopeName()}Service`)
-      readonly service: RelayService<
-        QueuedSubscriptionRequest,
-        QueuedSubscriptionRequestConnection,
-        QueuedSubscriptionRequestFilter,
-        QueuedSubscriptionRequestInput,
-        QueuedSubscriptionRequestUpdate
-      >
+      readonly service: QueuedSubscriptionRequestService
     ) {
       super(service);
     }
 
     @AddToTrace()
     @Authorized(ResolverPermissions.QueuedSubscriptionRequest.default)
-    @Query(type => QueuedSubscriptionRequest, { name: `${baseName}s` })
+    @Query(type => QueuedSubscriptionRequestConnection, { name: `${baseName}s` })
     async getAll(
       @Args(type => QueuedSubscriptionRequestFilter) filterBy: QueuedSubscriptionRequestFilter
     ): Promise<QueuedSubscriptionRequestConnection> {
@@ -102,8 +112,8 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
     ): Promise<QueuedSubscriptionRequest> {
       const ctx = this.service.getContext();
       input.marshalled_acl = ctx.authorizer.marshalClaims();
-      if (!input.authorized_requestor_id) {
-        input.authorized_requestor_id = ctx.authorizer.getUser();
+      if (!input.owner_id) {
+        input.owner_id = ctx.authorizer.getUser();
       }
       return super.create(input);
     }
@@ -142,7 +152,7 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
         const nodePayload: NodeChangePayload = JSON.parse(payload.data.toString());
         const oid = new Oid(nodePayload.oid);
 
-        if (!isQeuedSubscriptionOidForThisService(oid)) {
+        if (!isQueuedSubscriptionOidForThisService(oid)) {
           return false;
         }
         return filterBySubscriptionFilter({ payload, args, context });
@@ -154,6 +164,16 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
       @Args() args: QueuedSubscriptionRequestFilterForSubscriptions
     ): Promise<QueuedSubscriptionRequestNotification> {
       return createNodeNotification(rawPayload, this, QueuedSubscriptionRequestNotification);
+    }
+
+    @AddToTrace()
+    @Authorized(ResolverPermissions.Webhook.default)
+    @FieldResolver(type => Webhook, { nullable: true })
+    async webhook(
+      @Ctx() ctx: RumbleshipContext,
+      @Root() aWebhookSubscription: QueuedSubscriptionRequest
+    ): Promise<Webhook | undefined> {
+      return this.service.getWebhookFor(aWebhookSubscription, {});
     }
   }
   return QueuedSubscriptionRequestResolver;

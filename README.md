@@ -1,7 +1,10 @@
 # @rumbleship/gql
 Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
 
-
+# Upgrade from 11 to 12 check list
+1) Make sure that application has migrations 2 to 7 added from:
+  src/queued-subscription-server/_db/_example_migrations
+    
 # Upgrade from version 10 to 11 check list
 
 1) Change package.json to point to latest framework and yarn<br>

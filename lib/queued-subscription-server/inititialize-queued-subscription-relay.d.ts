@@ -12,9 +12,12 @@ import { ISharedSchema } from '@rumbleship/config';
  *
  *
  */
-export declare function inititializeQueuedSubscriptionRelay(config: ISharedSchema, queued_subscription_request_scope_name?: string): void;
+export declare function inititializeQueuedSubscriptionRelay(config: ISharedSchema, queued_subscription_request_scope_name?: string, webhook_scope_name?: string): void;
 export declare function getRelayPrefix(): string;
 export declare function getRelayPrefixLowerCase(): string;
 export declare function getServiceShortCode(): string;
 export declare function getQueuedSubscriptionRequestScopeName(): string;
-export declare function isQeuedSubscriptionOidForThisService(oid: Oid): boolean;
+export declare function getWebhookScopeName(): string;
+export declare function isQueuedSubscriptionOidForThisService(oid: Oid): boolean;
+export declare function isWebhookOidForThisService(oid: Oid): boolean;
+export declare function isOidForThisService(oid: Oid, scopeName: string): boolean;

@@ -3,7 +3,7 @@ import { GraphQLSchema } from 'graphql';
 import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
-} from './queued_subscription_request/queued-subscription-request';
+} from './queued_subscription_request/queued-subscription-request.interface';
 import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 import { IterableConnection } from '../gql/relay/iterable-connection.type';
 import {
@@ -13,11 +13,15 @@ import {
 
 import {
   getQueuedSubscriptionRequestScopeName,
-  getRelayPrefixLowerCase
+  getRelayPrefixLowerCase,
+  getWebhookScopeName
 } from './inititialize-queued-subscription-relay';
 import { Authorizer } from '@rumbleship/acl';
 import uuid = require('uuid');
 import { IGcpConfig } from '@rumbleship/config';
+import { WebhookFilter, WebhookService } from './webhook';
+import { gcpCreatePushSubscription, gcpGetTopic } from './helpers';
+import { PubSub as GooglePubsub } from '@google-cloud/pubsub';
 
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
@@ -45,7 +49,7 @@ export class QueuedSubscriptionServer {
           marshalled_acl
           gql_query_string
           active
-          authorized_requestor_id
+          owner_id
           operation_name
           query_attributes
           publish_to_topic_name
@@ -70,11 +74,11 @@ export class QueuedSubscriptionServer {
       schema,
       {
         id: 'qsrObserver',
-        authorized_requestor_id: '',
+        owner_id: '',
         marshalled_acl,
         gql_query_string,
         publish_to_topic_name: '',
-        client_request_uuid: uuid.v4(),
+        subscription_name: uuid.v4(),
         active: true,
         create_unique_subscription: true, // EVERY instance of this service needs to respond
         onResponseHook
@@ -87,6 +91,8 @@ export class QueuedSubscriptionServer {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedSubscriptionRequestObserver.start();
 
+    // Make sure any webhooks are setup on gcloud..
+    await this.validateWebhooksSetup(ctx);
     // load up active subscriptions
     const queuedSubscriptionRequestService = ctx.container.get<QueuedSubscriptionRequestService>(
       `${getQueuedSubscriptionRequestScopeName()}Service`
@@ -100,7 +106,10 @@ export class QueuedSubscriptionServer {
     for await (const activeSubscription of activeSubscriptions) {
       const key = activeSubscription.id.toString();
 
-      const queuedSubscription = this.addSubscription(key, activeSubscription);
+      const queuedSubscription = this.addSubscription(
+        key,
+        activeSubscription as IQueuedSubscriptionRequest
+      );
       // todo add tracing
       // These are independant promise chains
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -118,13 +127,46 @@ export class QueuedSubscriptionServer {
     this.queuedSubscriptions.clear();
   }
 
+  async validateWebhooksSetup(ctx: RumbleshipContext): Promise<void> {
+    const webhookService = ctx.container.get<WebhookService>(`${getWebhookScopeName()}Service`);
+    const filter = new WebhookFilter();
+    filter.first = 20;
+    const activeWebhooks = new IterableConnection(filter, async paged_filter => {
+      return webhookService.getAll(paged_filter);
+    });
+
+    for await (const webhook of activeWebhooks) {
+      if (webhook.topic_name && webhook.gcloud_subscription) {
+        try {
+          const gcloudPubSub = new GooglePubsub(this.config.Auth);
+          const topic = await gcpGetTopic(gcloudPubSub, webhook.topic_name);
+          await gcpCreatePushSubscription(
+            topic,
+            webhook.gcloud_subscription,
+            webhook.subscription_url
+          );
+        } catch (error) {
+          const ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;
+          if (error.code !== ALREADY_EXISTS_GCP_MAGIC_NUMBER) {
+            ctx.logger.error(
+              `Webhook: ${webhook.id.toString()} failed to validate topic/subscription`,
+              { error }
+            );
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Adds and starts the subscription
    * @param request
    */
   addSubscription(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription {
     if (this.queuedSubscriptions.has(key)) {
-      throw new Error(`QueuedSubscription: ${request.client_request_uuid} already running`);
+      throw new Error(
+        `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
+      );
     }
     const queuedSubscription = new QueuedSubscription(this.schema, request, this.config);
 

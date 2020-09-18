@@ -1,4 +1,7 @@
 module.exports = {
+  env: {
+    node: true
+  },
   parser: '@typescript-eslint/parser', // Specifies the ESLint parser
   parserOptions: {
     ecmaVersion: 2020, // Allows for the parsing of modern ECMAScript features
@@ -6,6 +9,7 @@ module.exports = {
     project: ['./tsconfig.json', './tsconfig-build.json', './tsconfig-base.json']
   },
   extends: [
+    'eslint:recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:import/typescript',

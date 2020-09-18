@@ -1,6 +1,6 @@
 import { GraphQLSchema, ExecutionResult } from 'graphql';
 import { GqlExecutionParams } from './helpers/gql-execution-params';
-import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued_subscription_request/queued-subscription-request';
+import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued_subscription_request/queued-subscription-request.interface';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';
 export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
@@ -10,14 +10,14 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
         [key: string]: any;
     }>>;
     executionContext: GqlExecutionParams;
-    authorized_requestor_id: string;
-    gql_query_string: string;
+    owner_id: string;
+    gql_query_string?: string;
     query_attributes?: string;
     operation_name?: string;
     publish_to_topic_name: string;
-    client_request_uuid: string;
+    subscription_name?: string;
     marshalled_acl: string;
-    active: boolean;
+    active?: boolean;
     onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
     create_unique_subscription?: boolean;
     id: string;
