@@ -207,12 +207,5 @@ export class WebhookServiceSequelize
     const googlePubSub = new GooglePubSub(gcpConfig.Auth);
     const topic = await gcpGetTopic(googlePubSub, topic_name);
     await gcpCreatePushSubscription(topic, subscription_name, subscription_url);
-
-    const testMessage = {
-      test: 'subscriptionInPlace'
-    };
-
-    const payload = JSON.stringify(testMessage);
-    await topic.publish(Buffer.from(payload));
   }
 }
