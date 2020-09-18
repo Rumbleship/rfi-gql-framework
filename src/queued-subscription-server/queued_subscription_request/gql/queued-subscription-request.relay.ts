@@ -32,7 +32,7 @@ import { ClassType } from '../../../helpers';
 import { Watchable } from '../../../gql/relay/watchable';
 import { IWebhookSubscription } from '../webhook_subscription.interface';
 // eslint-disable-next-line import/no-cycle
-import { Webhook } from './webhook.relay';
+import { Webhook } from '../../webhook/gql/webhook.relay';
 
 const MAX_QUERY_STRING_LENGTH = 65535;
 const MAX_OPERATION_NAME_LENGTH = 2000;

@@ -5,7 +5,8 @@ import {
 } from './inititialize-queued-subscription-relay';
 import { QueuedSubscriptionRequestServiceSequelize } from './queued_subscription_request/db/queued-subscription-request.service';
 import { NodeService } from '../gql/relay';
-import { WebhookServiceSequelize } from './queued_subscription_request/db/webhook.service';
+import { WebhookServiceSequelize } from './webhook';
+
 /***
  * Helps reduce cyclic dependancies....
  */

@@ -30,7 +30,7 @@ import {
   QueuedSubscriptionRequestInput,
   QueuedSubscriptionRequestFilter,
   QueuedSubscriptionRequest
-} from './queued-subscription-request.relay';
+} from '../../queued_subscription_request';
 import { buildWebhookBaseAttribs } from './webhook.attribs';
 import { ISharedSchema } from '@rumbleship/config';
 

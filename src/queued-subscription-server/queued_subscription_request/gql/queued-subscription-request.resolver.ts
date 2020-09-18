@@ -25,6 +25,7 @@ import {
 
 import { Service, Inject } from 'typedi';
 
+// eslint-disable-next-line import/no-cycle
 import {
   QueuedSubscriptionRequest,
   QueuedSubscriptionRequestConnection,
@@ -36,7 +37,7 @@ import {
   QueuedSubscriptionRequestService
 } from './queued-subscription-request.relay';
 
-import { ResolverPermissions } from '../permissions';
+import { ResolverPermissions } from '../../permissions';
 import {
   getRelayPrefixLowerCase,
   isQueuedSubscriptionOidForThisService,
@@ -49,7 +50,9 @@ import { SubscriptionWatchFilter } from '../../../gql/relay/mixins/with-subscrip
 import { RumbleshipSubscription } from '../../../gql/resolvers/rumbleship-subscription';
 import { ClassType } from '../../../helpers';
 import { filterBySubscriptionFilter } from '../../../gql/resolvers/filter-by-subscription-filter';
-import { Webhook } from './webhook.relay';
+
+// eslint-disable-next-line import/no-cycle
+import { Webhook } from '../../webhook/gql/webhook.relay';
 
 export function buildQueuedSubscriptionRequestResolver(): ClassType<
   BaseResolverInterface<

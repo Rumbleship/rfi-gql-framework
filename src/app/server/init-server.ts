@@ -28,13 +28,13 @@ import hapiRequestIdHeader = require('hapi-request-id-header');
 import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize-queued-subscription-relay';
 import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
 import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued-subscription-request.resolver';
-import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/queued_subscription_request/_db/queued-subscription-request-models';
+import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/_db/queued-subscription-request-models';
 import { addFrameworkServiceFactory } from './framework-node-services';
 import {
   getQueuedSubscriptionRequestNodeServiceEntry,
   getWebhookNodeServiceEntry
 } from '../../queued-subscription-server/get-queued-subscription-request-node-service-entry';
-import { buildWebhookResolver } from '../../queued-subscription-server/queued_subscription_request/gql/webhook.resolver';
+import { buildWebhookResolver } from '../../queued-subscription-server';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 

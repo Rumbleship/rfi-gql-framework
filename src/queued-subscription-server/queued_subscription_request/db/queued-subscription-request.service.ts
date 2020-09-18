@@ -1,5 +1,6 @@
+/* eslint-disable import/no-cycle */
 import { Service } from 'typedi';
-// tslint:disable-next-line: no-circular-imports
+
 import { SequelizeBaseService } from '../../../db/service/sequelize-base.service';
 import { RumbleshipContext } from '../../../app/rumbleship-context/rumbleship-context';
 import {
@@ -18,8 +19,10 @@ import {
   QueuedSubscriptionRequestService
 } from '../gql/queued-subscription-request.relay';
 import { QueuedSubscriptionRequestModel } from './queued-subscription-request.model';
-import { ServicePermissions } from '../permissions';
-import { Webhook } from '../gql/webhook.relay';
+import { ServicePermissions } from '../../permissions';
+
+// eslint-disable-next-line import/no-cycle
+import { Webhook } from '../../webhook/gql/webhook.relay';
 
 @Service() // Each Request gets its own instance
 export class QueuedSubscriptionRequestServiceSequelize

@@ -40,7 +40,7 @@ import {
   WebhookService
 } from './webhook.relay';
 
-import { ResolverPermissions } from '../permissions';
+import { ResolverPermissions } from '../../permissions';
 import {
   getRelayPrefixLowerCase,
   getWebhookScopeName,
@@ -65,7 +65,8 @@ import {
   QueuedSubscriptionRequestFilter,
   QueuedSubscriptionRequestInput,
   WebhookSubscription
-} from './queued-subscription-request.relay';
+} from '../../queued_subscription_request/gql';
+
 import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
 
 @ObjectType()
@@ -77,7 +78,7 @@ export class AddWebhookPayload extends withRelayMutationPayload(Empty) {
 export class AddWebhookInput extends withRelayMutationInput(Empty) {
   @AuthorizerTreatAs([Resource.Division])
   @Field(type => ID, { nullable: false })
-  division_id!: string;
+  system_id!: string;
 
   @Field({ nullable: false })
   subscription_url!: string;

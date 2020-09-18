@@ -1,5 +1,5 @@
 import { Model } from 'sequelize-typescript';
-import { WebhookModel } from './webhook.model';
+import { WebhookModel } from '../../webhook/db/webhook.model';
 export declare class QueuedSubscriptionRequestModel extends Model<QueuedSubscriptionRequestModel> {
     id: number;
     authorized_requestor_id: string;

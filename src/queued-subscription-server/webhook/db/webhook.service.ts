@@ -17,7 +17,7 @@ import {
   WebhookService
 } from '../gql/webhook.relay';
 import { WebhookModel } from './webhook.model';
-import { ServicePermissions } from '../permissions';
+
 import { Actions, RFIAuthError } from '@rumbleship/acl';
 import { Oid } from '@rumbleship/oid';
 import {
@@ -25,13 +25,15 @@ import {
   QueuedSubscriptionRequestConnection,
   QueuedSubscriptionRequestEdge,
   QueuedSubscriptionRequestFilter,
-  QueuedSubscriptionRequestInput
-} from '../gql';
+  QueuedSubscriptionRequestInput,
+  QueuedSubscriptionRequestServiceSequelize
+} from '../../queued_subscription_request';
 import {
   gcpCreatePushSubscription,
   gcpGetTopic
 } from '../../../queued-subscription-server/helpers/gcp_helpers';
-import { QueuedSubscriptionRequestServiceSequelize } from './queued-subscription-request.service';
+
+import { ServicePermissions } from '../../permissions';
 
 @Service() // Each Request gets its own instance
 export class WebhookServiceSequelize
@@ -73,7 +75,7 @@ export class WebhookServiceSequelize
           const webhookUpdate = new WebhookUpdate();
           webhookUpdate.id = webhookRelay.id.toString();
           webhookUpdate.topic_name = `${pubSubConfig.topicPrefix}_${config.serviceName}webhooks_${
-            webhookRelay.division_id
+            webhookRelay.system_id
           }_${webhookRelay.id.toString()}`;
           webhookUpdate.subscription_name = webhookUpdate.topic_name;
 
@@ -129,7 +131,7 @@ export class WebhookServiceSequelize
         >(QueuedSubscriptionRequest);
 
         input.publish_to_topic_name = webhook.topic_name;
-        input.authorized_requestor_id = webhook.division_id;
+        input.authorized_requestor_id = webhook.system_id;
         input.marshalled_acl = this.ctx.authorizer.marshalClaims();
         const qsrRelay = await qsrService.create(input, {
           ...optionsWithTransactionAndAuth,

@@ -14,7 +14,7 @@ import { MaxLength, MinLength } from 'class-validator';
  *
  */
 export interface WebhookBase {
-  division_id: string;
+  system_id: string;
   subscription_url: string;
   subscription_name?: string;
   topic_name?: string;
@@ -25,8 +25,8 @@ export function buildWebhookBaseAttribs(attribType: AttribType): ClassType<Webho
   class BaseWebhookAttribs implements WebhookBase {
     @Watchable
     @AuthorizerTreatAs([Resource.Division])
-    @Field(type => ID, { nullable: true })
-    division_id!: string;
+    @Field(type => ID, { description: 'Rumbleship provided system_id/divsion_id', nullable: true })
+    system_id!: string;
     @Watchable
     @Field({ nullable: true })
     subscription_url!: string;

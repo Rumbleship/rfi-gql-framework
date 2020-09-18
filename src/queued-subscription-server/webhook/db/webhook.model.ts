@@ -16,7 +16,7 @@ import { AttribType } from '../../../gql/relay/attrib.enum';
 import { buildWebhookBaseAttribs } from '../gql/webhook.attribs';
 
 // eslint-disable-next-line import/no-cycle
-import { QueuedSubscriptionRequestModel } from './queued-subscription-request.model';
+import { QueuedSubscriptionRequestModel } from '../../queued_subscription_request/db/queued-subscription-request.model';
 
 const WebhookValidator = class extends buildWebhookBaseAttribs(AttribType.ValidateOnly) {};
 
@@ -33,7 +33,7 @@ export class WebhookModel extends Model<WebhookModel> {
   id!: number;
 
   @Column
-  division_id!: string;
+  system_id!: string;
 
   @Column(DataType.TEXT)
   subscription_url!: string;

@@ -15,9 +15,10 @@ import {
 import { validateFromExemplar } from '../../../db/helpers/validate-from-exemplar';
 import { AttribType } from '../../../gql/relay/attrib.enum';
 
+// eslint-disable-next-line import/no-cycle
 import { buildQueuedSubscriptionRequestBaseAttribs } from '../gql/queued-subscription-request.relay';
 // eslint-disable-next-line import/no-cycle
-import { WebhookModel } from './webhook.model';
+import { WebhookModel } from '../../webhook/db/webhook.model';
 
 const QueuedSubscriptionRequestValidator = class extends buildQueuedSubscriptionRequestBaseAttribs(
   AttribType.ValidateOnly

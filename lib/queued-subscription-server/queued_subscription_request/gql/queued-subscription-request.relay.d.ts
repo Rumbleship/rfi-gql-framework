@@ -4,7 +4,7 @@ import { Oid } from '@rumbleship/oid';
 import { IQueuedSubscriptionRequest } from '../queued-subscription-request.interface';
 import { ClassType } from '../../../helpers';
 import { IWebhookSubscription } from '../webhook_subscription.interface';
-import { Webhook } from './webhook.relay';
+import { Webhook } from '../../webhook/gql/webhook.relay';
 export declare function buildQueuedSubscriptionRequestBaseAttribs(attribType: AttribType): ClassType<Partial<IQueuedSubscriptionRequest>>;
 export interface QueuedSubscriptionRequestService extends RelayService<QueuedSubscriptionRequest, QueuedSubscriptionRequestConnection, QueuedSubscriptionRequestFilter, QueuedSubscriptionRequestInput, QueuedSubscriptionRequestUpdate> {
     createAndCommit(subscriptionControlInput: QueuedSubscriptionRequestInput): Promise<void>;

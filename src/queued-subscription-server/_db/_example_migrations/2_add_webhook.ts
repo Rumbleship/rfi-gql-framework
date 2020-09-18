@@ -10,7 +10,7 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true
       },
-      division_id: {
+      system_id: {
         type: STRING,
         allowNull: true
       },
