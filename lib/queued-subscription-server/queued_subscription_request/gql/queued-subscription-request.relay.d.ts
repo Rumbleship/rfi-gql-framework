@@ -17,16 +17,13 @@ export declare class WebhookSubscription implements IWebhookSubscription {
     client_request_uuid?: string;
     active?: boolean;
 }
-declare const QueuedSubscriptionRequestConcrete_base: ClassType<Partial<IQueuedSubscriptionRequest>>;
-declare class QueuedSubscriptionRequestConcrete extends QueuedSubscriptionRequestConcrete_base {
-}
 declare const QueuedSubscriptionRequest_base: {
     new (...args: any[]): {
         created_at?: Date | undefined;
         updated_at?: Date | undefined;
         deleted_at?: Date | undefined;
     };
-} & typeof QueuedSubscriptionRequestConcrete;
+} & ClassType<Partial<IQueuedSubscriptionRequest>>;
 export declare class QueuedSubscriptionRequest extends QueuedSubscriptionRequest_base implements Node<QueuedSubscriptionRequest> {
     _service: QueuedSubscriptionRequestService;
     id: Oid;

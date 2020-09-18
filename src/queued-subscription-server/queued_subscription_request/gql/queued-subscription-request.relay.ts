@@ -121,15 +121,11 @@ export class WebhookSubscription implements IWebhookSubscription {
   @Field(type => Boolean, { nullable: false })
   active?: boolean;
 }
-@ObjectType({ implements: [Node, WebhookSubscription], isAbstract: true })
-class QueuedSubscriptionRequestConcrete extends buildQueuedSubscriptionRequestBaseAttribs(
-  AttribType.Obj
-) {}
 @ObjectType(`${getRelayPrefix()}QueuedSubscriptionRequest`, {
   implements: [Node, WebhookSubscription]
 })
 export class QueuedSubscriptionRequest
-  extends withTimeStamps(AttribType.Obj, QueuedSubscriptionRequestConcrete)
+  extends withTimeStamps(AttribType.Obj, buildQueuedSubscriptionRequestBaseAttribs(AttribType.Obj))
   implements Node<QueuedSubscriptionRequest> {
   _service!: QueuedSubscriptionRequestService;
   id!: Oid;
