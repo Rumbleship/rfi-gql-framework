@@ -47,7 +47,7 @@ export function buildQueuedSubscriptionRequestBaseAttribs(
   @GqlBaseAttribs(attribType)
   class BaseQueuedSubscriptionRequestAttribs implements Partial<IQueuedSubscriptionRequest> {
     @Watchable
-    @AuthorizerTreatAs([Resource.User])
+    @AuthorizerTreatAs([Resource.User, Resource.Division])
     @Field(type => ID, { nullable: true })
     owner_id?: string;
 
