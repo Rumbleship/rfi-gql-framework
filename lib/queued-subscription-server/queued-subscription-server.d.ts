@@ -17,6 +17,7 @@ export declare class QueuedSubscriptionServer {
     initializeRequestObserver(schema: GraphQLSchema): QueuedSubscription;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;
+    validateWebhooksSetup(ctx: RumbleshipContext): Promise<void>;
     /**
      * Adds and starts the subscription
      * @param request

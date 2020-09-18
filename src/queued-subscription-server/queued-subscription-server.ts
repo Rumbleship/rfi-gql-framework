@@ -13,11 +13,15 @@ import {
 
 import {
   getQueuedSubscriptionRequestScopeName,
-  getRelayPrefixLowerCase
+  getRelayPrefixLowerCase,
+  getWebhookScopeName
 } from './inititialize-queued-subscription-relay';
 import { Authorizer } from '@rumbleship/acl';
 import uuid = require('uuid');
 import { IGcpConfig } from '@rumbleship/config';
+import { WebhookFilter, WebhookService } from './webhook';
+import { gcpCreatePushSubscription, gcpGetTopic } from './helpers';
+import { PubSub as GooglePubsub } from '@google-cloud/pubsub';
 
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
@@ -87,6 +91,8 @@ export class QueuedSubscriptionServer {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedSubscriptionRequestObserver.start();
 
+    // Make sure any webhooks are setup on gcloud..
+    await this.validateWebhooksSetup(ctx);
     // load up active subscriptions
     const queuedSubscriptionRequestService = ctx.container.get<QueuedSubscriptionRequestService>(
       `${getQueuedSubscriptionRequestScopeName()}Service`
@@ -119,6 +125,34 @@ export class QueuedSubscriptionServer {
       })
     );
     this.queuedSubscriptions.clear();
+  }
+
+  async validateWebhooksSetup(ctx: RumbleshipContext): Promise<void> {
+    const webhookService = ctx.container.get<WebhookService>(`${getWebhookScopeName()}Service`);
+    const filter = new WebhookFilter();
+    filter.first = 20;
+    const activeWebhooks = new IterableConnection(filter, async paged_filter => {
+      return webhookService.getAll(paged_filter);
+    });
+
+    for await (const webhook of activeWebhooks) {
+      if (webhook.topic_name && webhook.gclound_subscription) {
+        try {
+          const gcloudPubSub = new GooglePubsub(this.config.Auth);
+          const topic = await gcpGetTopic(gcloudPubSub, webhook.topic_name);
+          await gcpCreatePushSubscription(
+            topic,
+            webhook.gclound_subscription,
+            webhook.subscription_url
+          );
+        } catch (error) {
+          ctx.logger.error(
+            `Webhook: ${webhook.id.toString()} failed to validate topic/subscription`,
+            { error }
+          );
+        }
+      }
+    }
   }
 
   /**
