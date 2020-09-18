@@ -129,6 +129,7 @@ export class WebhookServiceSequelize
         >(QueuedSubscriptionRequest);
 
         input.publish_to_topic_name = webhook.topic_name;
+        input.authorized_requestor_id = webhook.division_id;
         const qsrRelay = await qsrService.create(input, {
           ...optionsWithTransactionAndAuth,
           skipAuthorizationCheck: true
