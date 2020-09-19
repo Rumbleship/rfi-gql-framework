@@ -48,7 +48,7 @@ export function getRelayPrefix(): string {
   }
 }
 export function getRelayPrefixLowerCase(): string {
-  return lowerFirst(_the_service_name ?? '');
+  return lowerFirst(getRelayPrefix());
 }
 export function getServiceShortCode(): string {
   return _the_service_short_code;
