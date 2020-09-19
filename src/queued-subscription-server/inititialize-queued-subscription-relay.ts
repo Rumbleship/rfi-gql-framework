@@ -41,7 +41,7 @@ let _webhook_scope_name: string;
 
 export function getRelayPrefix(): string {
   const webhookAndQSRPrefix = Container.get<string>('WebhookAndQSRPrefix');
-  if (webhookAndQSRPrefix) {
+  if (typeof webhookAndQSRPrefix === 'string') {
     return webhookAndQSRPrefix;
   } else {
     return capitalize(_the_service_name ?? '');
