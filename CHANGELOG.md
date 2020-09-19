@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * option to change the prefix for the QueuedSubscriptionREquest and Webhook Relay objects, Queries and Mutations 
+    - To use, `Container.set('WebhookAndQSRPrefix', 'yourPrefixHereCanBeEmpty');` *BEFORE* the first import of @rumbleship/gql
 ### Removed
 ### Changed
 ### Fixed
