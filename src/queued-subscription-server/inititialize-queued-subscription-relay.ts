@@ -1,6 +1,7 @@
 import { capitalize, lowerFirst } from 'lodash';
 import { Oid } from '@rumbleship/oid';
 import { ISharedSchema } from '@rumbleship/config';
+import Container from 'typedi';
 
 /**
  * MUST be called at the beginning of the bootstrap process before any of the queued subscription
@@ -36,10 +37,16 @@ let _the_service_short_code: string;
 let _queued_subscription_request_scope_name: string;
 let _webhook_scope_name: string;
 
-export function getRelayPrefix(): string {
-  return capitalize(_the_service_name ?? '');
-}
+// todo refactor out when qsr is central service
 
+export function getRelayPrefix(): string {
+  const webhookAndQSRPrefix = Container.get<string>('WebhookAndQSRPrefix');
+  if (webhookAndQSRPrefix) {
+    return webhookAndQSRPrefix;
+  } else {
+    return capitalize(_the_service_name ?? '');
+  }
+}
 export function getRelayPrefixLowerCase(): string {
   return lowerFirst(_the_service_name ?? '');
 }
