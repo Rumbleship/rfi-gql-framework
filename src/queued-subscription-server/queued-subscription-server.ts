@@ -39,7 +39,9 @@ export class QueuedSubscriptionServer {
     const authorizer = Authorizer.make(header, true);
     const marshalled_acl = authorizer.marshalClaims();
     const baseName = `${getRelayPrefixLowerCase()}`;
-    const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
+
+    const capitalizedName = baseName ? baseName[0].toUpperCase() + baseName.slice(1) : '';
+
     const gql_query_string = `
     subscription {
       on${capitalizedName}QueuedSubscriptionRequestChange (  watch_list: [active]) {

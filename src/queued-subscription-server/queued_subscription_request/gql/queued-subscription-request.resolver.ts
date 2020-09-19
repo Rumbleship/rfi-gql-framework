@@ -53,6 +53,7 @@ import { filterBySubscriptionFilter } from '../../../gql/resolvers/filter-by-sub
 
 // eslint-disable-next-line import/no-cycle
 import { Webhook } from '../../webhook/gql/webhook.relay';
+import { lowerFirst } from 'lodash';
 
 export function buildQueuedSubscriptionRequestResolver(): ClassType<
   BaseResolverInterface<
@@ -63,7 +64,10 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
     QueuedSubscriptionRequestUpdate
   >
 > {
-  const baseName = `${getRelayPrefixLowerCase()}${getQueuedSubscriptionRequestScopeName()}`;
+  const prefix = getRelayPrefixLowerCase();
+  const baseName = prefix
+    ? `${prefix}${getQueuedSubscriptionRequestScopeName()}`
+    : lowerFirst(getQueuedSubscriptionRequestScopeName());
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Service()
   @Resolver(resolverOf => QueuedSubscriptionRequest)

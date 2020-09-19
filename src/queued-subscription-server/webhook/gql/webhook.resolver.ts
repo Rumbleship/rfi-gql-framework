@@ -68,6 +68,7 @@ import {
 } from '../../queued_subscription_request/gql';
 
 import { AuthorizerTreatAs, Resource } from '@rumbleship/acl';
+import { lowerFirst } from 'lodash';
 
 @ObjectType()
 export class AddWebhookPayload extends withRelayMutationPayload(Empty) {
@@ -138,7 +139,8 @@ export function buildWebhookResolver(
 ): ClassType<
   BaseResolverInterface<Webhook, WebhookConnection, WebhookFilter, WebhookInput, WebhookUpdate>
 > {
-  const baseName = `${getRelayPrefixLowerCase()}${getWebhookScopeName()}`;
+  const prefix = getRelayPrefixLowerCase();
+  const baseName = prefix ? `${prefix}${getWebhookScopeName()}` : lowerFirst(getWebhookScopeName());
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Service()
   @Resolver(resolverOf => Webhook)

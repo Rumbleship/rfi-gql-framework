@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * option to change the prefix for the QueuedSubscriptionREquest and Webhook Relay objects, Queries and Mutations 
+    - To use, `Container.set('WebhookAndQSRPrefix', 'yourPrefixHereCanBeEmpty');` *BEFORE* the first import of @rumbleship/gql
+### Removed
+### Changed
+### Fixed
+### Deprecated
+### Security
+
+
 ## [12.0.0] -- 2020-09-18
 
 ### Breaking Changes: 
