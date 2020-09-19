@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * option to change the prefix for the QueuedSubscriptionREquest and Webhook Relay objects, Queries and Mutations 
 ### Removed
 ### Changed
 ### Fixed

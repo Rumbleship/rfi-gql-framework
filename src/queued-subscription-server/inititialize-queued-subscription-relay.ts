@@ -40,12 +40,13 @@ let _webhook_scope_name: string;
 // todo refactor out when qsr is central service
 
 export function getRelayPrefix(): string {
-  const webhookAndQSRPrefix = Container.get<string>('WebhookAndQSRPrefix');
-  if (typeof webhookAndQSRPrefix === 'string') {
-    return webhookAndQSRPrefix;
-  } else {
-    return capitalize(_the_service_name ?? '');
+  if (Container.has('WebhookAndQSRPrefix')) {
+    const webhookAndQSRPrefix = Container.get<string>('WebhookAndQSRPrefix');
+    if (typeof webhookAndQSRPrefix === 'string') {
+      return webhookAndQSRPrefix;
+    }
   }
+  return capitalize(_the_service_name ?? '');
 }
 export function getRelayPrefixLowerCase(): string {
   return lowerFirst(getRelayPrefix());
