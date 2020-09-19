@@ -63,7 +63,10 @@ export function buildQueuedSubscriptionRequestResolver(): ClassType<
     QueuedSubscriptionRequestUpdate
   >
 > {
-  const baseName = `${getRelayPrefixLowerCase()}${getQueuedSubscriptionRequestScopeName()}`;
+  const prefix = getRelayPrefixLowerCase();
+  const baseName = prefix
+    ? `${prefix}${getQueuedSubscriptionRequestScopeName()}`
+    : getQueuedSubscriptionRequestScopeName().toLowerCase();
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Service()
   @Resolver(resolverOf => QueuedSubscriptionRequest)

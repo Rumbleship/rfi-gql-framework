@@ -138,7 +138,10 @@ export function buildWebhookResolver(
 ): ClassType<
   BaseResolverInterface<Webhook, WebhookConnection, WebhookFilter, WebhookInput, WebhookUpdate>
 > {
-  const baseName = `${getRelayPrefixLowerCase()}${getWebhookScopeName()}`;
+  const prefix = getRelayPrefixLowerCase();
+  const baseName = prefix
+    ? `${prefix}${getWebhookScopeName()}`
+    : getWebhookScopeName().toLowerCase();
   const capitalizedName = baseName[0].toUpperCase() + baseName.slice(1);
   @Service()
   @Resolver(resolverOf => Webhook)
