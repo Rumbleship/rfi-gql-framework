@@ -145,8 +145,7 @@ export class QueuedSubscriptionServer {
           await gcpCreatePushSubscription(
             topic,
             webhook.gcloud_subscription,
-            webhook.subscription_url,
-            'pubsub@rfi-development.iam.gserviceaccount.com'
+            webhook.subscription_url
           );
         } catch (error) {
           const ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;
