@@ -207,6 +207,11 @@ export class WebhookServiceSequelize
   ): Promise<void> {
     const googlePubSub = new GooglePubSub(gcpConfig.Auth);
     const topic = await gcpGetTopic(googlePubSub, topic_name);
-    await gcpCreatePushSubscription(topic, gcloud_subscription, subscription_url);
+    await gcpCreatePushSubscription(
+      topic,
+      gcloud_subscription,
+      subscription_url,
+      'pubsub@rfi-development.iam.gserviceaccount.com'
+    );
   }
 }

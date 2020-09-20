@@ -22,13 +22,15 @@ export async function gcpGetTopic(pubsub: GooglePubSub, topic_name: string): Pro
 export async function gcpCreatePushSubscription(
   topic: Topic,
   subscription_name: string,
-  subscription_url: string
+  subscription_url: string,
+  service_account_email: string
 ): Promise<Subscription> {
   const options = {
     pushConfig: {
       // Set to an HTTPS endpoint of your choice. If necessary, register
       // (authorize) the domain on which the server is hosted.
-      pushEndpoint: subscription_url
+      pushEndpoint: subscription_url,
+      oidcToken: { serviceAccountEmail: service_account_email }
     }
   };
 
