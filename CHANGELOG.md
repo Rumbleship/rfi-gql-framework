@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * remove hardcoded Scope prefix in front of the onQueuedSubscriptionRequestChange subscription in the QuesedSubscriptionServer
 ### Deprecated
 ### Security
 
