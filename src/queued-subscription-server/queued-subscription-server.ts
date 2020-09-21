@@ -61,7 +61,7 @@ export class QueuedSubscriptionServer {
     `;
     const onResponseHook = async (response: SubscriptionResponse) => {
       const changedQueuedRequest: IQueuedSubscriptionRequest =
-        response.data?.onOrdersQueuedSubscriptionRequestChange?.node;
+        response.data?.[`on${capitalizedName}QueuedSubscriptionRequestChange`]?.node;
 
       if (changedQueuedRequest && changedQueuedRequest.id) {
         const key = changedQueuedRequest.id.toString();
