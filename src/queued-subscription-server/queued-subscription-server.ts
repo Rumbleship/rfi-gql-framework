@@ -145,7 +145,8 @@ export class QueuedSubscriptionServer {
           await gcpCreatePushSubscription(
             topic,
             webhook.gcloud_subscription,
-            webhook.subscription_url
+            webhook.subscription_url,
+            this.config.pubSubInvokerServiceAccount
           );
         } catch (error) {
           const ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;

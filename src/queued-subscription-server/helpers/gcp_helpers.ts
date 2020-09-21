@@ -23,7 +23,7 @@ export async function gcpCreatePushSubscription(
   topic: Topic,
   subscription_name: string,
   subscription_url: string,
-  service_account_email = 'pubsub-invoker@rfi-development.iam.gserviceaccount.com'
+  service_account_email: string
 ): Promise<Subscription> {
   const options = {
     pushConfig: {

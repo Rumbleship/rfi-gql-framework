@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * added using config.Gcp.pubSubInvokerServiceAccount to Webhook subscription creation so that the webhook will have an authenticated header from the google pubsub system 
+
 ### Removed
 ### Changed
 ### Fixed

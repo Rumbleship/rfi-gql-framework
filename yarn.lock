@@ -1009,7 +1009,7 @@
 
 "@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#add-PubSub-Invoker-Service-Account-to-IGcpAccount":
   version "2.0.0"
-  resolved "git+ssh://git@github.com/rumbleship/config.git#86eb1ddd15238cd46ca23c42e64db08fec28aa1b"
+  resolved "git+ssh://git@github.com/rumbleship/config.git#92ed4a6561a31dd2282e137fadd00ee66a7fa10b"
   dependencies:
     convict-format-with-validator "^6.0.0"
 
