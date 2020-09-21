@@ -1007,9 +1007,9 @@
     graphql-tools "^4.0.0"
     graphql-upload "^10.0.0"
 
-"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#1.0.3":
-  version "1.0.3"
-  resolved "git+ssh://git@github.com/rumbleship/config.git#d5690805fc2442207fe9880683ead002a9fb5964"
+"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#add-PubSub-Invoker-Service-Account-to-IGcpAccount":
+  version "2.0.0"
+  resolved "git+ssh://git@github.com/rumbleship/config.git#86eb1ddd15238cd46ca23c42e64db08fec28aa1b"
   dependencies:
     convict-format-with-validator "^6.0.0"
 
