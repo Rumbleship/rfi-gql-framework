@@ -5,19 +5,15 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [12.0.2] -- 2020-09-22
 
 ### Added
   * added using config.Gcp.pubSubInvokerServiceAccount to Webhook subscription creation so that the webhook will have an authenticated header from the google pubsub system 
 
-### Removed
 ### Changed
   * upgraded @rumbleship/config to 2.1.0
 ### Fixed
   * remove hardcoded Scope prefix in front of the onQueuedSubscriptionRequestChange subscription in the QuesedSubscriptionServer
-### Deprecated
-### Security
-
 
 ## [12.0.1] -- 2020-09-19
 
