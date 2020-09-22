@@ -1007,9 +1007,9 @@
     graphql-tools "^4.0.0"
     graphql-upload "^10.0.0"
 
-"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#1.0.3":
-  version "1.0.3"
-  resolved "git+ssh://git@github.com/rumbleship/config.git#d5690805fc2442207fe9880683ead002a9fb5964"
+"@rumbleship/config@git+ssh://git@github.com/rumbleship/config.git#2.1.0":
+  version "2.1.0"
+  resolved "git+ssh://git@github.com/rumbleship/config.git#59040a03716e91ca10461327f03415e2720c142e"
   dependencies:
     convict-format-with-validator "^6.0.0"
 

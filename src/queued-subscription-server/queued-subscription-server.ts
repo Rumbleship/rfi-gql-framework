@@ -61,7 +61,7 @@ export class QueuedSubscriptionServer {
     `;
     const onResponseHook = async (response: SubscriptionResponse) => {
       const changedQueuedRequest: IQueuedSubscriptionRequest =
-        response.data?.onOrdersQueuedSubscriptionRequestChange?.node;
+        response.data?.[`on${capitalizedName}QueuedSubscriptionRequestChange`]?.node;
 
       if (changedQueuedRequest && changedQueuedRequest.id) {
         const key = changedQueuedRequest.id.toString();
@@ -145,7 +145,8 @@ export class QueuedSubscriptionServer {
           await gcpCreatePushSubscription(
             topic,
             webhook.gcloud_subscription,
-            webhook.subscription_url
+            webhook.subscription_url,
+            this.config.pubSubInvokerServiceAccount
           );
         } catch (error) {
           const ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;
