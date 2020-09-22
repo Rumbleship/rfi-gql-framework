@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 ### Changed
+  * upgraded @rumbleship/config to 2.1.0
 ### Fixed
   * remove hardcoded Scope prefix in front of the onQueuedSubscriptionRequestChange subscription in the QuesedSubscriptionServer
 ### Deprecated
