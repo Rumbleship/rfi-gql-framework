@@ -1,7 +1,7 @@
 import { capitalize, lowerFirst } from 'lodash';
 import { Oid } from '@rumbleship/oid';
 import { ISharedSchema } from '@rumbleship/config';
-import Container from 'typedi';
+import { Container } from 'typedi';
 
 /**
  * MUST be called at the beginning of the bootstrap process before any of the queued subscription
