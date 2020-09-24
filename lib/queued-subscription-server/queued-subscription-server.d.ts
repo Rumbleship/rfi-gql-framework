@@ -1,8 +1,8 @@
-import { QueuedSubscription } from './queued-subscription';
 import { GraphQLSchema } from 'graphql';
-import { IQueuedSubscriptionRequest } from './queued_subscription_request/queued-subscription-request.interface';
 import { RumbleshipContext } from '../app/rumbleship-context/rumbleship-context';
 import { IGcpConfig } from '@rumbleship/config';
+import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
+import { QueuedSubscription } from './queued-subscription';
 export declare class QueuedSubscriptionServer {
     schema: GraphQLSchema;
     protected config: IGcpConfig;
@@ -17,7 +17,6 @@ export declare class QueuedSubscriptionServer {
     initializeRequestObserver(schema: GraphQLSchema): QueuedSubscription;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;
-    validateWebhooksSetup(ctx: RumbleshipContext): Promise<void>;
     /**
      * Adds and starts the subscription
      * @param request

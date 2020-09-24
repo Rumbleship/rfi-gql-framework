@@ -8,14 +8,14 @@ import {
 } from 'graphql';
 import { GqlExecutionParams } from './helpers/gql-execution-params';
 import { OnDemandRumbleshipContext } from '../app/rumbleship-context/on-demand-rumbleship-context';
-import {
-  IQueuedSubscriptionRequest,
-  SubscriptionResponse
-} from './queued_subscription_request/queued-subscription-request.interface';
 import { isASubscriptionOperation } from './helpers/is-subscription-operation';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';
 import { gcpGetTopic } from './helpers/gcp_helpers';
+import {
+  IQueuedSubscriptionRequest,
+  SubscriptionResponse
+} from './queued-subscription-request.interface';
 interface QueuedSubscriptionMessage {
   owner_id: string;
   subscription_name: string;
