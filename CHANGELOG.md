@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+
+## [12.0.3] -- 2020-09-29
+
+### Changed
+  * QSRs are delivered in an ordered capacity
+
 ## [12.0.2] -- 2020-09-22
 
 ### Added

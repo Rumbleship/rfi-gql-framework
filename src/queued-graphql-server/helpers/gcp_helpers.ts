@@ -1,4 +1,9 @@
-import { PubSub as GooglePubSub, Topic, Subscription } from '@google-cloud/pubsub';
+import {
+  PubSub as GooglePubSub,
+  Topic,
+  Subscription,
+  CreateSubscriptionOptions
+} from '@google-cloud/pubsub';
 export async function gcpGetTopic(pubsub: GooglePubSub, topic_name: string): Promise<Topic> {
   let topic = pubsub.topic(topic_name);
   const [exists] = await topic.exists();
@@ -25,7 +30,7 @@ export async function gcpCreatePushSubscription(
   subscription_url: string,
   service_account_email: string
 ): Promise<Subscription> {
-  const options = {
+  const options: CreateSubscriptionOptions = {
     pushConfig: {
       // Set to an HTTPS endpoint of your choice. If necessary, register
       // (authorize) the domain on which the server is hosted.
