@@ -26,7 +26,7 @@ import { DateRange, DateRangeGQL } from '../../gql';
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
-import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
+import { QueuedSubscriptionServer } from '../../queued-graphql-server/queued-subscription-server';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 

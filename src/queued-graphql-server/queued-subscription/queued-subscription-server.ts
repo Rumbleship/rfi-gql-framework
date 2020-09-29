@@ -77,6 +77,7 @@ export class QueuedSubscriptionServer {
     this.queuedSubscriptionRequestObserver.start();
     // TODO need to load up subscriptions that are for this service...
     //
+
     /*
     // load up active subscriptions
     const queuedSubscriptionRequestService = ctx.container.get<QueuedSubscriptionRequestService>(

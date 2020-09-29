@@ -31,7 +31,8 @@ export async function gcpCreatePushSubscription(
       // (authorize) the domain on which the server is hosted.
       pushEndpoint: subscription_url,
       oidcToken: { serviceAccountEmail: service_account_email }
-    }
+    },
+    enableMessageOrdering: true
   };
 
   const [subscription] = await topic.createSubscription(subscription_name, options);
