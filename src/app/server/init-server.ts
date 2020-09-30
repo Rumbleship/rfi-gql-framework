@@ -26,7 +26,7 @@ import { DateRange, DateRangeGQL } from '../../gql';
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
-import { QueuedSubscriptionServer } from '../../queued-graphql-server/queued-subscription-server';
+import { QueuedGqlRequestServer, QueuedSubscriptionServer } from '../../queued-graphql/servers';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -237,19 +237,22 @@ export async function initServer(
   // Set up subscriptions for websocket clients
   apolloServer.installSubscriptionHandlers(server.listener);
   // setup subscription server for GooglePubSub  clients
-  const queuedSubscriptionServer = new QueuedSubscriptionServer(globalGraphQlSchema, config.Gcp);
+  const queuedSubscriptionServer = new QueuedSubscriptionServer(config, globalGraphQlSchema);
+  const queuedGqlRequestServer = new QueuedGqlRequestServer(config, globalGraphQlSchema);
 
   server.events.on('start', async () => {
     try {
       const rumbleshipContext = RumbleshipContext.make(__filename);
       try {
-        // this function starts all the active queued subscriptions and then returns
+        // these function starts all the active queued subscriptions and requests and then returns
+        //
         await queuedSubscriptionServer.start(rumbleshipContext);
+        await queuedGqlRequestServer.start(rumbleshipContext);
       } finally {
         await rumbleshipContext.release();
       }
     } catch (error) {
-      serverLogger.error('Error starting QueuedSubscriptionServer', {
+      serverLogger.error('Error starting Queued graphql servers', {
         stack: error.stack,
         message: error.message
       });
@@ -262,6 +265,7 @@ export async function initServer(
   server.events.on('stop', async () => {
     try {
       await queuedSubscriptionServer.stop();
+      await queuedGqlRequestServer.stop();
     } catch (error) {
       serverLogger.error('Error stopping QueuedSubscriptionServer', {
         stack: error.stack,

@@ -3,4 +3,4 @@ export * from './gql';
 export * from './helpers';
 export * from './db';
 export * from '@rumbleship/apollo-server-hapi';
-export * from './queued-graphql-server/queued-subscription';
+export * from './queued-graphql';
