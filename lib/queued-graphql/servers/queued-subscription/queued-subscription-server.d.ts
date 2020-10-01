@@ -4,6 +4,7 @@ import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
+export declare const QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC = "QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC";
 export declare class QueuedSubscriptionServer {
     protected config: ISharedSchema;
     schema: GraphQLSchema;

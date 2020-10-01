@@ -12,11 +12,12 @@ import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
 
+export const QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC = 'QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC';
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
   queuedSubscriptionRequestObserver: QueuedSubscription;
   queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
-  constructor( protected config: ISharedSchema, public schema: GraphQLSchema) {
+  constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
     this.queuedSubscriptionRequestObserver = this.initializeRequestObserver(schema);
     this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
   }
@@ -29,7 +30,7 @@ export class QueuedSubscriptionServer {
     const header = Authorizer.createServiceUserAuthHeader();
     const authorizer = Authorizer.make(header, true);
     const marshalled_acl = authorizer.marshalClaims();
-    const gql_query_string = `
+    const gql_subscription_string = `
     subscription {
       onQueuedSubscriptionRequestChange (  watch_list: [active]) {
         idempotency_key
@@ -65,7 +66,7 @@ export class QueuedSubscriptionServer {
         id: 'qsrObserver',
         owner_id: '',
         marshalled_acl,
-        gql_query_string,
+        gql_query_string: gql_subscription_string,
         publish_to_topic_name: '',
         subscription_name: uuid.v4(),
         active: true,
@@ -80,6 +81,7 @@ export class QueuedSubscriptionServer {
     // start listening for changes...
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedSubscriptionRequestObserver.start();
+
     this.queuedGqlRequestClient.onResponse({
       client_request_id: 'BroadcastActiveQueuedSubscriptions',
       handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
@@ -98,7 +100,9 @@ export class QueuedSubscriptionServer {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedGqlRequestClient.start();
     // now we make the request
-
+    // await this.queuedGqlRequestClient.makeRequest(ctx, {
+    //   client_request_id: 'BroadcastActiveQueuedSubscriptions'
+    //});
     /*
     // load up active subscriptions
     const queuedSubscriptionRequestService = ctx.container.get<QueuedSubscriptionRequestService>(
