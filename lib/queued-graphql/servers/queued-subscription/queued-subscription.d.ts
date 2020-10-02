@@ -10,7 +10,7 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
         [key: string]: any;
     }>>;
     executionContext: GqlExecutionParams;
-    owner_id: string;
+    owner_id?: string;
     gql_query_string?: string;
     query_attributes?: string;
     operation_name?: string;
@@ -20,6 +20,7 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
     active?: boolean;
     onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
     create_unique_subscription?: boolean;
+    cache_consistency_id: number;
     id: string;
     private _topic?;
     /**

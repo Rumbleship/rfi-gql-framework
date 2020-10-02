@@ -9,9 +9,8 @@ import { gcpGetTopic } from '../helpers';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { sleep } from '../../helpers/sleep';
-import { RfiPubSubMessageBase } from '../interfaces/rfi-pub-sub-message-base.interface';
 
-export class RfiPubSubSubscription<T extends RfiPubSubMessageBase> {
+export class RfiPubSubSubscription<T> {
   protected _initiaized = false;
   private _subscription: Subscription;
   protected topic_name: string;
@@ -83,11 +82,17 @@ export class RfiPubSubSubscription<T extends RfiPubSubMessageBase> {
           }
           message_data = message.data.toString();
           const payload = this.parseMessage(message_data);
+
           if (payload) {
+            const marshalled_trace = Reflect.get(
+              (payload as unknown) as Record<string, unknown>,
+              'marshalled_trace'
+            ) as string | undefined;
+
             const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
               __filename,
               {
-                marshalled_trace: payload.marshalled_trace
+                marshalled_trace
               }
             );
             await handler(payload as T, ctx)

@@ -1,15 +1,24 @@
 import { GraphQLSchema } from 'graphql';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
-import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
+import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
-export declare const QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC = "QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC";
+import { RfiPubSubSubscription } from '../../shared';
+import { QueuedSubscriptionCache } from '../../queued-subscription-cache';
+export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = "QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC";
+/**
+ * This is exported to be used by the QueuedSubscription Repository Service to
+ * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
+ * subscribe to the responses, and so everyone can update thier cache
+ */
+export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = "\n    subscription {\n      onQueuedSubscriptionRequestChange (  watch_list: [active]) {\n        idempotency_key\n        node {\n          id\n          marshalled_acl\n          gql_query_string\n          active\n          owner_id\n          operation_name\n          query_attributes\n          publish_to_topic_name\n        }\n      }\n    }\n    ";
 export declare class QueuedSubscriptionServer {
     protected config: ISharedSchema;
     schema: GraphQLSchema;
     queuedSubscriptions: Map<string, QueuedSubscription>;
-    queuedSubscriptionRequestObserver: QueuedSubscription;
+    in_memory_cache_consistency_id: number;
+    qsrChangeObserver: RfiPubSubSubscription<SubscriptionResponse>;
     queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
     constructor(config: ISharedSchema, schema: GraphQLSchema);
     /**
@@ -17,13 +26,14 @@ export declare class QueuedSubscriptionServer {
      * look for changes to active flag.
      * @param schema
      */
-    initializeRequestObserver(schema: GraphQLSchema): QueuedSubscription;
+    initializeQsrChangeObserver(): Promise<void>;
+    refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<void>;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;
     /**
      * Adds and starts the subscription
      * @param request
      */
-    addSubscription(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription;
+    addSubscriptionAndStart(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription;
     removeSubscription(key: string): Promise<void>;
 }

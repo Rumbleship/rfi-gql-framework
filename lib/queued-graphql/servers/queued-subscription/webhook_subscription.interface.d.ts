@@ -1,5 +1,7 @@
 import { Oid } from '@rumbleship/oid';
-export interface IWebhookSubscription {
+import { RfiPubSubMessageBase } from '../../interfaces';
+export interface IWebhookSubscription extends RfiPubSubMessageBase {
+    cache_consistency_id: number;
     gql_query_string?: string;
     query_attributes?: string;
     operation_name?: string;

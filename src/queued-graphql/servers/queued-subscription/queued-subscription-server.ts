@@ -1,8 +1,6 @@
 import { GraphQLSchema } from 'graphql';
-
+import { hostname } from 'os';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
-import { Authorizer } from '@rumbleship/acl';
-import uuid = require('uuid');
 import { ISharedSchema } from '@rumbleship/config';
 import {
   IQueuedSubscriptionRequest,
@@ -11,26 +9,20 @@ import {
 import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
+import { RfiPubSubSubscription } from '../../shared';
+import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
+// eslint-disable-next-line import/no-cycle
+import { loadCache, QueuedSubscriptionCache, saveCache } from '../../queued-subscription-cache';
+import { getSequelizeInstance } from '../../../app/server/init-sequelize';
 
-export const QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC = 'QUEUED_SUPSCRIPTION_REPO_CHANGE_TOPIC';
-export class QueuedSubscriptionServer {
-  queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
-  queuedSubscriptionRequestObserver: QueuedSubscription;
-  queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
-  constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
-    this.queuedSubscriptionRequestObserver = this.initializeRequestObserver(schema);
-    this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
-  }
-  /**
-   * Setup a subscription to the QueuedSubscriptionRequest model to
-   * look for changes to active flag.
-   * @param schema
-   */
-  initializeRequestObserver(schema: GraphQLSchema): QueuedSubscription {
-    const header = Authorizer.createServiceUserAuthHeader();
-    const authorizer = Authorizer.make(header, true);
-    const marshalled_acl = authorizer.marshalClaims();
-    const gql_subscription_string = `
+export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = 'QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC';
+
+/**
+ * This is exported to be used by the QueuedSubscription Repository Service to
+ * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
+ * subscribe to the responses, and so everyone can update thier cache
+ */
+export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
     subscription {
       onQueuedSubscriptionRequestChange (  watch_list: [active]) {
         idempotency_key
@@ -47,43 +39,108 @@ export class QueuedSubscriptionServer {
       }
     }
     `;
-    const onResponseHook = async (response: SubscriptionResponse) => {
+
+export class QueuedSubscriptionServer {
+  queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
+  in_memory_cache_consistency_id = 0;
+  qsrChangeObserver: RfiPubSubSubscription<SubscriptionResponse>;
+  queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
+
+  constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
+    this.qsrChangeObserver = new RfiPubSubSubscription<SubscriptionResponse>(
+      this.config,
+      new GooglePubSub(this.config.Gcp.Auth),
+      QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC,
+      `{QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}_${hostname()}` // Every instance needs to update its cache.
+    );
+    this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
+  }
+  /**
+   * Setup a subscription to the QueuedSubscriptionRequest model to
+   * look for changes to active flag.
+   * @param schema
+   */
+  async initializeQsrChangeObserver(): Promise<void> {
+    await this.qsrChangeObserver.init();
+
+    // kick off on its own promise chain
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.qsrChangeObserver.start(async (response: SubscriptionResponse, ctx: RumbleshipContext) => {
       const changedQueuedRequest: IQueuedSubscriptionRequest =
         response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
-      // TODO validate that this service's schema can parse and execute the gql document
       if (changedQueuedRequest && changedQueuedRequest.id) {
-        const key = changedQueuedRequest.id.toString();
-        await this.removeSubscription(key);
-        if (changedQueuedRequest.active) {
-          await this.addSubscription(key, changedQueuedRequest).start();
+        if (changedQueuedRequest.cache_consistency_id) {
+          const sequelize = getSequelizeInstance();
+          if (sequelize) {
+            const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
+            try {
+              const qsrCache = await loadCache({ transaction });
+              // Has anotehr instance already saved a later version of the cache?
+              if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
+                await this.refreshSubscriptionsFromCache(qsrCache);
+              }
+              if (
+                qsrCache.highest_cache_consistency_id < changedQueuedRequest.cache_consistency_id
+              ) {
+                try {
+                  QueuedSubscription.validateSubscriptionRequest(this.schema, changedQueuedRequest);
+
+                  const key = changedQueuedRequest.id.toString();
+                  await this.removeSubscription(key);
+                  if (changedQueuedRequest.active) {
+                    this.addSubscriptionAndStart(key, changedQueuedRequest);
+                  }
+                } catch (error) {
+                  // swollow the error
+                  // TODO determine the type of error and swollow or spit it out
+                  ctx.logger.log(
+                    `Couldnt process qsr in ${this.config.serviceName}. Error: ${error.toString()}`
+                  );
+                }
+                // update the cache...
+                qsrCache.clear();
+                qsrCache.highest_cache_consistency_id = changedQueuedRequest.cache_consistency_id;
+                qsrCache.add(Array.from(this.queuedSubscriptions.values()));
+                await saveCache(qsrCache, { transaction });
+                this.in_memory_cache_consistency_id = qsrCache.highest_cache_consistency_id;
+                await transaction.commit();
+              }
+            } catch (seqError) {
+              // TODO what should be logged?
+              ctx.logger.log(`Couldnt Error: ${seqError.toString()}`);
+              await transaction.rollback();
+            }
+          }
         }
       }
-    };
+    });
 
-    return new QueuedSubscription(
-      schema,
-      {
-        id: 'qsrObserver',
-        owner_id: '',
-        marshalled_acl,
-        gql_query_string: gql_subscription_string,
-        publish_to_topic_name: '',
-        subscription_name: uuid.v4(),
-        active: true,
-        create_unique_subscription: true, // EVERY instance of this service needs to respond, so a unique subscription name is assigned to each instance
-        onResponseHook
-      },
-      this.config.Gcp
-    );
+    return;
   }
+
+  async refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<void> {
+    this.in_memory_cache_consistency_id = qsrCache.highest_cache_consistency_id;
+    // find active subscriptions that need to be removed
+    for (const [key] of this.queuedSubscriptions.entries()) {
+      if (!qsrCache.cache.has(key)) {
+        await this.removeSubscription(key);
+      }
+    }
+    // find qsr's that have to be added
+    for (const [key, qsr] of qsrCache.cache.entries()) {
+      if (!this.queuedSubscriptions.has(key)) {
+        this.addSubscriptionAndStart(key, qsr);
+      }
+    }
+  }
+
   async start(ctx: RumbleshipContext): Promise<void> {
     // Should be an independant promise chain
     // start listening for changes...
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.queuedSubscriptionRequestObserver.start();
+    await this.initializeQsrChangeObserver();
 
     this.queuedGqlRequestClient.onResponse({
-      client_request_id: 'BroadcastActiveQueuedSubscriptions',
+      client_request_id: 'PublishQueuedSubscriptions',
       handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
         // We can get a response from multiple services, and google pub sub can
         // deliver it twice.
@@ -92,45 +149,24 @@ export class QueuedSubscriptionServer {
         // This should only happen in development, as we suppress errors in production
         //
         if (response.response.errors) {
-          ctx.logger.log('Error in response');
+          ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
         }
       }
     });
     // we kick off a floating promise chain here...
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedGqlRequestClient.start();
-    // now we make the request
-    // await this.queuedGqlRequestClient.makeRequest(ctx, {
-    //   client_request_id: 'BroadcastActiveQueuedSubscriptions'
-    //});
-    /*
-    // load up active subscriptions
-    const queuedSubscriptionRequestService = ctx.container.get<QueuedSubscriptionRequestService>(
-      `${getQueuedSubscriptionRequestScopeName()}Service`
-    );
-    const filter = new QueuedSubscriptionRequestFilter();
-    filter.first = 20;
-    filter.active = true;
-    const activeSubscriptions = new IterableConnection(filter, async paged_filter => {
-      return queuedSubscriptionRequestService.getAll(paged_filter);
-    });
-    for await (const activeSubscription of activeSubscriptions) {
-      const key = activeSubscription.id.toString();
 
-      const queuedSubscription = this.addSubscription(
-        key,
-        activeSubscription as IQueuedSubscriptionRequest
-      );
-      // todo add tracing
-      // These are independant promise chains
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      queuedSubscription.start();
-    }
-    */
+    // now we make the request
+    await this.queuedGqlRequestClient.makeRequest(ctx, {
+      client_request_id: 'PublishQueuedSubscriptions',
+      respond_on_error: false,
+      gql_query_string: `mutation {}`
+    });
   }
 
   async stop(): Promise<void> {
-    await this.queuedSubscriptionRequestObserver.stop();
+    await this.qsrChangeObserver.stop();
     await Promise.all(
       Array.from(this.queuedSubscriptions, async queuedSubscription => {
         return queuedSubscription[1].stop();
@@ -143,7 +179,7 @@ export class QueuedSubscriptionServer {
    * Adds and starts the subscription
    * @param request
    */
-  addSubscription(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription {
+  addSubscriptionAndStart(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription {
     if (this.queuedSubscriptions.has(key)) {
       throw new Error(
         `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
@@ -152,6 +188,9 @@ export class QueuedSubscriptionServer {
     const queuedSubscription = new QueuedSubscription(this.schema, request, this.config.Gcp);
 
     this.queuedSubscriptions.set(key, queuedSubscription);
+    // start it asynchonously
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    void queuedSubscription.start();
     return queuedSubscription;
   }
   async removeSubscription(key: string): Promise<void> {

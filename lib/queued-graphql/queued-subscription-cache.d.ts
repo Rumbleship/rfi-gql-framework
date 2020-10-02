@@ -1,5 +1,7 @@
-import { IQueuedSubscriptionRequest } from './servers';
+import { Transaction } from 'sequelize/types';
+import { IQueuedSubscriptionRequest } from './servers/queued-subscription/queued-subscription-request.interface';
 export declare class PersistableQueuedSubscription implements IQueuedSubscriptionRequest {
+    cache_consistency_id: number;
     owner_id: string;
     gql_query_string?: string;
     query_attributes?: string;
@@ -11,5 +13,14 @@ export declare class PersistableQueuedSubscription implements IQueuedSubscriptio
     id: string;
 }
 export declare class QueuedSubscriptionCache {
+    highest_cache_consistency_id: number;
     cache: Map<string, IQueuedSubscriptionRequest>;
+    clear(): void;
+    add(qsrs: IQueuedSubscriptionRequest[]): void;
 }
+export declare function loadCache(opts?: {
+    transaction?: Transaction;
+}): Promise<QueuedSubscriptionCache>;
+export declare function saveCache(cache: QueuedSubscriptionCache, opts: {
+    transaction: Transaction;
+}): Promise<void>;

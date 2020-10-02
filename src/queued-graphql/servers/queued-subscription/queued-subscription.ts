@@ -29,7 +29,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     }>
   >;
   executionContext: GqlExecutionParams;
-  owner_id: string;
+  owner_id?: string;
   gql_query_string?: string;
   query_attributes?: string;
   operation_name?: string;
@@ -39,6 +39,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   active?: boolean;
   onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
   create_unique_subscription?: boolean;
+  cache_consistency_id!: number;
   id: string;
 
   private _topic?: Topic;
@@ -72,6 +73,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       onResponseHook: this.onResponseHook,
       create_unique_subscription: this.create_unique_subscription,
       active: this.active,
+      cache_consistency_id: this.cache_consistency_id,
       id
     } = subscriptionRequest);
     if (!id) {
@@ -121,7 +123,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   async publishResponse(response: SubscriptionResponse): Promise<string> {
     const subscription_name = this.subscription_name ?? '';
     const message: QueuedSubscriptionMessage = {
-      owner_id: this.owner_id,
+      owner_id: this.owner_id ?? '',
       subscription_name,
       subscription_id: this.id.toString(),
       subscription_response: response

@@ -3,8 +3,7 @@ import { SpyglassLogger } from '@rumbleship/spyglass';
 import { SubscriberOptions } from '@google-cloud/pubsub/build/src/subscriber';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
-import { RfiPubSubMessageBase } from '../interfaces/rfi-pub-sub-message-base.interface';
-export declare class RfiPubSubSubscription<T extends RfiPubSubMessageBase> {
+export declare class RfiPubSubSubscription<T> {
     protected _pubSub: GooglePubSub;
     protected subscriber_options?: SubscriberOptions | undefined;
     protected _initiaized: boolean;
