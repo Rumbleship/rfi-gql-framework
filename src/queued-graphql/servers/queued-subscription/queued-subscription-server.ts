@@ -28,6 +28,7 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
         idempotency_key
         node {
           id
+          cache_consistency_id
           marshalled_acl
           gql_query_string
           active

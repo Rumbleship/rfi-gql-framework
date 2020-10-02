@@ -12,7 +12,7 @@ export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = "QUEUED_SUBSCRIPTIO
  * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
  * subscribe to the responses, and so everyone can update thier cache
  */
-export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = "\n    subscription {\n      onQueuedSubscriptionRequestChange (  watch_list: [active]) {\n        idempotency_key\n        node {\n          id\n          marshalled_acl\n          gql_query_string\n          active\n          owner_id\n          operation_name\n          query_attributes\n          publish_to_topic_name\n        }\n      }\n    }\n    ";
+export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = "\n    subscription {\n      onQueuedSubscriptionRequestChange (  watch_list: [active]) {\n        idempotency_key\n        node {\n          id\n          cache_consistency_id\n          marshalled_acl\n          gql_query_string\n          active\n          owner_id\n          operation_name\n          query_attributes\n          publish_to_topic_name\n        }\n      }\n    }\n    ";
 export declare class QueuedSubscriptionServer {
     protected config: ISharedSchema;
     schema: GraphQLSchema;
