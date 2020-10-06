@@ -17,6 +17,21 @@ import { getSequelizeInstance } from '../../../app/server/init-sequelize';
 
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = 'QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC';
 
+export const QSR_GQL_FRAGMENT = `
+  fragment qsr on QueuedSubscriptionRequest {
+    id
+    cache_consistency_id
+    marshalled_acl
+    gql_query_string
+    active
+    owner_id
+    operation_name
+    query_attributes
+    publish_to_topic_name
+
+  }
+`;
+
 /**
  * This is exported to be used by the QueuedSubscription Repository Service to
  * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
@@ -27,15 +42,7 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
       onQueuedSubscriptionRequestChange (  watch_list: [active]) {
         idempotency_key
         node {
-          id
-          cache_consistency_id
-          marshalled_acl
-          gql_query_string
-          active
-          owner_id
-          operation_name
-          query_attributes
-          publish_to_topic_name
+          ... qsr
         }
       }
     }
@@ -52,7 +59,7 @@ export class QueuedSubscriptionServer {
       this.config,
       new GooglePubSub(this.config.Gcp.Auth),
       QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC,
-      `{QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}_${hostname()}` // Every instance needs to update its cache.
+      `${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}_${hostname()}` // Every instance needs to update its cache.
     );
     this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
   }
@@ -145,10 +152,6 @@ export class QueuedSubscriptionServer {
       handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
         // We can get a response from multiple services, and google pub sub can
         // deliver it twice.
-        // We actually don't care about the response, as we call a mutation to force a broadcast of the
-        // QSR's in the main store
-        // This should only happen in development, as we suppress errors in production
-        //
         if (response.response.errors) {
           ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
         }
@@ -162,7 +165,7 @@ export class QueuedSubscriptionServer {
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: 'PublishQueuedSubscriptions',
       respond_on_error: false,
-      gql_query_string: `mutation {}`
+      gql_query_string: `query {}`
     });
   }
 
