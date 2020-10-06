@@ -46,6 +46,7 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
         }
       }
     }
+    ${QSR_GQL_FRAGMENT}
     `;
 
 export class QueuedSubscriptionServer {

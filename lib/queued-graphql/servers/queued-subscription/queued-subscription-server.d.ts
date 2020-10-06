@@ -13,7 +13,7 @@ export declare const QSR_GQL_FRAGMENT = "\n  fragment qsr on QueuedSubscriptionR
  * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
  * subscribe to the responses, and so everyone can update thier cache
  */
-export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = "\n    subscription {\n      onQueuedSubscriptionRequestChange (  watch_list: [active]) {\n        idempotency_key\n        node {\n          ... qsr\n        }\n      }\n    }\n    ";
+export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL: string;
 export declare class QueuedSubscriptionServer {
     protected config: ISharedSchema;
     schema: GraphQLSchema;
