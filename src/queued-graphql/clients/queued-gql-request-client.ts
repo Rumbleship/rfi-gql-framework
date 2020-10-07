@@ -57,7 +57,7 @@ export class QueuedGqlRequestClientOneInstanceResponder {
     this._response_subscription = new RfiPubSubSubscription(
       config,
       this._pubsub,
-      this.request_topic_name,
+      this.response_topic_name,
       this.response_subscription_name
     );
   }
