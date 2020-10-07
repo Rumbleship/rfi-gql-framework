@@ -16,12 +16,7 @@ import {
   IQueuedSubscriptionRequest,
   SubscriptionResponse
 } from './queued-subscription-request.interface';
-interface QueuedSubscriptionMessage {
-  owner_id: string;
-  subscription_name: string;
-  subscription_id: string;
-  subscription_response: SubscriptionResponse;
-}
+import { QueuedSubscriptionMessage } from './queued-subscription-message';
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
     ExecutionResult<{

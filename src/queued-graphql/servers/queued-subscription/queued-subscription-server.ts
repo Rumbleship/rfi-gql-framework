@@ -2,10 +2,7 @@ import { GraphQLSchema } from 'graphql';
 import { hostname } from 'os';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
-import {
-  IQueuedSubscriptionRequest,
-  SubscriptionResponse
-} from './queued-subscription-request.interface';
+import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
@@ -14,6 +11,7 @@ import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
 // eslint-disable-next-line import/no-cycle
 import { loadCache, QueuedSubscriptionCache, saveCache } from '../../queued-subscription-cache';
 import { getSequelizeInstance } from '../../../app/server/init-sequelize';
+import { QueuedSubscriptionMessage } from './queued-subscription-message';
 
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = 'QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC';
 
@@ -63,11 +61,11 @@ export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs {
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
   in_memory_cache_consistency_id = 0;
-  qsrChangeObserver: RfiPubSubSubscription<SubscriptionResponse>;
+  qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
   queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
 
   constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
-    this.qsrChangeObserver = new RfiPubSubSubscription<SubscriptionResponse>(
+    this.qsrChangeObserver = new RfiPubSubSubscription<QueuedSubscriptionMessage>(
       this.config,
       new GooglePubSub(this.config.Gcp.Auth),
       QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC,
@@ -85,55 +83,62 @@ export class QueuedSubscriptionServer {
 
     // kick off on its own promise chain
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.qsrChangeObserver.start(async (response: SubscriptionResponse, ctx: RumbleshipContext) => {
-      const changedQueuedRequest: IQueuedSubscriptionRequest =
-        response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
-      if (changedQueuedRequest && changedQueuedRequest.id) {
-        if (changedQueuedRequest.cache_consistency_id) {
-          const sequelize = getSequelizeInstance();
-          if (sequelize) {
-            const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
-            try {
-              const qsrCache = await loadCache({ transaction });
-              // Has anotehr instance already saved a later version of the cache?
-              if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
-                await this.refreshSubscriptionsFromCache(qsrCache);
-              }
-              if (
-                qsrCache.highest_cache_consistency_id < changedQueuedRequest.cache_consistency_id
-              ) {
-                try {
-                  QueuedSubscription.validateSubscriptionRequest(this.schema, changedQueuedRequest);
-
-                  const key = changedQueuedRequest.id.toString();
-                  await this.removeSubscription(key);
-                  if (changedQueuedRequest.active) {
-                    this.addSubscriptionAndStart(key, changedQueuedRequest);
-                  }
-                } catch (error) {
-                  // swollow the error
-                  // TODO determine the type of error and swollow or spit it out
-                  ctx.logger.log(
-                    `Couldnt process qsr in ${this.config.serviceName}. Error: ${error.toString()}`
-                  );
+    this.qsrChangeObserver.start(
+      async (response: QueuedSubscriptionMessage, ctx: RumbleshipContext) => {
+        const changedQueuedRequest: IQueuedSubscriptionRequest =
+          response.subscription_response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
+        if (changedQueuedRequest && changedQueuedRequest.id) {
+          if (changedQueuedRequest.cache_consistency_id) {
+            const sequelize = getSequelizeInstance();
+            if (sequelize) {
+              const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
+              try {
+                const qsrCache = await loadCache({ transaction });
+                // Has anotehr instance already saved a later version of the cache?
+                if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
+                  await this.refreshSubscriptionsFromCache(qsrCache);
                 }
-                // update the cache...
-                qsrCache.clear();
-                qsrCache.highest_cache_consistency_id = changedQueuedRequest.cache_consistency_id;
-                qsrCache.add(Array.from(this.queuedSubscriptions.values()));
-                await saveCache(qsrCache, { transaction });
-                this.in_memory_cache_consistency_id = qsrCache.highest_cache_consistency_id;
-                await transaction.commit();
+                if (
+                  qsrCache.highest_cache_consistency_id < changedQueuedRequest.cache_consistency_id
+                ) {
+                  try {
+                    QueuedSubscription.validateSubscriptionRequest(
+                      this.schema,
+                      changedQueuedRequest
+                    );
+
+                    const key = changedQueuedRequest.id.toString();
+                    await this.removeSubscription(key);
+                    if (changedQueuedRequest.active) {
+                      this.addSubscriptionAndStart(key, changedQueuedRequest);
+                    }
+                  } catch (error) {
+                    // swollow the error
+                    // TODO determine the type of error and swollow or spit it out
+                    ctx.logger.log(
+                      `Couldnt process qsr in ${
+                        this.config.serviceName
+                      }. Error: ${error.toString()}`
+                    );
+                  }
+                  // update the cache...
+                  qsrCache.clear();
+                  qsrCache.highest_cache_consistency_id = changedQueuedRequest.cache_consistency_id;
+                  qsrCache.add(Array.from(this.queuedSubscriptions.values()));
+                  await saveCache(qsrCache, { transaction });
+                  this.in_memory_cache_consistency_id = qsrCache.highest_cache_consistency_id;
+                  await transaction.commit();
+                }
+              } catch (seqError) {
+                // TODO what should be logged?
+                ctx.logger.log(`Couldnt Error: ${seqError.toString()}`);
+                await transaction.rollback();
               }
-            } catch (seqError) {
-              // TODO what should be logged?
-              ctx.logger.log(`Couldnt Error: ${seqError.toString()}`);
-              await transaction.rollback();
             }
           }
         }
       }
-    });
+    );
 
     return;
   }

@@ -1,11 +1,12 @@
 import { GraphQLSchema } from 'graphql';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
-import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued-subscription-request.interface';
+import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
 import { RfiPubSubSubscription } from '../../shared';
 import { QueuedSubscriptionCache } from '../../queued-subscription-cache';
+import { QueuedSubscriptionMessage } from './queued-subscription-message';
 export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = "QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC";
 export declare const QSR_GQL_FRAGMENT = "\n  fragment qsr on QueuedSubscriptionRequest {\n    id\n    cache_consistency_id\n    marshalled_acl\n    gql_query_string\n    active\n    owner_id\n    operation_name\n    query_attributes\n    publish_to_topic_name\n\n  }\n";
 /**
@@ -20,7 +21,7 @@ export declare class QueuedSubscriptionServer {
     schema: GraphQLSchema;
     queuedSubscriptions: Map<string, QueuedSubscription>;
     in_memory_cache_consistency_id: number;
-    qsrChangeObserver: RfiPubSubSubscription<SubscriptionResponse>;
+    qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
     queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
     constructor(config: ISharedSchema, schema: GraphQLSchema);
     /**
