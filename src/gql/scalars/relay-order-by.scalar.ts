@@ -19,13 +19,28 @@ export const RelayOrderByGQL = new GraphQLScalarType({
   },
   parseLiteral(ast: ValueNode, variables) {
     if (ast.kind === Kind.OBJECT) {
+      // this is ugly and needs to be unwrapped from the ast....
+      // we pick out what we are given the things we know
       const value = Object.create(null);
       ast.fields.forEach(field => {
-        if (field.value.kind === 'ObjectValue') {
-          value[field.name.value] = field.value;
-        }
-        if (field.value.kind === 'StringValue') {
-          value[field.name.value] = field.value.value;
+        switch (field.name.value) {
+          case 'keys': {
+            if (field.value.kind === Kind.LIST) {
+              value['keys'] = field.value.values.map(valueNode => {
+                if (valueNode.kind === Kind.LIST) {
+                  return valueNode.values.map(entry => {
+                    if (entry.kind === Kind.STRING) {
+                      return entry.value;
+                    } else {
+                      return '';
+                    }
+                  });
+                } else {
+                  return [];
+                }
+              });
+            }
+          }
         }
       });
       return plainToClass(RelayOrderBy, value); // value from the client query
