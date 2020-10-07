@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * RelayOrderByGQL to correctly handle when it is parsed as an ObjectType - ie if it is a variable in a document or embedded
 ### Deprecated
 ### Security
 

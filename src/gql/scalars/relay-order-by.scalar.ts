@@ -21,6 +21,9 @@ export const RelayOrderByGQL = new GraphQLScalarType({
     if (ast.kind === Kind.OBJECT) {
       const value = Object.create(null);
       ast.fields.forEach(field => {
+        if (field.value.kind === 'ObjectValue') {
+          value[field.name.value] = field.value;
+        }
         if (field.value.kind === 'StringValue') {
           value[field.name.value] = field.value.value;
         }
