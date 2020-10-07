@@ -160,7 +160,7 @@ export class QueuedSubscriptionServer {
     await this.initializeQsrChangeObserver();
 
     this.queuedGqlRequestClient.onResponse({
-      client_request_id: 'PublishQueuedSubscriptions',
+      client_request_id: 'GetAllQueuedSubscriptionRequests',
       handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
         // We can get a response from multiple services, and google pub sub can
         // deliver it twice.
