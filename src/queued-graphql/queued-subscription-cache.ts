@@ -11,6 +11,7 @@ import {
   UpdatedAt
 } from 'sequelize-typescript';
 import { Transaction } from 'sequelize/types';
+import { RfiPubSub } from '../app/server/rfi-pub-sub-engine';
 import { getSequelizeInstance } from '../app/server/init-sequelize';
 import { IQueuedSubscriptionRequest } from './servers/queued-subscription/queued-subscription-request.interface';
 
@@ -72,13 +73,17 @@ class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
     const subs_json = serialize(active_subscriptions);
     this.setDataValue('cache', subs_json as any);
   }
-
   // Need to force the use of underscored for the timestamps
   @CreatedAt
   created_at?: Date;
   @UpdatedAt
   updated_at?: Date;
 }
+
+// Instruct the pubsub system to ignore this model as it is a local cache and if we want to
+// we have global hooks installed on sequelize, which cannot be taken off an individual model
+// so we have to set a flag to be checked in the hooks..
+Reflect.defineMetadata(RfiPubSub.DONT_PUBLISH_ON_CHANGE_FLAG_SYMBOL, true, QsrLocalCacheModel);
 
 export async function loadCache(opts?: {
   transaction?: Transaction;

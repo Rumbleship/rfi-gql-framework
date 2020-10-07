@@ -48,9 +48,9 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
     `;
 
 export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs {
-      queuedSubscriptionRequests(order_by:{ keys: [["cache_consistency_id","DESC"]]}, first: 100 ) {
+      queuedSubscriptionRequests(order_by:{ keys: [["cache_consistency_id","ASC"]]}, first: 100 ) {
         edges {
-          qsr: node {
+          node {
             ... qsr
           }
         }
@@ -87,55 +87,8 @@ export class QueuedSubscriptionServer {
       async (response: QueuedSubscriptionMessage, ctx: RumbleshipContext) => {
         const changedQueuedRequest: IQueuedSubscriptionRequest =
           response.subscription_response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
-        if (changedQueuedRequest && changedQueuedRequest.id) {
-          if (changedQueuedRequest.cache_consistency_id) {
-            const sequelize = getSequelizeInstance();
-            if (sequelize) {
-              const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
-              try {
-                const qsrCache = await loadCache({ transaction });
-                // Has anotehr instance already saved a later version of the cache?
-                if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
-                  await this.refreshSubscriptionsFromCache(qsrCache);
-                }
-                if (
-                  qsrCache.highest_cache_consistency_id < changedQueuedRequest.cache_consistency_id
-                ) {
-                  try {
-                    QueuedSubscription.validateSubscriptionRequest(
-                      this.schema,
-                      changedQueuedRequest
-                    );
-
-                    const key = changedQueuedRequest.id.toString();
-                    await this.removeSubscription(key);
-                    if (changedQueuedRequest.active) {
-                      this.addSubscriptionAndStart(key, changedQueuedRequest);
-                    }
-                  } catch (error) {
-                    // swollow the error
-                    // TODO determine the type of error and swollow or spit it out
-                    ctx.logger.log(
-                      `Couldnt process qsr in ${
-                        this.config.serviceName
-                      }. Error: ${error.toString()}`
-                    );
-                  }
-                  // update the cache...
-                  qsrCache.clear();
-                  qsrCache.highest_cache_consistency_id = changedQueuedRequest.cache_consistency_id;
-                  qsrCache.add(Array.from(this.queuedSubscriptions.values()));
-                  await saveCache(qsrCache, { transaction });
-                  this.in_memory_cache_consistency_id = qsrCache.highest_cache_consistency_id;
-                  await transaction.commit();
-                }
-              } catch (seqError) {
-                // TODO what should be logged?
-                ctx.logger.log(`Couldnt Error: ${seqError.toString()}`);
-                await transaction.rollback();
-              }
-            }
-          }
+        if (changedQueuedRequest) {
+          await this.process_incoming_qsr(ctx, [changedQueuedRequest]);
         }
       }
     );
@@ -143,8 +96,75 @@ export class QueuedSubscriptionServer {
     return;
   }
 
-  async refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<void> {
-    this.in_memory_cache_consistency_id = qsrCache.highest_cache_consistency_id;
+  async process_incoming_qsr(
+    ctx: RumbleshipContext,
+    incomingQsrs: IQueuedSubscriptionRequest[]
+  ): Promise<void> {
+    const sequelize = getSequelizeInstance();
+    if (sequelize) {
+      const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
+      try {
+        const qsrCache = await loadCache({ transaction });
+        // Has anotehr instance already saved a later version of the cache?
+        if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
+          this.in_memory_cache_consistency_id = await this.refreshSubscriptionsFromCache(qsrCache);
+        }
+        for (const incomingQsr of incomingQsrs) {
+          // todo Add service list to the qsr which is set by the qsr management service
+          // and only process if we are on the list
+          if (incomingQsr && incomingQsr.id) {
+            if (incomingQsr.cache_consistency_id) {
+              const key = incomingQsr.id.toString();
+              const foundSubscription = this.getSubscription(key);
+              if (
+                foundSubscription &&
+                foundSubscription.cache_consistency_id &&
+                incomingQsr.cache_consistency_id &&
+                foundSubscription.cache_consistency_id < incomingQsr.cache_consistency_id
+              ) {
+                try {
+                  // only process if it is valid fro this service
+
+                  QueuedSubscription.validateSubscriptionRequest(this.schema, incomingQsr);
+                  await this.removeSubscription(key);
+                  if (incomingQsr.active) {
+                    this.addSubscriptionAndStart(key, incomingQsr);
+                  }
+                } catch (error) {
+                  // swollow the error
+                  // TODO determine the type of error and swollow or spit it out
+                  ctx.logger.log(
+                    `Couldnt process qsr: ${incomingQsr.id} in ${
+                      this.config.serviceName
+                    }. Error: ${error.toString()}`
+                  );
+                }
+              } else {
+                if (!foundSubscription && incomingQsr.active) {
+                  // then must be a new one and we must add it
+                  this.addSubscriptionAndStart(key, incomingQsr);
+                }
+              }
+              if (this.in_memory_cache_consistency_id < incomingQsr.cache_consistency_id) {
+                this.in_memory_cache_consistency_id = incomingQsr.cache_consistency_id;
+              }
+            }
+          }
+        }
+        // update the cache...
+        qsrCache.clear();
+        qsrCache.add(Array.from(this.queuedSubscriptions.values()));
+        qsrCache.highest_cache_consistency_id = this.in_memory_cache_consistency_id;
+        await saveCache(qsrCache, { transaction });
+        await transaction.commit();
+      } catch (seqError) {
+        // TODO what should be logged?
+        ctx.logger.log(`Couldnt Error: ${seqError.toString()}`);
+        await transaction.rollback();
+      }
+    }
+  }
+  async refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<number> {
     // find active subscriptions that need to be removed
     for (const [key] of this.queuedSubscriptions.entries()) {
       if (!qsrCache.cache.has(key)) {
@@ -157,6 +177,7 @@ export class QueuedSubscriptionServer {
         this.addSubscriptionAndStart(key, qsr);
       }
     }
+    return qsrCache.highest_cache_consistency_id;
   }
 
   async start(ctx: RumbleshipContext): Promise<void> {
@@ -169,6 +190,12 @@ export class QueuedSubscriptionServer {
       handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
         // We can get a response from multiple services, and google pub sub can
         // deliver it twice.
+        if (response.response.data) {
+          const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
+            'queuedSubscriptionRequests'
+          ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
+          await this.process_incoming_qsr(ctx, qsrs);
+        }
         if (response.response.errors) {
           ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
         }
@@ -221,5 +248,13 @@ export class QueuedSubscriptionServer {
       this.queuedSubscriptions.delete(key);
       await queuedSubscription.stop();
     }
+  }
+
+  hasSubscription(key: string): boolean {
+    return this.queuedSubscriptions.has(key);
+  }
+
+  getSubscription(key: string): QueuedSubscription | undefined {
+    return this.queuedSubscriptions.get(key);
   }
 }

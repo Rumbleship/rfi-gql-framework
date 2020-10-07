@@ -33,6 +33,7 @@ import uuid = require('uuid');
  *
  */
 export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
+  static DONT_PUBLISH_ON_CHANGE_FLAG_SYMBOL = Symbol('DONT_PUBLISH_ON_CHANGE_FLAG_SYMBOL');
   protected topicPrefix: string;
   protected serviceName: string;
   public publisher_version: string;
@@ -68,38 +69,42 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
         // A slight incompatibility between types defined in `sequelize-typescript` and parent `sequelize`:
         // definition of the instance passed to the hooks, so we cast to generic Model<any,any>
         const instance = sequelize_instance as Model<any, any>;
-        // Cache the delta of change in closure so we can publish original values __after__ the
-        // commit, which overwrites those original values.
-        const deltas = getChangedAttributes(instance);
+        if (
+          !Reflect.getMetadata(RfiPubSub.DONT_PUBLISH_ON_CHANGE_FLAG_SYMBOL, instance.constructor)
+        ) {
+          // Cache the delta of change in closure so we can publish original values __after__ the
+          // commit, which overwrites those original values.
+          const deltas = getChangedAttributes(instance);
 
-        if (options && options.transaction) {
-          const outermost_transaction: Transaction = RfiPubSub.getOutermostTransaction(
-            options.transaction
-          );
-          const context_id = getContextId(outermost_transaction);
-          const authorized_user = getAuthorizedUser(outermost_transaction);
-          outermost_transaction.afterCommit(t => {
-            pubSub.publishModelChange(
-              notification_of,
-              uuid.v4(),
-              instance,
-              deltas,
-              context_id,
-              authorized_user
+          if (options && options.transaction) {
+            const outermost_transaction: Transaction = RfiPubSub.getOutermostTransaction(
+              options.transaction
             );
-          });
-        } else {
-          const beeline = RumbleshipBeeline.make(uuid.v4());
-          beeline.finishTrace(
-            beeline.startTrace({
-              name: 'MissingTransaction',
-              'instance.id': instance.id,
-              'instance.constructor': instance?.constructor?.name,
-              'instance.deltas': deltas,
-              notification_of
-            })
-          );
-          pubSub.publishModelChange(notification_of, uuid.v4(), instance, deltas);
+            const context_id = getContextId(outermost_transaction);
+            const authorized_user = getAuthorizedUser(outermost_transaction);
+            outermost_transaction.afterCommit(t => {
+              pubSub.publishModelChange(
+                notification_of,
+                uuid.v4(),
+                instance,
+                deltas,
+                context_id,
+                authorized_user
+              );
+            });
+          } else {
+            const beeline = RumbleshipBeeline.make(uuid.v4());
+            beeline.finishTrace(
+              beeline.startTrace({
+                name: 'MissingTransaction',
+                'instance.id': instance.id,
+                'instance.constructor': instance?.constructor?.name,
+                'instance.deltas': deltas,
+                notification_of
+              })
+            );
+            pubSub.publishModelChange(notification_of, uuid.v4(), instance, deltas);
+          }
         }
       };
     };

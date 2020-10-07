@@ -30,7 +30,8 @@ export declare class QueuedSubscriptionServer {
      * @param schema
      */
     initializeQsrChangeObserver(): Promise<void>;
-    refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<void>;
+    process_incoming_qsr(ctx: RumbleshipContext, incomingQsrs: IQueuedSubscriptionRequest[]): Promise<void>;
+    refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<number>;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;
     /**
@@ -39,4 +40,6 @@ export declare class QueuedSubscriptionServer {
      */
     addSubscriptionAndStart(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription;
     removeSubscription(key: string): Promise<void>;
+    hasSubscription(key: string): boolean;
+    getSubscription(key: string): QueuedSubscription | undefined;
 }
