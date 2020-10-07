@@ -14,6 +14,7 @@ export declare const QSR_GQL_FRAGMENT = "\n  fragment qsr on QueuedSubscriptionR
  * subscribe to the responses, and so everyone can update thier cache
  */
 export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL: string;
+export declare const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL: string;
 export declare class QueuedSubscriptionServer {
     protected config: ISharedSchema;
     schema: GraphQLSchema;

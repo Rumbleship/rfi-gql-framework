@@ -49,6 +49,17 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
     ${QSR_GQL_FRAGMENT}
     `;
 
+export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs {
+      queuedSubscriptionRequests(order_by:{ keys: [["cache_consistency_id","DESC"]]}, first: 100 ) {
+        edges {
+          qsr: node {
+            ... qsr
+          }
+        }
+      }
+    }
+    ${QSR_GQL_FRAGMENT}
+    `;
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
   in_memory_cache_consistency_id = 0;
@@ -164,9 +175,9 @@ export class QueuedSubscriptionServer {
 
     // now we make the request
     await this.queuedGqlRequestClient.makeRequest(ctx, {
-      client_request_id: 'PublishQueuedSubscriptions',
-      respond_on_error: false,
-      gql_query_string: `query {}`
+      client_request_id: 'GetAllQueuedSubscriptionRequests',
+      respond_on_error: true,
+      gql_query_string: QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL
     });
   }
 
