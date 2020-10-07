@@ -85,7 +85,7 @@ export async function loadCache(opts?: {
 }): Promise<QueuedSubscriptionCache> {
   const sequelize = getSequelizeInstance();
   if (sequelize) {
-    if (!sequelize.model(QsrLocalCacheModel)) {
+    if (!sequelize.model('QsrLocalCacheModel')) {
       sequelize.addModels([QsrLocalCacheModel]);
     }
     // do we have a table in place?
