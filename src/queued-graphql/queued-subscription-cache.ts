@@ -35,6 +35,7 @@ export class QueuedSubscriptionCache {
   cache: Map<string, IQueuedSubscriptionRequest> = new Map();
   clear(): void {
     this.cache.clear();
+    this.highest_cache_consistency_id = 0;
   }
   add(qsrs: IQueuedSubscriptionRequest[]): void {
     const persistable_qsrs = plainToClass(PersistableQueuedSubscription, qsrs, {

@@ -107,7 +107,14 @@ export class QueuedSubscriptionServer {
         const qsrCache = await loadCache({ transaction });
         // Has anotehr instance already saved a later version of the cache?
         if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
-          this.in_memory_cache_consistency_id = await this.refreshSubscriptionsFromCache(qsrCache);
+          try {
+            this.in_memory_cache_consistency_id = await this.refreshSubscriptionsFromCache(
+              qsrCache
+            );
+          } catch (error) {
+            // cache is out of sync or corrupt, reset it
+            qsrCache.clear();
+          }
         }
         for (const incomingQsr of incomingQsrs) {
           // todo Add service list to the qsr which is set by the qsr management service
