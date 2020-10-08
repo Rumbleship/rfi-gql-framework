@@ -188,7 +188,8 @@ export class QueuedSubscriptionServer {
   }
 
   async start(ctx: RumbleshipContext): Promise<void> {
-    // Should be an independant promise chain
+    const qsrCache = await loadCache();
+    await this.refreshSubscriptionsFromCache(qsrCache);
     // start listening for changes...
     await this.initializeQsrChangeObserver();
 
