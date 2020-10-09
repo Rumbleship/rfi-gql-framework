@@ -59,7 +59,6 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     //
     let id;
     ({
-      owner_id: this.owner_id,
       gql_query_string: this.gql_query_string,
       query_attributes: this.query_attributes,
       operation_name: this.operation_name,
@@ -73,6 +72,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       serviced_by: this.serviced_by,
       id
     } = subscriptionRequest);
+    this.owner_id = subscriptionRequest.owner_id ?? '';
     if (!id) {
       throw new Error('Must have an id!');
     }
