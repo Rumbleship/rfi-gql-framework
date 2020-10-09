@@ -11,6 +11,7 @@ export declare class PersistableQueuedSubscription implements IQueuedSubscriptio
     marshalled_acl: string;
     active?: boolean;
     id: string;
+    serviced_by: string[];
 }
 export declare class QueuedSubscriptionCache {
     highest_cache_consistency_id: number;

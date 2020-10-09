@@ -21,6 +21,7 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
     onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
     create_unique_subscription?: boolean;
     cache_consistency_id?: number;
+    serviced_by: string[];
     id: string;
     private _topic?;
     /**

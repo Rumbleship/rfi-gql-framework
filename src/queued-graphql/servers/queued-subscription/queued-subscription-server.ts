@@ -213,6 +213,7 @@ export class QueuedSubscriptionServer {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.queuedGqlRequestClient.start();
 
+    // Add a local_cache model observer so that each instance can reload on change
     // now we make the request
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: 'GetAllQueuedSubscriptionRequests',
@@ -264,5 +265,22 @@ export class QueuedSubscriptionServer {
 
   getSubscription(key: string): QueuedSubscription | undefined {
     return this.queuedSubscriptions.get(key);
+  }
+
+  /**
+   * Sends the schema and its hash to the QueuedSubscriptionManagement service so that QSR's
+   * can be validated before being accepted.
+   *
+   * When a schema
+   */
+  async publishSchema(ctx: RumbleshipContext): Promise<void> {
+    // const schemaAsSdl = printSchema(this.schema);
+
+    await this.queuedGqlRequestClient.makeRequest(ctx, {
+      client_request_id: `${this.config.serviceName}_updateServiceSchema`,
+      respond_on_error: false,
+      gql_query_string: `
+      `
+    });
   }
 }

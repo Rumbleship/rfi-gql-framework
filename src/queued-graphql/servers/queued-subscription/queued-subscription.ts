@@ -35,6 +35,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
   create_unique_subscription?: boolean;
   cache_consistency_id?: number;
+  serviced_by!: string[];
   id: string;
 
   private _topic?: Topic;
@@ -69,6 +70,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       create_unique_subscription: this.create_unique_subscription,
       active: this.active,
       cache_consistency_id: this.cache_consistency_id,
+      serviced_by: this.serviced_by,
       id
     } = subscriptionRequest);
     if (!id) {

@@ -26,6 +26,7 @@ export class PersistableQueuedSubscription implements IQueuedSubscriptionRequest
   @Expose() marshalled_acl!: string;
   @Expose() active?: boolean;
   @Expose() id!: string;
+  @Expose() serviced_by!: string[];
 }
 export class QueuedSubscriptionCache {
   @Expose() highest_cache_consistency_id = 0;
@@ -66,7 +67,7 @@ class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   @Column(DataType.INTEGER)
   id!: number;
 
-  @Column(DataType.TEXT)
+  @Column(DataType.TEXT({ length: 'long' }))
   get cache(): QueuedSubscriptionCache {
     return deserialize(QueuedSubscriptionCache, this.getDataValue('cache') as any);
   }

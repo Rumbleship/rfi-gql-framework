@@ -42,4 +42,11 @@ export declare class QueuedSubscriptionServer {
     removeSubscription(key: string): Promise<void>;
     hasSubscription(key: string): boolean;
     getSubscription(key: string): QueuedSubscription | undefined;
+    /**
+     * Sends the schema and its hash to the QueuedSubscriptionManagement service so that QSR's
+     * can be validated before being accepted.
+     *
+     * When a schema
+     */
+    publishSchema(ctx: RumbleshipContext): Promise<void>;
 }
