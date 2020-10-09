@@ -72,13 +72,6 @@ class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   @Column(DataType.INTEGER)
   id!: number;
 
-  /**
-   * because each service has it's own cache, BUT we still broadcast on the NODE_NOTIFICATION channel
-   * we need a way to disambiguate which service's cache has been changed
-   */
-  @Column
-  service_name!: string;
-
   @Column(DataType.TEXT({ length: 'long' }))
   get cache(): QueuedSubscriptionCache {
     return deserialize(QueuedSubscriptionCache, this.getDataValue('cache') as any);
