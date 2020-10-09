@@ -9,11 +9,19 @@ import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
 // eslint-disable-next-line import/no-cycle
-import { loadCache, QueuedSubscriptionCache, saveCache } from '../../queued-subscription-cache';
+import {
+  loadCache,
+  QsrCacheOidScope,
+  QueuedSubscriptionCache,
+  saveCache
+} from '../../queued-subscription-cache';
 import { getSequelizeInstance } from '../../../app/server/init-sequelize';
 import { QueuedSubscriptionMessage } from './queued-subscription-message';
+import { NodeChangePayload } from '../../../app/server/rfi-pub-sub-engine.interface';
+import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay';
+import { Oid } from '@rumbleship/oid';
 
-export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = 'QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC';
+export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC`;
 
 export const QSR_GQL_FRAGMENT = `
   fragment qsr on QueuedSubscriptionRequest {
@@ -62,15 +70,32 @@ export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
   in_memory_cache_consistency_id = 0;
   qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
+  qsrLocalCacheObserver: RfiPubSubSubscription<NodeChangePayload>;
   queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
 
   constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
+    const qsrChangeTopic = `${this.config.PubSub.topicPrefix}_${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}`;
+    const qsrChangeSubsciptionName = `${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}`; // Only one instance of the service slistens to this...
+    const qsrCacheChangeTopicName = `${this.config.PubSub.topicPrefix}_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}`;
+    const qsrCacheChangeSubscriptionName = `${
+      this.config.PubSub.topicPrefix
+    }_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}_${hostname()}`; // Each instance recieves this
+
+    const pubsub = new GooglePubSub(this.config.Gcp.Auth);
     this.qsrChangeObserver = new RfiPubSubSubscription<QueuedSubscriptionMessage>(
       this.config,
-      new GooglePubSub(this.config.Gcp.Auth),
-      QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC,
-      `${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}_${hostname()}` // Every instance needs to update its cache.
+      pubsub,
+      qsrChangeTopic,
+      qsrChangeSubsciptionName
     );
+
+    this.qsrLocalCacheObserver = new RfiPubSubSubscription<NodeChangePayload>(
+      this.config,
+      pubsub,
+      qsrCacheChangeTopicName,
+      qsrCacheChangeSubscriptionName
+    );
+
     this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
   }
   /**
@@ -171,7 +196,10 @@ export class QueuedSubscriptionServer {
       }
     }
   }
-  async refreshSubscriptionsFromCache(qsrCache: QueuedSubscriptionCache): Promise<number> {
+  async refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number> {
+    if (!qsrCache) {
+      qsrCache = await loadCache();
+    }
     // find active subscriptions that need to be removed
     for (const [key] of this.queuedSubscriptions.entries()) {
       if (!qsrCache.cache.has(key)) {
@@ -190,6 +218,7 @@ export class QueuedSubscriptionServer {
   async start(ctx: RumbleshipContext): Promise<void> {
     const qsrCache = await loadCache();
     await this.refreshSubscriptionsFromCache(qsrCache);
+    await this.initializeCacheChangeObserver();
     // start listening for changes...
     await this.initializeQsrChangeObserver();
 
@@ -282,5 +311,33 @@ export class QueuedSubscriptionServer {
       gql_query_string: `
       `
     });
+  }
+
+  async initializeCacheChangeObserver(): Promise<void> {
+    // we listen directly to NODE_CHANGE_NOTIFICATIONS as the qsr_cache is not a full
+    // Relay object
+    // HOWEVER each service broadcasts on the channel so we filter out ones genrerated by this
+    // service
+    await this.qsrLocalCacheObserver.init();
+
+    // kick off on its own promise chain
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.qsrLocalCacheObserver.start(
+      async (response: NodeChangePayload, ctx: RumbleshipContext) => {
+        // we are very careful on messagees passed in as they may not be what we think they are
+        if (response.publisher_service_name === this.config.serviceName) {
+          // double check...as messages might not be what we think they should be
+          if (response.oid) {
+            const { scope } = new Oid(response.oid).unwrap();
+            if (scope === QsrCacheOidScope) {
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
+              this.refreshSubscriptionsFromCache();
+            }
+          }
+        }
+      }
+    );
+
+    return;
   }
 }

@@ -212,6 +212,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     rval.publisher_version = this.publisher_version;
     rval.marshalled_trace = context_id ? this.getMarshalledTraceContext(context_id) : undefined;
     rval.authorized_user = authorized_user;
+    rval.publisher_service_name = this.serviceName;
 
     const payload = JSON.stringify(rval);
 

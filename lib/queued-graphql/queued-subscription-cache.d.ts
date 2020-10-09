@@ -19,6 +19,7 @@ export declare class QueuedSubscriptionCache {
     clear(): void;
     add(qsrs: IQueuedSubscriptionRequest[]): void;
 }
+export declare const QsrCacheOidScope = "QsrCache";
 export declare function loadCache(opts?: {
     transaction?: Transaction;
 }): Promise<QueuedSubscriptionCache>;

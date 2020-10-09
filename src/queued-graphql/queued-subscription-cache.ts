@@ -11,9 +11,10 @@ import {
   UpdatedAt
 } from 'sequelize-typescript';
 import { Transaction } from 'sequelize/types';
-import { RfiPubSub } from '../app/server/rfi-pub-sub-engine';
+
 import { getSequelizeInstance } from '../app/server/init-sequelize';
 import { IQueuedSubscriptionRequest } from './servers/queued-subscription/queued-subscription-request.interface';
+import { Oid } from '@rumbleship/oid';
 
 export class PersistableQueuedSubscription implements IQueuedSubscriptionRequest {
   @Expose() cache_consistency_id!: number;
@@ -48,6 +49,10 @@ export class QueuedSubscriptionCache {
   }
 }
 
+export const QsrCacheOidScope = 'QsrCache';
+
+// we just do this here, as it is
+Oid.RegisterScope(QsrCacheOidScope, QsrCacheOidScope);
 /**
  * Keeps the cache consistent
  * The cachce creates the table if it doesnt exist. (no migrations, as it is destroyed everytime it rewrites)
@@ -67,6 +72,13 @@ class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   @Column(DataType.INTEGER)
   id!: number;
 
+  /**
+   * because each service has it's own cache, BUT we still broadcast on the NODE_NOTIFICATION channel
+   * we need a way to disambiguate which service's cache has been changed
+   */
+  @Column
+  service_name!: string;
+
   @Column(DataType.TEXT({ length: 'long' }))
   get cache(): QueuedSubscriptionCache {
     return deserialize(QueuedSubscriptionCache, this.getDataValue('cache') as any);
@@ -81,11 +93,6 @@ class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   @UpdatedAt
   updated_at?: Date;
 }
-
-// Instruct the pubsub system to ignore this model as it is a local cache and if we want to
-// we have global hooks installed on sequelize, which cannot be taken off an individual model
-// so we have to set a flag to be checked in the hooks..
-Reflect.defineMetadata(RfiPubSub.DONT_PUBLISH_ON_CHANGE_FLAG_SYMBOL, true, QsrLocalCacheModel);
 
 export async function loadCache(opts?: {
   transaction?: Transaction;
