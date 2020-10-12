@@ -1,3 +1,4 @@
+import { Model } from 'sequelize-typescript';
 import { Transaction } from 'sequelize/types';
 import { IQueuedSubscriptionRequest } from './servers/queued-subscription/queued-subscription-request.interface';
 export declare class PersistableQueuedSubscription implements IQueuedSubscriptionRequest {
@@ -20,6 +21,19 @@ export declare class QueuedSubscriptionCache {
     add(qsrs: IQueuedSubscriptionRequest[]): void;
 }
 export declare const QsrCacheOidScope = "QsrCache";
+/**
+ * Keeps the cache consistent
+ * The cachce creates the table if it doesnt exist. (no migrations, as it is destroyed everytime it rewrites)
+ *
+ *
+ */
+export declare class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
+    id: number;
+    get cache(): QueuedSubscriptionCache;
+    set cache(active_subscriptions: QueuedSubscriptionCache);
+    created_at?: Date;
+    updated_at?: Date;
+}
 export declare function loadCache(opts?: {
     transaction?: Transaction;
 }): Promise<QueuedSubscriptionCache>;

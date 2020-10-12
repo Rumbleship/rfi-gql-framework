@@ -40,6 +40,9 @@ export class QueuedSubscriptionCache {
     this.highest_cache_consistency_id = 0;
   }
   add(qsrs: IQueuedSubscriptionRequest[]): void {
+    if (!Array.isArray(qsrs)) {
+      throw new Error('Must be an array of Qsrs');
+    }
     const persistable_qsrs = plainToClass(PersistableQueuedSubscription, qsrs, {
       excludeExtraneousValues: true
     });
@@ -66,7 +69,7 @@ Oid.RegisterScope(QsrCacheOidScope, QsrCacheOidScope);
   underscored: true,
   tableName: 'qsr_local_cache'
 })
-class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
+export class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   @PrimaryKey
   @AutoIncrement
   @Column(DataType.INTEGER)
