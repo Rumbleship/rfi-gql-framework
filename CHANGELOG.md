@@ -5,16 +5,10 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [12.0.4] -- 2020-10-13
 
-### Added
-### Removed
 ### Changed
   * LogError middleware inflects span name from error constructor, matches new addTraceContext form
-### Fixed
-### Deprecated
-### Security
-
 
 
 ## [12.0.3] -- 2020-09-29
