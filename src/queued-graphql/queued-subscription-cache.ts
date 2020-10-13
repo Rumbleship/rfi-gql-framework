@@ -34,6 +34,8 @@ export class PersistableQueuedSubscription implements IQueuedSubscriptionRequest
 export class QueuedSubscriptionCache {
   @Expose() highest_cache_consistency_id = 0;
 
+  @Expose() version = ''; // string representing the version of the app that saved the cache. Typically google_version
+
   // to work around a wierd class transformer defect ( https://github.com/typestack/class-transformer/issues/489)
   @Type(() => PersistableQueuedSubscription)
   @Expose()
@@ -51,6 +53,11 @@ export class QueuedSubscriptionCache {
   }
   set cache(cache: Map<string, IQueuedSubscriptionRequest>) {
     this._cache_map = cache;
+  }
+  constructor(version?: string) {
+    if (version) {
+      this.version = version;
+    }
   }
   clear(): void {
     this._cache_map.clear();
@@ -109,9 +116,12 @@ export class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   updated_at?: Date;
 }
 
-export async function loadCache(opts?: {
-  transaction?: Transaction;
-}): Promise<QueuedSubscriptionCache> {
+export async function loadCache(
+  version: string,
+  opts?: {
+    transaction?: Transaction;
+  }
+): Promise<QueuedSubscriptionCache> {
   const sequelize = getSequelizeInstance();
   if (sequelize) {
     try {
@@ -132,9 +142,16 @@ export async function loadCache(opts?: {
     });
     if (!qsrCache) {
       qsrCache = await QsrLocalCacheModel.create(
-        { cache: new QueuedSubscriptionCache() },
+        { cache: new QueuedSubscriptionCache(version) },
         { transaction: opts?.transaction }
       );
+    } else {
+      if (version !== qsrCache.cache.version) {
+        qsrCache = await qsrCache.update(
+          { cache: new QueuedSubscriptionCache(version) },
+          { transaction: opts?.transaction }
+        );
+      }
     }
     return qsrCache.cache;
   }

@@ -133,7 +133,7 @@ export class QueuedSubscriptionServer {
     if (sequelize) {
       const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
       try {
-        const qsrCache = await loadCache({ transaction });
+        const qsrCache = await loadCache(this.config.Gcp.gaeVersion, { transaction });
         // Has anotehr instance already saved a later version of the cache?
         if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
           try {
@@ -206,7 +206,7 @@ export class QueuedSubscriptionServer {
   }
   async refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number> {
     if (!qsrCache) {
-      qsrCache = await loadCache();
+      qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     }
     // find active subscriptions that need to be removed
     for (const [key] of this.queuedSubscriptions.entries()) {
@@ -224,7 +224,7 @@ export class QueuedSubscriptionServer {
   }
 
   async start(ctx: RumbleshipContext): Promise<void> {
-    const qsrCache = await loadCache();
+    const qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     await this.refreshSubscriptionsFromCache(qsrCache);
     await this.initializeCacheChangeObserver();
     // start listening for changes...

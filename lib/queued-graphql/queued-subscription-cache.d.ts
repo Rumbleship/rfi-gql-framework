@@ -16,11 +16,13 @@ export declare class PersistableQueuedSubscription implements IQueuedSubscriptio
 }
 export declare class QueuedSubscriptionCache {
     highest_cache_consistency_id: number;
+    version: string;
     get _cache(): IQueuedSubscriptionRequest[];
     set _cache(requestArray: IQueuedSubscriptionRequest[]);
     _cache_map: Map<string, IQueuedSubscriptionRequest>;
     get cache(): Map<string, IQueuedSubscriptionRequest>;
     set cache(cache: Map<string, IQueuedSubscriptionRequest>);
+    constructor(version?: string);
     clear(): void;
     add(qsrs: IQueuedSubscriptionRequest[]): void;
 }
@@ -38,7 +40,7 @@ export declare class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
     created_at?: Date;
     updated_at?: Date;
 }
-export declare function loadCache(opts?: {
+export declare function loadCache(version: string, opts?: {
     transaction?: Transaction;
 }): Promise<QueuedSubscriptionCache>;
 export declare function saveCache(cache: QueuedSubscriptionCache, opts: {
