@@ -314,12 +314,18 @@ export class QueuedSubscriptionServer {
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
       respond_on_error: false,
-      gql_query_string: `mutation {
-        updateServiceSchema(input: {service_name: "${this.config.serviceName}", schema:"${schemaAsSdl}", schema_hash:"${schema_hash}"}) {
+      gql_query_string: `mutation updateSchema( $service_name: String!, $schema: String!, $schema_hash: String!) {
+        updateServiceSchema(input: {service_name: $service_name, schema: $schema, schema_hash: $schema_hash}) {
           id
         }
       }
-      `
+      `,
+      operation_name: 'updateSchema',
+      query_attributes: JSON.stringify({
+        service_name: this.config.serviceName,
+        schema_hash,
+        schema: schemaAsSdl
+      })
     });
   }
 
