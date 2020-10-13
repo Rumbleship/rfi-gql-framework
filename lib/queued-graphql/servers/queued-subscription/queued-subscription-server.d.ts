@@ -14,6 +14,9 @@ export declare const QSR_GQL_FRAGMENT = "\n  fragment qsr on QueuedSubscriptionR
  * This is exported to be used by the QueuedSubscription Repository Service to
  * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
  * subscribe to the responses, and so everyone can update thier cache
+ *
+ * We track all changes...
+ *
  */
 export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL: string;
 export declare const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL: string;
