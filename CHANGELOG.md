@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * LogError middleware inflects span name from error constructor, matches new addTraceContext form
 ### Fixed
 ### Deprecated
 ### Security
