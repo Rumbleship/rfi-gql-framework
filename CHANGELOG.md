@@ -10,12 +10,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
-  * LogError middleware inflects span name from error constructor, matches new addTraceContext form
 ### Fixed
   * RelayOrderByGQL to correctly handle when it is parsed as an ObjectType - ie if it is a variable in a document or embedded
 ### Deprecated
 ### Security
 
+
+## [12.0.4] -- 2020-10-13
+
+### Changed
+  * LogError middleware inflects span name from error constructor, matches new addTraceContext form
 
 
 ## [12.0.3] -- 2020-09-29
