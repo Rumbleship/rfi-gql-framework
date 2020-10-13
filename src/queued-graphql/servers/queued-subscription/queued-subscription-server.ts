@@ -35,7 +35,7 @@ export const QSR_GQL_FRAGMENT = `
     operation_name
     query_attributes
     publish_to_topic_name
-
+    serviced_by
   }
 `;
 
@@ -46,7 +46,7 @@ export const QSR_GQL_FRAGMENT = `
  */
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
     subscription {
-      onQueuedSubscriptionRequestChange (  watch_list: [active]) {
+      onQueuedSubscriptionRequestChange (  watch_list: [active, serviced_by]) {
         idempotency_key
         node {
           ... qsr
@@ -143,43 +143,47 @@ export class QueuedSubscriptionServer {
           }
         }
         for (const incomingQsr of incomingQsrs) {
-          // todo Add service list to the qsr which is set by the qsr management service
           // and only process if we are on the list
           if (incomingQsr && incomingQsr.id) {
             if (incomingQsr.cache_consistency_id) {
               const key = incomingQsr.id.toString();
               const foundSubscription = this.getSubscription(key);
-              if (
-                foundSubscription &&
-                foundSubscription.cache_consistency_id &&
-                incomingQsr.cache_consistency_id &&
-                foundSubscription.cache_consistency_id < incomingQsr.cache_consistency_id
-              ) {
-                try {
-                  // only process if it is valid fro this service
-
-                  QueuedSubscription.validateSubscriptionRequest(this.schema, incomingQsr);
-                  await this.removeSubscription(key);
-                  if (incomingQsr.active) {
+              if (incomingQsr.serviced_by?.includes(this.config.serviceName)) {
+                if (
+                  foundSubscription &&
+                  foundSubscription.cache_consistency_id &&
+                  incomingQsr.cache_consistency_id &&
+                  foundSubscription.cache_consistency_id < incomingQsr.cache_consistency_id
+                ) {
+                  try {
+                    // only process if it is valid fro this service
+                    QueuedSubscription.validateSubscriptionRequest(this.schema, incomingQsr);
+                    await this.removeSubscription(key);
+                    if (incomingQsr.active) {
+                      this.addSubscriptionAndStart(key, incomingQsr);
+                    }
+                  } catch (error) {
+                    // swollow the error
+                    // TODO Honeycomb determine the type of error and swollow or spit it out
+                    ctx.logger.log(
+                      `Couldnt process qsr: ${incomingQsr.id} in ${
+                        this.config.serviceName
+                      }. Error: ${error.toString()}`
+                    );
+                  }
+                } else {
+                  if (!foundSubscription && incomingQsr.active) {
+                    // then must be a new one and we must add it
                     this.addSubscriptionAndStart(key, incomingQsr);
                   }
-                } catch (error) {
-                  // swollow the error
-                  // TODO determine the type of error and swollow or spit it out
-                  ctx.logger.log(
-                    `Couldnt process qsr: ${incomingQsr.id} in ${
-                      this.config.serviceName
-                    }. Error: ${error.toString()}`
-                  );
+                }
+                if (this.in_memory_cache_consistency_id < incomingQsr.cache_consistency_id) {
+                  this.in_memory_cache_consistency_id = incomingQsr.cache_consistency_id;
                 }
               } else {
-                if (!foundSubscription && incomingQsr.active) {
-                  // then must be a new one and we must add it
-                  this.addSubscriptionAndStart(key, incomingQsr);
+                if (foundSubscription) {
+                  await this.removeSubscription(key);
                 }
-              }
-              if (this.in_memory_cache_consistency_id < incomingQsr.cache_consistency_id) {
-                this.in_memory_cache_consistency_id = incomingQsr.cache_consistency_id;
               }
             }
           }
