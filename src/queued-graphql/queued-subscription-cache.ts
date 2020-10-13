@@ -1,4 +1,4 @@
-import { deserialize, Expose, plainToClass, serialize, Type } from 'class-transformer';
+import { deserialize, Exclude, Expose, plainToClass, serialize, Type } from 'class-transformer';
 
 import {
   AutoIncrement,
@@ -16,6 +16,7 @@ import { getSequelizeInstance } from '../app/server/init-sequelize';
 import { IQueuedSubscriptionRequest } from './servers/queued-subscription/queued-subscription-request.interface';
 import { Oid } from '@rumbleship/oid';
 
+@Exclude() // only persist the Exposed...
 export class PersistableQueuedSubscription implements IQueuedSubscriptionRequest {
   @Expose() cache_consistency_id!: number;
   @Expose() owner_id!: string;
@@ -29,14 +30,30 @@ export class PersistableQueuedSubscription implements IQueuedSubscriptionRequest
   @Expose() id!: string;
   @Expose() serviced_by!: string[];
 }
+@Exclude() // only persist the Exposed...
 export class QueuedSubscriptionCache {
   @Expose() highest_cache_consistency_id = 0;
 
+  // to work around a wierd class transformer defect ( https://github.com/typestack/class-transformer/issues/489)
   @Type(() => PersistableQueuedSubscription)
   @Expose()
-  cache: Map<string, IQueuedSubscriptionRequest> = new Map();
+  get _cache(): IQueuedSubscriptionRequest[] {
+    return Array.from(this._cache_map.values());
+  }
+  set _cache(requestArray: IQueuedSubscriptionRequest[]) {
+    this.clear();
+    this.add(requestArray);
+  }
+
+  _cache_map: Map<string, IQueuedSubscriptionRequest> = new Map();
+  get cache(): Map<string, IQueuedSubscriptionRequest> {
+    return this._cache_map;
+  }
+  set cache(cache: Map<string, IQueuedSubscriptionRequest>) {
+    this._cache_map = cache;
+  }
   clear(): void {
-    this.cache.clear();
+    this._cache_map.clear();
     this.highest_cache_consistency_id = 0;
   }
   add(qsrs: IQueuedSubscriptionRequest[]): void {
@@ -47,12 +64,7 @@ export class QueuedSubscriptionCache {
       excludeExtraneousValues: true
     });
     for (const qsr of persistable_qsrs) {
-      this.cache.set(qsr.id, qsr);
-    }
-  }
-  init(): void {
-    if (!this.cache) {
-      this.cache = new Map();
+      this._cache_map.set(qsr.id, qsr);
     }
   }
 }
@@ -83,7 +95,7 @@ export class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
   @Column(DataType.TEXT({ length: 'long' }))
   get cache(): QueuedSubscriptionCache {
     const cache = deserialize(QueuedSubscriptionCache, this.getDataValue('cache') as any);
-    cache.init(); // because empty caches should be inited...
+
     return cache;
   }
   set cache(active_subscriptions: QueuedSubscriptionCache) {

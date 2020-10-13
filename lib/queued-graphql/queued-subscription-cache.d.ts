@@ -16,10 +16,13 @@ export declare class PersistableQueuedSubscription implements IQueuedSubscriptio
 }
 export declare class QueuedSubscriptionCache {
     highest_cache_consistency_id: number;
-    cache: Map<string, IQueuedSubscriptionRequest>;
+    get _cache(): IQueuedSubscriptionRequest[];
+    set _cache(requestArray: IQueuedSubscriptionRequest[]);
+    _cache_map: Map<string, IQueuedSubscriptionRequest>;
+    get cache(): Map<string, IQueuedSubscriptionRequest>;
+    set cache(cache: Map<string, IQueuedSubscriptionRequest>);
     clear(): void;
     add(qsrs: IQueuedSubscriptionRequest[]): void;
-    init(): void;
 }
 export declare const QsrCacheOidScope = "QsrCache";
 /**
