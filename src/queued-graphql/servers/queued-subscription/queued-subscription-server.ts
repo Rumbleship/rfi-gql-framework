@@ -223,6 +223,8 @@ export class QueuedSubscriptionServer {
     // start listening for changes...
     await this.initializeQsrChangeObserver();
 
+    await this.publishSchema(ctx);
+
     this.queuedGqlRequestClient.onResponse({
       client_request_id: 'GetAllQueuedSubscriptionRequests',
       handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
