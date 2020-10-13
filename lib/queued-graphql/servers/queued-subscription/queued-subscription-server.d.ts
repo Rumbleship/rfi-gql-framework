@@ -35,7 +35,11 @@ export declare class QueuedSubscriptionServer {
      * @param schema
      */
     initializeQsrChangeObserver(): Promise<void>;
-    process_incoming_qsr(ctx: RumbleshipContext, incomingQsrs: IQueuedSubscriptionRequest[]): Promise<void>;
+    process_incoming_qsrs(ctx: RumbleshipContext, incomingQsrs: IQueuedSubscriptionRequest[]): Promise<void>;
+    /**
+     * Utility to dump out current qsrs... usefull debug tool
+     */
+    logActiveQsrs(ctx: RumbleshipContext): void;
     refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number>;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;

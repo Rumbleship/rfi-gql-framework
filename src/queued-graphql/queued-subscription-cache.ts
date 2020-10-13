@@ -71,6 +71,9 @@ export class QueuedSubscriptionCache {
       excludeExtraneousValues: true
     });
     for (const qsr of persistable_qsrs) {
+      if (this.highest_cache_consistency_id < qsr.cache_consistency_id) {
+        this.highest_cache_consistency_id = qsr.cache_consistency_id;
+      }
       this._cache_map.set(qsr.id, qsr);
     }
   }

@@ -117,7 +117,7 @@ export class QueuedSubscriptionServer {
         const changedQueuedRequest: IQueuedSubscriptionRequest =
           response.subscription_response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
         if (changedQueuedRequest) {
-          await this.process_incoming_qsr(ctx, [changedQueuedRequest]);
+          await this.process_incoming_qsrs(ctx, [changedQueuedRequest]);
         }
       }
     );
@@ -125,7 +125,7 @@ export class QueuedSubscriptionServer {
     return;
   }
 
-  async process_incoming_qsr(
+  async process_incoming_qsrs(
     ctx: RumbleshipContext,
     incomingQsrs: IQueuedSubscriptionRequest[]
   ): Promise<void> {
@@ -196,12 +196,23 @@ export class QueuedSubscriptionServer {
         qsrCache.add(Array.from(this.queuedSubscriptions.values()));
         qsrCache.highest_cache_consistency_id = this.in_memory_cache_consistency_id;
         await saveCache(qsrCache, { transaction });
+        this.logActiveQsrs(ctx);
         await transaction.commit();
       } catch (seqError) {
         // TODO what should be logged?
         ctx.logger.log(`Couldnt Error: ${seqError.toString()}`);
         await transaction.rollback();
       }
+    }
+  }
+
+  /**
+   * Utility to dump out current qsrs... usefull debug tool
+   */
+  logActiveQsrs(ctx: RumbleshipContext): void {
+    ctx.logger.log(`Active Qsrs for ${this.config.serviceName}`);
+    for (const [key, qsr] of this.queuedSubscriptions) {
+      ctx.logger.log(`   ${key}: ${qsr.cache_consistency_id}`);
     }
   }
   async refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number> {
@@ -326,7 +337,7 @@ export class QueuedSubscriptionServer {
           const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
             'queuedSubscriptionRequests'
           ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
-          await this.process_incoming_qsr(ctx, qsrs);
+          await this.process_incoming_qsrs(ctx, qsrs);
         }
         if (response.response.errors) {
           ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
