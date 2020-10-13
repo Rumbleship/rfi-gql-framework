@@ -311,6 +311,12 @@ export class QueuedSubscriptionServer {
     // Note we use a QueuedGqlRequest which calls the mutation on any services that supports this particular
     // mutaion name.
     // We don't care about the response
+    this.queuedGqlRequestClient.onResponse({
+      client_request_id: `${this.config.serviceName}_updateServiceSchema`,
+      handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
+        ctx.logger.log(`received response to :${this.config.serviceName}_updateServiceSchema`);
+      }
+    });
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
       respond_on_error: true,
