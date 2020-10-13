@@ -232,33 +232,7 @@ export class QueuedSubscriptionServer {
 
     await this.publishSchema(ctx);
 
-    this.queuedGqlRequestClient.onResponse({
-      client_request_id: 'GetAllQueuedSubscriptionRequests',
-      handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
-        // We can get a response from multiple services, and google pub sub can
-        // deliver it twice.
-        if (response.response.data) {
-          const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
-            'queuedSubscriptionRequests'
-          ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
-          await this.process_incoming_qsr(ctx, qsrs);
-        }
-        if (response.response.errors) {
-          ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
-        }
-      }
-    });
-    // we kick off a floating promise chain here...
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.queuedGqlRequestClient.start();
-
-    // Add a local_cache model observer so that each instance can reload on change
-    // now we make the request
-    await this.queuedGqlRequestClient.makeRequest(ctx, {
-      client_request_id: 'GetAllQueuedSubscriptionRequests',
-      respond_on_error: true,
-      gql_query_string: QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL
-    });
+    await this.initializeCacheRefreshRequest(ctx);
   }
 
   async stop(): Promise<void> {
@@ -339,6 +313,36 @@ export class QueuedSubscriptionServer {
         schema_hash,
         schema: schemaAsSdl
       })
+    });
+  }
+
+  async initializeCacheRefreshRequest(ctx: RumbleshipContext): Promise<void> {
+    this.queuedGqlRequestClient.onResponse({
+      client_request_id: 'GetAllQueuedSubscriptionRequests',
+      handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
+        // We can get a response from multiple services, and google pub sub can
+        // deliver it twice.
+        if (response.response.data) {
+          const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
+            'queuedSubscriptionRequests'
+          ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
+          await this.process_incoming_qsr(ctx, qsrs);
+        }
+        if (response.response.errors) {
+          ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
+        }
+      }
+    });
+    // we kick off a floating promise chain here...
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.queuedGqlRequestClient.start();
+
+    // Add a local_cache model observer so that each instance can reload on change
+    // now we make the request
+    await this.queuedGqlRequestClient.makeRequest(ctx, {
+      client_request_id: 'GetAllQueuedSubscriptionRequests',
+      respond_on_error: true,
+      gql_query_string: QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL
     });
   }
 

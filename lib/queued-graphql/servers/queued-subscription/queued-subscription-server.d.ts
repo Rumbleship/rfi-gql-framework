@@ -54,5 +54,6 @@ export declare class QueuedSubscriptionServer {
      * When a schema
      */
     publishSchema(ctx: RumbleshipContext): Promise<void>;
+    initializeCacheRefreshRequest(ctx: RumbleshipContext): Promise<void>;
     initializeCacheChangeObserver(): Promise<void>;
 }
