@@ -19,6 +19,7 @@ export declare class QueuedSubscriptionCache {
     cache: Map<string, IQueuedSubscriptionRequest>;
     clear(): void;
     add(qsrs: IQueuedSubscriptionRequest[]): void;
+    init(): void;
 }
 export declare const QsrCacheOidScope = "QsrCache";
 /**

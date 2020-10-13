@@ -50,6 +50,11 @@ export class QueuedSubscriptionCache {
       this.cache.set(qsr.id, qsr);
     }
   }
+  init(): void {
+    if (!this.cache) {
+      this.cache = new Map();
+    }
+  }
 }
 
 export const QsrCacheOidScope = 'QsrCache';
@@ -77,7 +82,9 @@ export class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
 
   @Column(DataType.TEXT({ length: 'long' }))
   get cache(): QueuedSubscriptionCache {
-    return deserialize(QueuedSubscriptionCache, this.getDataValue('cache') as any);
+    const cache = deserialize(QueuedSubscriptionCache, this.getDataValue('cache') as any);
+    cache.init(); // because empty caches should be inited...
+    return cache;
   }
   set cache(active_subscriptions: QueuedSubscriptionCache) {
     const subs_json = serialize(active_subscriptions);
