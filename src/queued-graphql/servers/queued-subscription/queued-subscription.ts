@@ -101,9 +101,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
 
     const errors = validate(schema, gqlDocument, specifiedRules);
     if (errors.length) {
-      const errString = JSON.stringify(errors, undefined, 2);
       // todo add explict tracing
-      throw new Error(errString);
+      throw new Error(errors.toString());
     }
 
     if (subscriptionRequest.query_attributes) {

@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema, printSchema } from 'graphql';
 import { hostname } from 'os';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
@@ -8,6 +8,7 @@ import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued
 import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
+import { createHash } from 'crypto';
 // eslint-disable-next-line import/no-cycle
 import {
   loadCache,
@@ -303,12 +304,19 @@ export class QueuedSubscriptionServer {
    * When a schema
    */
   async publishSchema(ctx: RumbleshipContext): Promise<void> {
-    // const schemaAsSdl = printSchema(this.schema);
-
+    const schemaAsSdl = printSchema(this.schema);
+    const schema_hash = createHash('SHA256').update(schemaAsSdl).digest('base64');
+    // Note we use a QueuedGqlRequest which calls the mutation on any services that supports this particular
+    // mutaion name.
+    // We don't care about the response
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
       respond_on_error: false,
-      gql_query_string: `
+      gql_query_string: `mutation {
+        updateServiceSchema(input: {service_name: "${this.config.serviceName}", schema:"${schemaAsSdl}", schema_hash:"${schema_hash}"}) {
+          id
+        }
+      }
       `
     });
   }
