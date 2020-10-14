@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * `user.id` and `user.scope` extracted from authorizer and added to traceContext on ApolloServer context cb
 ### Removed
 ### Changed
 ### Fixed
