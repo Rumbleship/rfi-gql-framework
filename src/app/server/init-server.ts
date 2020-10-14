@@ -25,16 +25,9 @@ import { DateRange, DateRangeGQL } from '../../gql';
 
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
-import { inititializeQueuedSubscriptionRelay } from '../../queued-subscription-server/inititialize-queued-subscription-relay';
-import { QueuedSubscriptionServer } from '../../queued-subscription-server/queued-subscription-server';
-import { buildQueuedSubscriptionRequestResolver } from '../../queued-subscription-server/queued_subscription_request/gql/queued-subscription-request.resolver';
-import { getQueuedSubscriptionRequestDbModelAndOidScope } from '../../queued-subscription-server/_db/queued-subscription-request-models';
-import { addFrameworkServiceFactory } from './framework-node-services';
-import {
-  getQueuedSubscriptionRequestNodeServiceEntry,
-  getWebhookNodeServiceEntry
-} from '../../queued-subscription-server/get-queued-subscription-request-node-service-entry';
-import { buildWebhookResolver } from '../../queued-subscription-server';
+
+import { Oid } from '@rumbleship/oid';
+import { QueuedGqlRequestServer, QueuedSubscriptionServer } from '../../queued-graphql';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -57,15 +50,6 @@ export async function initServer(
   }
 ): Promise<Hapi.Server> {
   Authorizer.initialize(config);
-  // Bootstrap the framework QueuedSubscriptionRequest Relay stack
-  //
-  inititializeQueuedSubscriptionRelay(config);
-  const qsrDbModelAndScope = getQueuedSubscriptionRequestDbModelAndOidScope();
-  injected_models = injected_models.concat(qsrDbModelAndScope);
-  const qsrResolverClass = buildQueuedSubscriptionRequestResolver();
-  addFrameworkServiceFactory(getQueuedSubscriptionRequestNodeServiceEntry);
-  const webhookResolverClass = buildWebhookResolver(config);
-  addFrameworkServiceFactory(getWebhookNodeServiceEntry);
 
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
@@ -159,7 +143,7 @@ export async function initServer(
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
     globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
-    resolvers: [qsrResolverClass, webhookResolverClass],
+    resolvers: [] as any,
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
   };
@@ -233,7 +217,10 @@ export async function initServer(
         : // RumbleshipContextControl.getContextFrom(request)
           // subscription
           ctx.connection.context.rumbleship_context;
-
+      const user = rumbleship_context.authorizer.getUser();
+      rumbleship_context.beeline.addTraceContext({
+        user: { id: user, scope: new Oid(user).unwrap().scope }
+      });
       // To consider: plugin that attaches this doesn't build the rumbleship_context for all routes
       // but Apollo seems to trigger this `context` generation call for some (all?) of them.
       // e.g. `GET /graphql` triggers this, but we don't build our context.
@@ -254,19 +241,22 @@ export async function initServer(
   // Set up subscriptions for websocket clients
   apolloServer.installSubscriptionHandlers(server.listener);
   // setup subscription server for GooglePubSub  clients
-  const queuedSubscriptionServer = new QueuedSubscriptionServer(globalGraphQlSchema, config.Gcp);
+  const queuedSubscriptionServer = new QueuedSubscriptionServer(config, globalGraphQlSchema);
+  const queuedGqlRequestServer = new QueuedGqlRequestServer(config, globalGraphQlSchema);
 
   server.events.on('start', async () => {
     try {
       const rumbleshipContext = RumbleshipContext.make(__filename);
       try {
-        // this function starts all the active queued subscriptions and then returns
+        // these function starts all the active queued subscriptions and requests and then returns
+        //
         await queuedSubscriptionServer.start(rumbleshipContext);
+        await queuedGqlRequestServer.start(rumbleshipContext);
       } finally {
         await rumbleshipContext.release();
       }
     } catch (error) {
-      serverLogger.error('Error starting QueuedSubscriptionServer', {
+      serverLogger.error('Error starting Queued graphql servers', {
         stack: error.stack,
         message: error.message
       });
@@ -279,6 +269,7 @@ export async function initServer(
   server.events.on('stop', async () => {
     try {
       await queuedSubscriptionServer.stop();
+      await queuedGqlRequestServer.stop();
     } catch (error) {
       serverLogger.error('Error stopping QueuedSubscriptionServer', {
         stack: error.stack,

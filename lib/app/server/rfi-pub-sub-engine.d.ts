@@ -22,6 +22,7 @@ import { RfiPubSubEngine, RfiSubscriptionOptions } from './rfi-pub-sub-engine.in
  *
  */
 export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
+    static DONT_PUBLISH_ON_CHANGE_FLAG_SYMBOL: symbol;
     protected topicPrefix: string;
     protected serviceName: string;
     publisher_version: string;

@@ -1,6 +1,17 @@
 # @rumbleship/gql
 Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
 
+# upgrade form 12 to 13
+
+QSR change...
+
+When an instance of a service spins up, it sends its schema and the hash of the schema to Qsr Management Service (currently hosted in orders) If it is different (or new) each qsr  is checked to see if the schema is compatible with the qsr's query... if it is, or has become compatible, the qsr is updated. 
+
+Each service is listening for changes to Qsr's and when a change is observed, it determines if the Qsr has a query it can service, if it does, it adds it to its internal list and cache.
+
+On start up, each service requests a list of active Qsr's and updates its cache as appropriate.
+
+
 # Upgrade from 11 to 12 check list
 1) Make sure that application has migrations 2 to 7 added from:
   src/queued-subscription-server/_db/_example_migrations
