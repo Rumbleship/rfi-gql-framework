@@ -13,3 +13,4 @@ export * from './relay.interface';
 export * from './relay-edge-connection.builder';
 export * from './mixins';
 export * from './watchable';
+export * from './relay_mutation';

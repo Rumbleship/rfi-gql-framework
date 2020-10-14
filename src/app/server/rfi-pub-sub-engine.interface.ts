@@ -44,6 +44,7 @@ export interface Payload<T extends PayloadTypes> {
   type?: T;
 }
 export interface NodeChangePayload extends Payload<PayloadTypes.NODE_CHANGE> {
+  publisher_service_name?: string;
   publisher_version: string;
   idempotency_key: string;
   oid: string;

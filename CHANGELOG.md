@@ -7,11 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [UNRELEASED]
 
+
 ### Added
   * `user.id` and `user.scope` extracted from authorizer and added to traceContext on ApolloServer context cb
+  * QueuedServer clients for QueuedSubscriptions and QueuedRequests
+  * QueuedRequestServer - adding support for gql operations: Queuery and Mutation over pubsub
+  * Sending of the apps graphQL schema on start up to the Qsr Management Service
+  * local cache fro this applications Qsrs
+  * subscription to Qsr updates and update of local cache
+  * Retrieve all Qsr's on startup via gcloud pubsub to refresh cache
+  
 ### Removed
 ### Changed
+  * BREAKING
+    * Moved QSR repository from individual services to a central service
+  * Refactored QueuedSubscription folders
+  * initServer to include starting the QueuedSubscription servers for subscriptions and requests over gcloud pubsub
+
 ### Fixed
+  * RelayOrderByGQL to correctly handle when it is parsed as an ObjectType - ie if it is a variable in a document or embedded
 ### Deprecated
 ### Security
 
