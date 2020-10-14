@@ -26,7 +26,8 @@ import { DateRange, DateRangeGQL } from '../../gql';
 import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
-import { QueuedGqlRequestServer, QueuedSubscriptionServer } from '../../queued-graphql/servers';
+import { Oid } from '@rumbleship/oid';
+import { QueuedGqlRequestServer, QueuedSubscriptionServer } from '../../queued-graphql';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -216,7 +217,10 @@ export async function initServer(
         : // RumbleshipContextControl.getContextFrom(request)
           // subscription
           ctx.connection.context.rumbleship_context;
-
+      const user = rumbleship_context.authorizer.getUser();
+      rumbleship_context.beeline.addTraceContext({
+        user: { id: user, scope: new Oid(user).unwrap().scope }
+      });
       // To consider: plugin that attaches this doesn't build the rumbleship_context for all routes
       // but Apollo seems to trigger this `context` generation call for some (all?) of them.
       // e.g. `GET /graphql` triggers this, but we don't build our context.
