@@ -11,14 +11,6 @@ Each service is listening for changes to Qsr's and when a change is observed, it
 
 On start up, each service requests a list of active Qsr's and updates its cache as appropriate.
 
-There is a certain amount of traffic on instance load, but I don't think it is a terrible burden, and it will be fairly easy to optimize down the road. Google pubsub is designed for millions of messages a second.
-
-There may be some awkward moments during development where we kill instances and messages get sent multiple times (as we have both experiened before) but it's kind of good to code against that anyway... 
-
-One of the side effects of this 
-
-I think that there shouldnt be any issues for the code you have written... 
-
 
 # Upgrade from 11 to 12 check list
 1) Make sure that application has migrations 2 to 7 added from:
