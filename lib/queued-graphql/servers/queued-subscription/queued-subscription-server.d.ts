@@ -43,6 +43,7 @@ export declare class QueuedSubscriptionServer {
     refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number>;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;
+    stopAndClearSubscriptions(): Promise<void>;
     /**
      * Adds and starts the subscription
      * @param request

@@ -163,11 +163,14 @@ export async function loadCache(
 
 export async function saveCache(
   cache: QueuedSubscriptionCache,
-  opts: {
+  opts?: {
     transaction: Transaction;
   }
 ): Promise<void> {
-  const qsrCache = await QsrLocalCacheModel.findOne({ transaction: opts.transaction, lock: true });
+  const qsrCache = await QsrLocalCacheModel.findOne({
+    transaction: opts?.transaction,
+    lock: opts ? true : undefined
+  });
   if (qsrCache) {
     qsrCache.cache = cache;
     await qsrCache.save({ transaction: opts?.transaction });

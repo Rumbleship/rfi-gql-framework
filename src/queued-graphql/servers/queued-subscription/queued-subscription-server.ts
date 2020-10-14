@@ -248,6 +248,10 @@ export class QueuedSubscriptionServer {
 
   async stop(): Promise<void> {
     await this.qsrChangeObserver.stop();
+    await this.stopAndClearSubscriptions();
+  }
+
+  async stopAndClearSubscriptions(): Promise<void> {
     await Promise.all(
       Array.from(this.queuedSubscriptions, async queuedSubscription => {
         return queuedSubscription[1].stop();
@@ -255,7 +259,6 @@ export class QueuedSubscriptionServer {
     );
     this.queuedSubscriptions.clear();
   }
-
   /**
    * Adds and starts the subscription
    * @param request
@@ -337,7 +340,15 @@ export class QueuedSubscriptionServer {
           const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
             'queuedSubscriptionRequests'
           ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
-          await this.process_incoming_qsrs(ctx, qsrs);
+          if (qsrs.length) {
+            await this.process_incoming_qsrs(ctx, qsrs);
+          } else {
+            // in development we might clear out the database and so we can get this situation where we have a cache but no
+            // real qsrs. This is a special case and we deliberately clear the cache at this and active running queuedSubsctiptions
+            // This may be better sorted through a flag in config, but fro now we do it this way
+            await this.stopAndClearSubscriptions();
+            await saveCache(new QueuedSubscriptionCache(this.config.Gcp.gaeVersion));
+          }
         }
         if (response.response.errors) {
           ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);

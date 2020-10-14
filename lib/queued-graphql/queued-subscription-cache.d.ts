@@ -43,6 +43,6 @@ export declare class QsrLocalCacheModel extends Model<QsrLocalCacheModel> {
 export declare function loadCache(version: string, opts?: {
     transaction?: Transaction;
 }): Promise<QueuedSubscriptionCache>;
-export declare function saveCache(cache: QueuedSubscriptionCache, opts: {
+export declare function saveCache(cache: QueuedSubscriptionCache, opts?: {
     transaction: Transaction;
 }): Promise<void>;
