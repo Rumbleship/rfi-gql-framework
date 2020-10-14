@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [13.0.0] -- 2020-10-14
 
 
 ### Added
@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * subscription to Qsr updates and update of local cache
   * Retrieve all Qsr's on startup via gcloud pubsub to refresh cache
   
-### Removed
 ### Changed
   * BREAKING
     * Moved QSR repository from individual services to a central service
@@ -26,9 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
   * RelayOrderByGQL to correctly handle when it is parsed as an ObjectType - ie if it is a variable in a document or embedded
-### Deprecated
-### Security
-
 
 ## [12.0.4] -- 2020-10-13
 
