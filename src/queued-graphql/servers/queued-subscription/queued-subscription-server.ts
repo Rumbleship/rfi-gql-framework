@@ -27,6 +27,7 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_C
 export const QSR_GQL_FRAGMENT = `
   fragment qsr on QueuedSubscriptionRequest {
     id
+    subscription_name
     cache_consistency_id
     marshalled_acl
     gql_query_string
@@ -79,7 +80,7 @@ export class QueuedSubscriptionServer {
 
   constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
     const qsrChangeTopic = `${this.config.PubSub.topicPrefix}_${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}`;
-    const qsrChangeSubsciptionName = `${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}`; // Only one instance of the service slistens to this...
+    const qsrChangeSubsciptionName = `${this.config.PubSub.topicPrefix}_${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}`; // Only one instance of the service slistens to this...
     const qsrCacheChangeTopicName = `${this.config.PubSub.topicPrefix}_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}`;
     const qsrCacheChangeSubscriptionName = `${
       this.config.PubSub.topicPrefix
@@ -136,10 +137,12 @@ export class QueuedSubscriptionServer {
       const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
       try {
         const qsrCache = await loadCache(this.config.Gcp.gaeVersion, { transaction });
+        let cache_dirty = false;
         const validateAndAddToCache = (request: IQueuedSubscriptionRequest): void => {
           try {
             QueuedSubscription.validateSubscriptionRequest(this.schema, request);
             qsrCache.add([request]);
+            cache_dirty = true;
           } catch (error) {
             // swollow the error
             // TODO Honeycomb determine the type of error and swollow or spit it out
@@ -160,11 +163,11 @@ export class QueuedSubscriptionServer {
           ) {
             const key = incomingQsr.id.toString();
             const cachedQsr = qsrCache.cache.get(key);
-            if (cachedQsr) {
+            if (cachedQsr && cachedQsr.cache_consistency_id) {
               if (incomingQsr.deleted_at) {
                 qsrCache.cache.delete(key);
               } else {
-                if (cachedQsr.cache_consistency_id ?? 0 < incomingQsr.cache_consistency_id) {
+                if (cachedQsr.cache_consistency_id < incomingQsr.cache_consistency_id) {
                   validateAndAddToCache(incomingQsr);
                 } // else ignore
               }
@@ -173,9 +176,9 @@ export class QueuedSubscriptionServer {
             }
           }
         }
-
-        await saveCache(qsrCache, { transaction });
-        this.logActiveQsrs(ctx);
+        if (cache_dirty) {
+          await saveCache(qsrCache, { transaction });
+        }
         await transaction.commit();
       } catch (seqError) {
         // TODO what should be logged?
