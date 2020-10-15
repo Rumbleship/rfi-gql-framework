@@ -136,10 +136,12 @@ export class QueuedSubscriptionServer {
       const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
       try {
         const qsrCache = await loadCache(this.config.Gcp.gaeVersion, { transaction });
+        let cache_dirty = false;
         const validateAndAddToCache = (request: IQueuedSubscriptionRequest): void => {
           try {
             QueuedSubscription.validateSubscriptionRequest(this.schema, request);
             qsrCache.add([request]);
+            cache_dirty = true;
           } catch (error) {
             // swollow the error
             // TODO Honeycomb determine the type of error and swollow or spit it out
@@ -173,9 +175,9 @@ export class QueuedSubscriptionServer {
             }
           }
         }
-
-        await saveCache(qsrCache, { transaction });
-        this.logActiveQsrs(ctx);
+        if (cache_dirty) {
+          await saveCache(qsrCache, { transaction });
+        }
         await transaction.commit();
       } catch (seqError) {
         // TODO what should be logged?
