@@ -79,7 +79,7 @@ export class QueuedSubscriptionServer {
 
   constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
     const qsrChangeTopic = `${this.config.PubSub.topicPrefix}_${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}`;
-    const qsrChangeSubsciptionName = `${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}`; // Only one instance of the service slistens to this...
+    const qsrChangeSubsciptionName = `${this.config.PubSub.topicPrefix}_${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}_${config.serviceName}`; // Only one instance of the service slistens to this...
     const qsrCacheChangeTopicName = `${this.config.PubSub.topicPrefix}_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}`;
     const qsrCacheChangeSubscriptionName = `${
       this.config.PubSub.topicPrefix
