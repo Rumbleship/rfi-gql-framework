@@ -27,7 +27,12 @@ import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
 import { Oid } from '@rumbleship/oid';
-import { QueuedGqlRequestServer, QueuedSubscriptionServer } from '../../queued-graphql';
+import {
+  QsrCacheOidScope,
+  QueuedCacheScopeAndDb,
+  QueuedGqlRequestServer,
+  QueuedSubscriptionServer
+} from '../../queued-graphql';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -111,10 +116,15 @@ export async function initServer(
   const server: Hapi.Server = InjectedBeeline.shimFromInstrumentation(
     new Hapi.Server(serverOptions)
   );
+  const qsrCacheScopeAndModel = injected_models.find(entry => entry.scope === QsrCacheOidScope)
+    ? undefined
+    : QueuedCacheScopeAndDb;
+
+  const to_inject = { ...injected_models, ...qsrCacheScopeAndModel };
   const sequelize = await initSequelize(
     config.Db,
     msg => serverLogger.debug(msg),
-    injected_models,
+    to_inject,
     dbOptions
   );
   await sequelize.authenticate();

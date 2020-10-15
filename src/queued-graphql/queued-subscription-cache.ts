@@ -14,7 +14,6 @@ import { Transaction } from 'sequelize/types';
 
 import { getSequelizeInstance } from '../app/server/init-sequelize';
 import { IQueuedSubscriptionRequest } from './servers/queued-subscription/queued-subscription-request.interface';
-import { Oid } from '@rumbleship/oid';
 
 @Exclude() // only persist the Exposed...
 export class PersistableQueuedSubscription implements IQueuedSubscriptionRequest {
@@ -79,10 +78,6 @@ export class QueuedSubscriptionCache {
   }
 }
 
-export const QsrCacheOidScope = 'QsrCache';
-
-// we just do this here, as it is
-Oid.RegisterScope(QsrCacheOidScope, QsrCacheOidScope);
 /**
  * Keeps the cache consistent
  * The cachce creates the table if it doesnt exist. (no migrations, as it is destroyed everytime it rewrites)
@@ -179,3 +174,7 @@ export async function saveCache(
 
   throw new Error('Invalid sequelize or cache must be loaded before saving');
 }
+
+export const QsrCacheOidScope = 'QsrCache';
+
+export const QueuedCacheScopeAndDb = { scope: QsrCacheOidScope, QsrLocalCacheModel };

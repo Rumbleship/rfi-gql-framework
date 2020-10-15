@@ -26,7 +26,6 @@ export declare class QueuedSubscriptionCache {
     clear(): void;
     add(qsrs: IQueuedSubscriptionRequest[]): void;
 }
-export declare const QsrCacheOidScope = "QsrCache";
 /**
  * Keeps the cache consistent
  * The cachce creates the table if it doesnt exist. (no migrations, as it is destroyed everytime it rewrites)
@@ -46,3 +45,8 @@ export declare function loadCache(version: string, opts?: {
 export declare function saveCache(cache: QueuedSubscriptionCache, opts?: {
     transaction: Transaction;
 }): Promise<void>;
+export declare const QsrCacheOidScope = "QsrCache";
+export declare const QueuedCacheScopeAndDb: {
+    scope: string;
+    QsrLocalCacheModel: typeof QsrLocalCacheModel;
+};
