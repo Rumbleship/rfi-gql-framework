@@ -162,11 +162,11 @@ export class QueuedSubscriptionServer {
           ) {
             const key = incomingQsr.id.toString();
             const cachedQsr = qsrCache.cache.get(key);
-            if (cachedQsr) {
+            if (cachedQsr && cachedQsr.cache_consistency_id) {
               if (incomingQsr.deleted_at) {
                 qsrCache.cache.delete(key);
               } else {
-                if ((cachedQsr.cache_consistency_id ?? 0) < incomingQsr.cache_consistency_id) {
+                if (cachedQsr.cache_consistency_id < incomingQsr.cache_consistency_id) {
                   validateAndAddToCache(incomingQsr);
                 } // else ignore
               }
