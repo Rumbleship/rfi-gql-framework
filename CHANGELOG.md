@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * add scope/dbModel for the local QsrCache mapping to initServer 
 ### Removed
 ### Changed
   * upgraded Oid library to 4.0.8
