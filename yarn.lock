@@ -1027,9 +1027,9 @@
   version "4.0.1"
   resolved "git+ssh://git@github.com/rumbleship/observability.git#0f37f8155ceacad212f3b4baafd3486b70d10fd0"
 
-"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
-  version "4.0.2"
-  resolved "git+ssh://git@github.com/rumbleship/oid#ba4a0ae88d2e9aaf9ff68450c15ef69a031f1296"
+"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.8":
+  version "4.0.8"
+  resolved "git+ssh://git@github.com/rumbleship/oid#7d13dd88f4c547857e17aa747911b7db0e5476a9"
 
 "@rumbleship/service-factory-map@git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.3":
   version "0.0.3"
