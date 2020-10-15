@@ -166,7 +166,7 @@ export class QueuedSubscriptionServer {
               if (incomingQsr.deleted_at) {
                 qsrCache.cache.delete(key);
               } else {
-                if (cachedQsr.cache_consistency_id ?? 0 < incomingQsr.cache_consistency_id) {
+                if ((cachedQsr.cache_consistency_id ?? 0) < incomingQsr.cache_consistency_id) {
                   validateAndAddToCache(incomingQsr);
                 } // else ignore
               }
