@@ -27,6 +27,7 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_C
 export const QSR_GQL_FRAGMENT = `
   fragment qsr on QueuedSubscriptionRequest {
     id
+    subscription_name
     cache_consistency_id
     marshalled_acl
     gql_query_string
