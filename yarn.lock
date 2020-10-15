@@ -1027,9 +1027,9 @@
   version "4.0.1"
   resolved "git+ssh://git@github.com/rumbleship/observability.git#0f37f8155ceacad212f3b4baafd3486b70d10fd0"
 
-"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.2":
-  version "4.0.2"
-  resolved "git+ssh://git@github.com/rumbleship/oid#ba4a0ae88d2e9aaf9ff68450c15ef69a031f1296"
+"@rumbleship/oid@git+ssh://git@github.com/rumbleship/oid#4.0.8":
+  version "4.0.8"
+  resolved "git+ssh://git@github.com/rumbleship/oid#7d13dd88f4c547857e17aa747911b7db0e5476a9"
 
 "@rumbleship/service-factory-map@git+ssh://git@github.com/rumbleship/service-factory-map.git#0.0.3":
   version "0.0.3"
@@ -1393,13 +1393,6 @@
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
-
-"@types/reflect-metadata@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@types/reflect-metadata/-/reflect-metadata-0.1.0.tgz#592805bdf6d63dd7229773218afeba37ac2eab16"
-  integrity sha512-bXltFLY3qhzCnVYP5iUpeSICagQ8rc9K2liS+8M0lBcz54BHs3O6W5UvqespVSuebo1BXLi+/y9ioELAW9SC2A==
-  dependencies:
-    reflect-metadata "*"
 
 "@types/semver@^7.3.3":
   version "7.3.3"
@@ -5643,7 +5636,7 @@ realpath-native@^1.1.0:
   dependencies:
     util.promisify "^1.0.0"
 
-reflect-metadata@*, reflect-metadata@^0.1.13:
+reflect-metadata@^0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
