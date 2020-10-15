@@ -36,6 +36,7 @@ export const QSR_GQL_FRAGMENT = `
     query_attributes
     publish_to_topic_name
     serviced_by
+    deleted_at
   }
 `;
 
@@ -43,8 +44,8 @@ export const QSR_GQL_FRAGMENT = `
  * This is exported to be used by the QueuedSubscription Repository Service to
  * run while it is working. All instances of the QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC
  * subscribe to the responses, and so everyone can update thier cache
+ * TODO: Should we also watch for deleted_at changes and turn paranoid on in the repository?
  *
- * We track all changes...
  *
  */
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
@@ -72,7 +73,6 @@ export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs {
     `;
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
-  in_memory_cache_consistency_id = 0;
   qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
   qsrLocalCacheObserver: RfiPubSubSubscription<NodeChangePayload>;
   queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
@@ -117,6 +117,8 @@ export class QueuedSubscriptionServer {
         const changedQueuedRequest: IQueuedSubscriptionRequest =
           response.subscription_response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
         if (changedQueuedRequest) {
+          // All we do is add it to the cache... the cache will update, and the localCacheObserver will force the update to live subscriptions
+          //
           await this.process_incoming_qsrs(ctx, [changedQueuedRequest]);
         }
       }
@@ -134,67 +136,44 @@ export class QueuedSubscriptionServer {
       const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
       try {
         const qsrCache = await loadCache(this.config.Gcp.gaeVersion, { transaction });
-        // Has anotehr instance already saved a later version of the cache?
-        if (this.in_memory_cache_consistency_id < qsrCache.highest_cache_consistency_id) {
+        const validateAndAddToCache = (request: IQueuedSubscriptionRequest): void => {
           try {
-            this.in_memory_cache_consistency_id = await this.refreshSubscriptionsFromCache(
-              qsrCache
-            );
+            QueuedSubscription.validateSubscriptionRequest(this.schema, request);
+            qsrCache.add([request]);
           } catch (error) {
-            // cache is out of sync or corrupt, reset it
-            qsrCache.clear();
+            // swollow the error
+            // TODO Honeycomb determine the type of error and swollow or spit it out
+            ctx.logger.log(
+              `Couldnt process qsr: ${request.id} in ${
+                this.config.serviceName
+              }. Error: ${error.toString()}`
+            );
           }
-        }
+        };
         for (const incomingQsr of incomingQsrs) {
           // and only process if we are on the list
-          if (incomingQsr && incomingQsr.id) {
-            if (incomingQsr.cache_consistency_id) {
-              const key = incomingQsr.id.toString();
-              const foundSubscription = this.getSubscription(key);
-              if (incomingQsr.serviced_by?.includes(this.config.serviceName)) {
-                if (
-                  foundSubscription &&
-                  foundSubscription.cache_consistency_id &&
-                  incomingQsr.cache_consistency_id &&
-                  foundSubscription.cache_consistency_id < incomingQsr.cache_consistency_id
-                ) {
-                  try {
-                    // only process if it is valid fro this service
-                    QueuedSubscription.validateSubscriptionRequest(this.schema, incomingQsr);
-                    await this.removeSubscription(key);
-                    if (incomingQsr.active) {
-                      this.addSubscriptionAndStart(key, incomingQsr);
-                    }
-                  } catch (error) {
-                    // swollow the error
-                    // TODO Honeycomb determine the type of error and swollow or spit it out
-                    ctx.logger.log(
-                      `Couldnt process qsr: ${incomingQsr.id} in ${
-                        this.config.serviceName
-                      }. Error: ${error.toString()}`
-                    );
-                  }
-                } else {
-                  if (!foundSubscription && incomingQsr.active) {
-                    // then must be a new one and we must add it
-                    this.addSubscriptionAndStart(key, incomingQsr);
-                  }
-                }
-                if (this.in_memory_cache_consistency_id < incomingQsr.cache_consistency_id) {
-                  this.in_memory_cache_consistency_id = incomingQsr.cache_consistency_id;
-                }
+          if (
+            incomingQsr &&
+            incomingQsr.serviced_by?.includes(this.config.serviceName) &&
+            incomingQsr.id &&
+            incomingQsr.cache_consistency_id
+          ) {
+            const key = incomingQsr.id.toString();
+            const cachedQsr = qsrCache.cache.get(key);
+            if (cachedQsr) {
+              if (incomingQsr.deleted_at) {
+                qsrCache.cache.delete(key);
               } else {
-                if (foundSubscription) {
-                  await this.removeSubscription(key);
-                }
+                if (cachedQsr.cache_consistency_id ?? 0 < incomingQsr.cache_consistency_id) {
+                  validateAndAddToCache(incomingQsr);
+                } // else ignore
               }
+            } else {
+              validateAndAddToCache(incomingQsr);
             }
           }
         }
-        // update the cache...
-        qsrCache.clear();
-        qsrCache.add(Array.from(this.queuedSubscriptions.values()));
-        qsrCache.highest_cache_consistency_id = this.in_memory_cache_consistency_id;
+
         await saveCache(qsrCache, { transaction });
         this.logActiveQsrs(ctx);
         await transaction.commit();

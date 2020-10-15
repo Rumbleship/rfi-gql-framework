@@ -13,4 +13,5 @@ export interface IQueuedSubscriptionRequest extends IWebhookSubscription {
   onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
   create_unique_subscription?: boolean; // this allows for each instance to receive a message and is probably only useful when not publishing to anotehr topic
   serviced_by: string[];
+  deleted_at?: string;
 }
