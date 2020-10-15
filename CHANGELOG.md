@@ -10,7 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * improved separation of updating cache and updsating active subscriptions
 ### Fixed
+  * dropped subscriptuion prefix which meant that messages for qsr changes were not being consistently picked up by services 
+
 ### Deprecated
 ### Security
 
