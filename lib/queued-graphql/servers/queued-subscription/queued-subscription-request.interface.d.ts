@@ -10,4 +10,5 @@ export interface IQueuedSubscriptionRequest extends IWebhookSubscription {
     onResponseHook?: (response: SubscriptionResponse) => Promise<void>;
     create_unique_subscription?: boolean;
     serviced_by: string[];
+    deleted_at?: string;
 }

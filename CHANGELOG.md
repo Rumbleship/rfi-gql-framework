@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+### Removed
+### Changed
+  * improved separation of updating cache and updsating active subscriptions
+### Fixed
+  * dropped subscriptuion prefix which meant that messages for qsr changes were not being consistently picked up by services 
+
+### Deprecated
+### Security
+
+
 ## [13.0.0] -- 2020-10-14
 
 
