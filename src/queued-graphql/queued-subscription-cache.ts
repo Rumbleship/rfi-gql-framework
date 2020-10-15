@@ -177,4 +177,4 @@ export async function saveCache(
 
 export const QsrCacheOidScope = 'QsrCache';
 
-export const QueuedCacheScopeAndDb = { scope: QsrCacheOidScope, QsrLocalCacheModel };
+export const QueuedCacheScopeAndDb = { scope: QsrCacheOidScope, dbModel: QsrLocalCacheModel };

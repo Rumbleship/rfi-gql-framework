@@ -116,11 +116,12 @@ export async function initServer(
   const server: Hapi.Server = InjectedBeeline.shimFromInstrumentation(
     new Hapi.Server(serverOptions)
   );
-  const qsrCacheScopeAndModel = injected_models.find(entry => entry.scope === QsrCacheOidScope)
-    ? undefined
-    : QueuedCacheScopeAndDb;
+  const to_inject: DbModelAndOidScope[] = injected_models.find(
+    entry => entry.scope === QsrCacheOidScope
+  )
+    ? [...injected_models, ...[QueuedCacheScopeAndDb]]
+    : injected_models;
 
-  const to_inject = { ...injected_models, ...qsrCacheScopeAndModel };
   const sequelize = await initSequelize(
     config.Db,
     msg => serverLogger.debug(msg),

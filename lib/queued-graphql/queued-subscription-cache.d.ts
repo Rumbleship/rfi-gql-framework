@@ -48,5 +48,5 @@ export declare function saveCache(cache: QueuedSubscriptionCache, opts?: {
 export declare const QsrCacheOidScope = "QsrCache";
 export declare const QueuedCacheScopeAndDb: {
     scope: string;
-    QsrLocalCacheModel: typeof QsrLocalCacheModel;
+    dbModel: typeof QsrLocalCacheModel;
 };
