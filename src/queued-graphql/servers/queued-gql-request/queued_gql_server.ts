@@ -83,26 +83,27 @@ export class QueuedGqlRequestServer {
                     undefined,
                     error
                   );
-            // TODO add traceing honeycomb
-            ctx.logger.log('Errors in QueuedGqlResponse', {
+            // TODO add traceing honeycomb ?
+            /* ctx.logger.log('Errors in QueuedGqlResponse', {
               client_request_id: request.client_request_id,
               query: request.gql_query_string,
               errors: gqlError
             });
+            */
             if (request.publish_to_topic_name) {
               await this.publishResponse(request, { errors: [gqlError] });
             }
           }
         }
         if (executionResult) {
-          if (executionResult.errors) {
-            // TODO add traceing honeycomb
+          /*if (executionResult.errors) {
+            // TODO add traceing honeycomb ?
             ctx.logger.log('Errors in QueuedGqlResponse', {
               client_request_id: request.client_request_id,
               query: request.gql_query_string,
               errors: executionResult.errors
-            });
-          }
+            }); 
+          }*/
           await this.publishResponse(request, executionResult);
         }
       }

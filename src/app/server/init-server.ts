@@ -28,7 +28,6 @@ import hapiRequestIdHeader = require('hapi-request-id-header');
 
 import { Oid } from '@rumbleship/oid';
 import {
-  QsrCacheOidScope,
   QueuedCacheScopeAndDb,
   QueuedGqlRequestServer,
   QueuedSubscriptionServer
@@ -116,16 +115,12 @@ export async function initServer(
   const server: Hapi.Server = InjectedBeeline.shimFromInstrumentation(
     new Hapi.Server(serverOptions)
   );
-  const to_inject: DbModelAndOidScope[] = injected_models.find(
-    entry => entry.scope === QsrCacheOidScope
-  )
-    ? [...injected_models, ...[QueuedCacheScopeAndDb]]
-    : injected_models;
 
+  injected_models.push(QueuedCacheScopeAndDb);
   const sequelize = await initSequelize(
     config.Db,
     msg => serverLogger.debug(msg),
-    to_inject,
+    injected_models,
     dbOptions
   );
   await sequelize.authenticate();
