@@ -250,6 +250,9 @@ export async function initServer(
   const queuedSubscriptionServer = new QueuedSubscriptionServer(config, globalGraphQlSchema);
   const queuedGqlRequestServer = new QueuedGqlRequestServer(config, globalGraphQlSchema);
 
+  Container.set('theQueuedSubscriptionServer', queuedSubscriptionServer);
+  Container.set('theQueuedGqlRequestServer', queuedGqlRequestServer);
+
   server.events.on('start', async () => {
     try {
       const rumbleshipContext = RumbleshipContext.make(__filename);
