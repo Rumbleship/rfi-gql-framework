@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 ### Removed
+  * remove extraneous error report on queued gql requests 
+
 ### Changed
 ### Fixed
+  * fix defect in adding QsrLocalCacheModel scope to dbModels
 ### Deprecated
 ### Security
 
