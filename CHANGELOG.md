@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * Add @AddToTrace to QueuedSubscription methods where appropriate
+### Removed
+  * remove gaeVersion check on load cache
+### Changed
+  * lightly refactor QueuedSubscriptionServer to separate handlers out of closures for improved tracing
+### Fixed
+### Deprecated
+### Security
+
+
 ## [13.0.3] -- 2020-10-16
 
 ### Removed

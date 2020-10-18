@@ -3,6 +3,7 @@ import { GqlExecutionParams } from '../../helpers/gql-execution-params';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
 import { IGcpConfig } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued-subscription-request.interface';
+import { RumbleshipContext } from '../../../app/rumbleship-context';
 export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
     private schema;
     private googlePublisher;
@@ -43,8 +44,9 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
     /**
      * publishes repsononses to the QueuedSubscriptionRequest
      */
-    publishResponse(response: SubscriptionResponse): Promise<string>;
+    publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string>;
     protected getTopic(): Promise<Topic>;
     start(): Promise<void>;
+    onGqlSubscribeResponse(ctx: RumbleshipContext, executionResult: ExecutionResult): Promise<void>;
     stop(): Promise<void>;
 }

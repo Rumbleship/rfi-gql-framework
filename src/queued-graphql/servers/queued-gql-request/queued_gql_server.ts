@@ -59,7 +59,7 @@ export class QueuedGqlRequestServer {
     // this is a long running promise chain that loops listening for messages
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this._request_subscription.start(
-      async (request: IQueuedGqlRequest, ctx: RumbleshipContext): Promise<void> => {
+      async (ctx: RumbleshipContext, request: IQueuedGqlRequest): Promise<void> => {
         let executionResult: ExecutionResult | undefined;
         try {
           const executionParams = QueuedGqlRequestServer.validateGqlRequest(this.schema, request);
