@@ -7,12 +7,7 @@
 // import { ChannelError, StatusError, BatchError, PublishError } from '@google-cloud';
 
 import { GraphQLError } from 'graphql';
-import {
-  ConnectionError,
-  DatabaseError,
-  OptimisticLockError,
-  ValidationError
-} from 'sequelize/types';
+import { ConnectionError, DatabaseError, OptimisticLockError, ValidationError } from 'sequelize';
 import { RumbleshipContext } from '../rumbleship-context';
 
 export function addErrorToTraceContext(ctx: RumbleshipContext, error: Error): void {
