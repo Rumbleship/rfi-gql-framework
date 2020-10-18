@@ -122,6 +122,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
    */
   @AddToTrace()
   async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
+    ctx.beeline.addTraceContext({ response });
     const subscription_name = this.subscription_name ?? '';
     const message: QueuedSubscriptionMessage = {
       owner_id: this.owner_id ?? '',
@@ -202,7 +203,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     ctx.beeline.addTraceContext({
       subscription_name: this.subscription_name,
       publish_topic: this.publish_to_topic_name,
-      execution_result: JSON.stringify(executionResult)
+      executionResult
     });
     if (this.publish_to_topic_name.length) {
       try {
