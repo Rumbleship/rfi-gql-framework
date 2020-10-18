@@ -3,9 +3,9 @@
  * additional attribues off the error instance
  */
 
-import { BatchError } from '@google-cloud/pubsub/build/src/message-queues';
-import { ChannelError, StatusError } from '@google-cloud/pubsub/build/src/message-stream';
-import { PublishError } from '@google-cloud/pubsub/build/src/publisher/publish-error';
+// And google doesnt actually export the Errors....
+// import { ChannelError, StatusError, BatchError, PublishError } from '@google-cloud';
+
 import { GraphQLError } from 'graphql';
 import {
   ConnectionError,
@@ -56,29 +56,20 @@ export function addErrorToTraceContext(ctx: RumbleshipContext, error: Error): vo
     };
   }
   // for google pubsub
-  //
+  // The errors documented are not exported
+  // so we just look for the attribute
+  metadata = {
+    ...metadata,
+    ...{
+      'error.err': Reflect.get(error, 'err'),
+      'error.error': Reflect.get(error, 'error'),
+      'error.details': Reflect.get(error, 'details'),
+      'error.orderingKey': Reflect.get(error, 'orderingKey'),
+      'error.metadata': Reflect.get(error, 'metadata'),
+      'error.status': Reflect.get(error, 'status')
+    }
+  };
 
-  if (
-    error instanceof PublishError ||
-    error instanceof BatchError ||
-    error instanceof ChannelError ||
-    error instanceof StatusError
-  ) {
-    // Documentation is somewhat inconsistent some errors are cdocumented but not excposed etc.
-    metadata = {
-      ...metadata,
-      ...{
-        'error.package': 'gcloud.pubsub',
-        'error.code': error.code,
-        'error.err': Reflect.get(error, 'err'),
-        'error.error': Reflect.get(error, 'error'),
-        'error.details': error.details,
-        'error.orderingKey': Reflect.get(error, 'orderingKey'),
-        'error.metadata': error.metadata,
-        'error.status': Reflect.get(error, 'status')
-      }
-    };
-  }
   if (error instanceof GraphQLError) {
     metadata = {
       ...metadata,
