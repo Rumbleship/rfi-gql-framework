@@ -55,7 +55,7 @@ export class RfiPubSubSubscription<T> {
     return this._subscription;
   }
   public async start(
-    handler: (payload: T, ctx: RumbleshipContext) => Promise<void>,
+    handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
   ): Promise<void> {
     let pending_message: Message | undefined;
@@ -95,7 +95,7 @@ export class RfiPubSubSubscription<T> {
                 marshalled_trace
               }
             );
-            await handler(payload as T, ctx)
+            await handler(ctx, payload as T)
               .catch(error => {
                 // Explicitly do not rethrow error; doing so will kill the dispatch manager.
                 ctx.logger.error(error.message);

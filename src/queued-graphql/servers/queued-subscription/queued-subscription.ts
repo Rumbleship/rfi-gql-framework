@@ -17,6 +17,10 @@ import {
   SubscriptionResponse
 } from './queued-subscription-request.interface';
 import { QueuedSubscriptionMessage } from './queued-subscription-message';
+import { RumbleshipContext } from '../../../app/rumbleship-context';
+import { AddToTrace } from '@rumbleship/o11y';
+import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
+
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
     ExecutionResult<{
@@ -116,7 +120,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   /**
    * publishes repsononses to the QueuedSubscriptionRequest
    */
-  async publishResponse(response: SubscriptionResponse): Promise<string> {
+  @AddToTrace()
+  async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
     const subscription_name = this.subscription_name ?? '';
     const message: QueuedSubscriptionMessage = {
       owner_id: this.owner_id ?? '',
@@ -160,33 +165,55 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         contextValue: onDemandContext
       });
       const logger = onDemandContext.logger;
+
       if ('next' in result) {
         this.activeSubscription = result;
         for await (const executionResult of this.activeSubscription) {
-          logger.info(`contextid: ${onDemandContext.id}: Ready to send Subscription response for ${
-            this.subscription_name
-          } to ${this.publish_to_topic_name}: 
-        ${JSON.stringify(executionResult, undefined, 2)}`);
-          if (this.publish_to_topic_name.length) {
-            await this.publishResponse(executionResult);
-          }
-          if (this.onResponseHook) {
-            await this.onResponseHook(executionResult);
-          }
+          await this.onGqlSubscribeResponse(onDemandContext, executionResult);
           await onDemandContext.reset();
         }
+
         logger.info(`exited QueuedSubscription: ${this.subscription_name} `);
       } else {
         const error_payload = { errors: result };
         const error_message = `Error trying to subscribe to: ${
           this.subscription_name
         }: ${JSON.stringify(error_payload, undefined, 2)} `;
-
-        logger.error(error_message);
-        throw new Error(error_message);
+        onDemandContext.beeline.addTraceContext({
+          'error.name': 'QueuedSubscriptionError',
+          'error.message': 'Error trying to subscribe',
+          'error.subscription_name': this.subscription_name,
+          'error.owner_id': this.owner_id,
+          'error.errors': result
+        });
+        const error = new Error(error_message);
+        throw error;
       }
     } finally {
       await onDemandContext.reset();
+    }
+  }
+
+  @AddToTrace()
+  async onGqlSubscribeResponse(
+    ctx: RumbleshipContext,
+    executionResult: ExecutionResult
+  ): Promise<void> {
+    ctx.beeline.addTraceContext({
+      subscription_name: this.subscription_name,
+      publish_topic: this.publish_to_topic_name,
+      execution_result: JSON.stringify(executionResult)
+    });
+    if (this.publish_to_topic_name.length) {
+      try {
+        await this.publishResponse(ctx, executionResult);
+      } catch (error) {
+        addErrorToTraceContext(ctx, error);
+        ctx.logger.error(error);
+      }
+    }
+    if (this.onResponseHook) {
+      await this.onResponseHook(executionResult);
     }
   }
 
