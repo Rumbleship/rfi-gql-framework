@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Add @AddToTrace to QueuedSubscription methods where appropriate
 ### Removed
+  * remove gaeVersion check on load cache
 ### Changed
+  * lightly refactor QueuedSubscriptionServer to separate handlers out of closures for improved tracing
 ### Fixed
 ### Deprecated
 ### Security

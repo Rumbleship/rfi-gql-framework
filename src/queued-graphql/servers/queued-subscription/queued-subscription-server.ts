@@ -21,6 +21,7 @@ import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { NodeChangePayload } from '../../../app/server/rfi-pub-sub-engine.interface';
 import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay';
 import { Oid } from '@rumbleship/oid';
+import { AddToTrace } from '@rumbleship/o11y';
 
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC`;
 
@@ -84,7 +85,9 @@ export class QueuedSubscriptionServer {
     const qsrCacheChangeTopicName = `${this.config.PubSub.topicPrefix}_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}`;
     const qsrCacheChangeSubscriptionName = `${
       this.config.PubSub.topicPrefix
-    }_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}_${hostname()}`; // Each instance recieves this
+    }_${NODE_CHANGE_NOTIFICATION}_${QsrCacheOidScope}_${config.serviceName}.${
+      config.Gcp.gaeVersion
+    }.${hostname()}`; // Each instance recieves this
 
     const pubsub = new GooglePubSub(this.config.Gcp.Auth);
     this.qsrChangeObserver = new RfiPubSubSubscription<QueuedSubscriptionMessage>(
@@ -114,20 +117,15 @@ export class QueuedSubscriptionServer {
     // kick off on its own promise chain
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.qsrChangeObserver.start(
-      async (response: QueuedSubscriptionMessage, ctx: RumbleshipContext) => {
-        const changedQueuedRequest: IQueuedSubscriptionRequest =
-          response.subscription_response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
-        if (changedQueuedRequest) {
-          // All we do is add it to the cache... the cache will update, and the localCacheObserver will force the update to live subscriptions
-          //
-          await this.process_incoming_qsrs(ctx, [changedQueuedRequest]);
-        }
+      async (ctx: RumbleshipContext, response: QueuedSubscriptionMessage): Promise<void> => {
+        await this.handler_onQueuedSubscriptionRequestChange(ctx, response);
       }
     );
 
     return;
   }
 
+  @AddToTrace()
   async process_incoming_qsrs(
     ctx: RumbleshipContext,
     incomingQsrs: IQueuedSubscriptionRequest[]
@@ -197,7 +195,12 @@ export class QueuedSubscriptionServer {
       ctx.logger.log(`   ${key}: ${qsr.cache_consistency_id}`);
     }
   }
-  async refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number> {
+
+  @AddToTrace()
+  async refreshSubscriptionsFromCache(
+    ctx: RumbleshipContext,
+    qsrCache?: QueuedSubscriptionCache
+  ): Promise<number> {
     if (!qsrCache) {
       qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     }
@@ -216,10 +219,11 @@ export class QueuedSubscriptionServer {
     return qsrCache.highest_cache_consistency_id;
   }
 
+  @AddToTrace()
   async start(ctx: RumbleshipContext): Promise<void> {
     const qsrCache = await loadCache(this.config.Gcp.gaeVersion);
-    await this.refreshSubscriptionsFromCache(qsrCache);
-    await this.initializeCacheChangeObserver();
+    await this.refreshSubscriptionsFromCache(ctx, qsrCache);
+    await this.initializeCacheChangeObserver(ctx);
     // start listening for changes...
     await this.initializeQsrChangeObserver();
 
@@ -230,6 +234,7 @@ export class QueuedSubscriptionServer {
 
   async stop(): Promise<void> {
     await this.qsrChangeObserver.stop();
+    await this.qsrLocalCacheObserver.stop();
     await this.stopAndClearSubscriptions();
   }
 
@@ -282,6 +287,7 @@ export class QueuedSubscriptionServer {
    *
    * When a schema
    */
+  @AddToTrace()
   async publishSchema(ctx: RumbleshipContext): Promise<void> {
     const schemaAsSdl = printSchema(this.schema);
     const schema_hash = createHash('SHA256').update(schemaAsSdl).digest('base64');
@@ -290,10 +296,11 @@ export class QueuedSubscriptionServer {
     // We don't care about the response
     this.queuedGqlRequestClient.onResponse({
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
-      handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
-        ctx.logger.log(`received response to :${this.config.serviceName}_updateServiceSchema`);
+      handler: async (ctx: RumbleshipContext, response: IQueuedGqlResponse) => {
+        await this.handler_updateServiceSchemaHandler(ctx, response);
       }
     });
+
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
       respond_on_error: true,
@@ -312,29 +319,12 @@ export class QueuedSubscriptionServer {
     });
   }
 
+  @AddToTrace()
   async initializeCacheRefreshRequest(ctx: RumbleshipContext): Promise<void> {
     this.queuedGqlRequestClient.onResponse({
       client_request_id: 'GetAllQueuedSubscriptionRequests',
-      handler: async (response: IQueuedGqlResponse, ctx: RumbleshipContext) => {
-        // We can get a response from multiple services, and google pub sub can
-        // deliver it twice.
-        if (response.response.data) {
-          const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
-            'queuedSubscriptionRequests'
-          ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
-          if (qsrs.length) {
-            await this.process_incoming_qsrs(ctx, qsrs);
-          } else {
-            // in development we might clear out the database and so we can get this situation where we have a cache but no
-            // real qsrs. This is a special case and we deliberately clear the cache at this and active running queuedSubsctiptions
-            // This may be better sorted through a flag in config, but fro now we do it this way
-            await this.stopAndClearSubscriptions();
-            await saveCache(new QueuedSubscriptionCache(this.config.Gcp.gaeVersion));
-          }
-        }
-        if (response.response.errors) {
-          ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
-        }
+      handler: async (ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void> => {
+        await this.handler_GetAllQueuedSubscriptionRequests(ctx, response);
       }
     });
     // we kick off a floating promise chain here...
@@ -350,7 +340,8 @@ export class QueuedSubscriptionServer {
     });
   }
 
-  async initializeCacheChangeObserver(): Promise<void> {
+  @AddToTrace()
+  async initializeCacheChangeObserver(ctx: RumbleshipContext): Promise<void> {
     // we listen directly to NODE_CHANGE_NOTIFICATIONS as the qsr_cache is not a full
     // Relay object
     // HOWEVER each service broadcasts on the channel so we filter out ones genrerated by this
@@ -360,21 +351,79 @@ export class QueuedSubscriptionServer {
     // kick off on its own promise chain
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.qsrLocalCacheObserver.start(
-      async (response: NodeChangePayload, ctx: RumbleshipContext) => {
-        // we are very careful on messagees passed in as they may not be what we think they are
-        if (response.publisher_service_name === this.config.serviceName) {
-          // double check...as messages might not be what we think they should be
-          if (response.oid) {
-            const { scope } = new Oid(response.oid).unwrap();
-            if (scope === QsrCacheOidScope) {
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              this.refreshSubscriptionsFromCache();
-            }
-          }
-        }
+      async (ctx: RumbleshipContext, response: NodeChangePayload): Promise<void> => {
+        await this.handler_localCacheChange(ctx, response);
       }
     );
 
     return;
+  }
+  /**
+   * use instance methods for handlers as we want to take advantage of the automated tracing
+   */
+  @AddToTrace()
+  async handler_localCacheChange(
+    ctx: RumbleshipContext,
+    response: NodeChangePayload
+  ): Promise<void> {
+    // we are very careful on messagees passed in as they may not be what we think they are
+    if (response.publisher_service_name === this.config.serviceName) {
+      // double check...as messages might not be what we think they should be
+      if (response.oid) {
+        const { scope } = new Oid(response.oid).unwrap();
+        if (scope === QsrCacheOidScope) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.refreshSubscriptionsFromCache(ctx);
+        }
+      }
+    }
+  }
+
+  @AddToTrace()
+  async handler_updateServiceSchemaHandler(
+    ctx: RumbleshipContext,
+    response: IQueuedGqlResponse
+  ): Promise<void> {
+    ctx.logger.log(`received response to :${this.config.serviceName}_updateServiceSchema`);
+  }
+
+  @AddToTrace()
+  async handler_GetAllQueuedSubscriptionRequests(
+    ctx: RumbleshipContext,
+    response: IQueuedGqlResponse
+  ): Promise<void> {
+    // We can get a response from multiple services, and google pub sub can
+    // deliver it twice.
+    if (response.response.data) {
+      const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
+        'queuedSubscriptionRequests'
+      ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
+      if (qsrs.length) {
+        await this.process_incoming_qsrs(ctx, qsrs);
+      } else {
+        // in development we might clear out the database and so we can get this situation where we have a cache but no
+        // real qsrs. This is a special case and we deliberately clear the cache at this and active running queuedSubsctiptions
+        // This may be better sorted through a flag in config, but fro now we do it this way
+        await this.stopAndClearSubscriptions();
+        await saveCache(new QueuedSubscriptionCache(this.config.Gcp.gaeVersion));
+      }
+    }
+    if (response.response.errors) {
+      ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
+    }
+  }
+
+  @AddToTrace()
+  async handler_onQueuedSubscriptionRequestChange(
+    ctx: RumbleshipContext,
+    response: QueuedSubscriptionMessage
+  ): Promise<void> {
+    const changedQueuedRequest: IQueuedSubscriptionRequest =
+      response.subscription_response.data?.[`onQueuedSubscriptionRequestChange`]?.node;
+    if (changedQueuedRequest) {
+      // All we do is add it to the cache... the cache will update, and the localCacheObserver will force the update to live subscriptions
+      //
+      await this.process_incoming_qsrs(ctx, [changedQueuedRequest]);
+    }
   }
 }

@@ -32,7 +32,7 @@ export declare class QueuedGqlRequestClientOneInstanceResponder {
     response_topic_name: string;
     response_subscription_name: string;
     service_name: string;
-    protected _client_id_handler_map: Map<string, (response: IQueuedGqlResponse, ctx: RumbleshipContext) => Promise<void>>;
+    protected _client_id_handler_map: Map<string, (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>>;
     protected _response_subscription: RfiPubSubSubscription<IQueuedGqlResponse>;
     protected _pubsub: GooglePubSub;
     constructor(config: ISharedSchema);
@@ -41,7 +41,7 @@ export declare class QueuedGqlRequestClientOneInstanceResponder {
     stop(): Promise<void>;
     onResponse(params: {
         client_request_id: string;
-        handler: (response: IQueuedGqlResponse, ctx: RumbleshipContext) => Promise<void>;
+        handler: (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>;
     }): void;
     stopResponding(params: {
         client_request_id: string;

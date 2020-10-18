@@ -143,17 +143,15 @@ export async function loadCache(
         { cache: new QueuedSubscriptionCache(version) },
         { transaction: opts?.transaction }
       );
-    } else {
-      if (version !== qsrCache.cache.version) {
-        qsrCache = await qsrCache.update(
-          { cache: new QueuedSubscriptionCache(version) },
-          { transaction: opts?.transaction }
-        );
-      }
     }
     return qsrCache.cache;
   }
   throw new Error('sequelize not initialized');
+}
+
+export async function readCache(): Promise<QueuedSubscriptionCache | undefined> {
+  const qsrCache = await QsrLocalCacheModel.findOne();
+  return qsrCache?.cache;
 }
 
 export async function saveCache(

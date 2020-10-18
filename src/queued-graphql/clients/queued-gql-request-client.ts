@@ -41,7 +41,7 @@ export class QueuedGqlRequestClientOneInstanceResponder {
 
   protected _client_id_handler_map: Map<
     string,
-    (response: IQueuedGqlResponse, ctx: RumbleshipContext) => Promise<void>
+    (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>
   > = new Map();
   protected _response_subscription: RfiPubSubSubscription<IQueuedGqlResponse>;
   protected _pubsub: GooglePubSub;
@@ -86,10 +86,10 @@ export class QueuedGqlRequestClientOneInstanceResponder {
   async start(): Promise<void> {
     await this._response_subscription.init();
     await this._response_subscription.start(
-      async (response: IQueuedGqlResponse, ctx: RumbleshipContext): Promise<void> => {
+      async (ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void> => {
         const handler = this._client_id_handler_map.get(response.client_request_id);
         if (handler) {
-          return handler(response, ctx);
+          return handler(ctx, response);
         }
       },
       this.constructor.name
@@ -100,7 +100,7 @@ export class QueuedGqlRequestClientOneInstanceResponder {
   }
   onResponse(params: {
     client_request_id: string;
-    handler: (response: IQueuedGqlResponse, ctx: RumbleshipContext) => Promise<void>;
+    handler: (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>;
   }): void {
     this._client_id_handler_map.set(params.client_request_id, params.handler);
   }

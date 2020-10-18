@@ -4,6 +4,7 @@ import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
 import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
+import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { QueuedSubscriptionCache } from '../../queued-subscription-cache';
 import { QueuedSubscriptionMessage } from './queued-subscription-message';
@@ -39,7 +40,7 @@ export declare class QueuedSubscriptionServer {
      * Utility to dump out current qsrs... usefull debug tool
      */
     logActiveQsrs(ctx: RumbleshipContext): void;
-    refreshSubscriptionsFromCache(qsrCache?: QueuedSubscriptionCache): Promise<number>;
+    refreshSubscriptionsFromCache(ctx: RumbleshipContext, qsrCache?: QueuedSubscriptionCache): Promise<number>;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(): Promise<void>;
     stopAndClearSubscriptions(): Promise<void>;
@@ -59,5 +60,12 @@ export declare class QueuedSubscriptionServer {
      */
     publishSchema(ctx: RumbleshipContext): Promise<void>;
     initializeCacheRefreshRequest(ctx: RumbleshipContext): Promise<void>;
-    initializeCacheChangeObserver(): Promise<void>;
+    initializeCacheChangeObserver(ctx: RumbleshipContext): Promise<void>;
+    /**
+     * use instance methods for handlers as we want to take advantage of the automated tracing
+     */
+    handler_localCacheChange(ctx: RumbleshipContext, response: NodeChangePayload): Promise<void>;
+    handler_updateServiceSchemaHandler(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void>;
+    handler_GetAllQueuedSubscriptionRequests(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void>;
+    handler_onQueuedSubscriptionRequestChange(ctx: RumbleshipContext, response: QueuedSubscriptionMessage): Promise<void>;
 }

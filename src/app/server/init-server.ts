@@ -248,7 +248,9 @@ export async function initServer(
   apolloServer.installSubscriptionHandlers(server.listener);
   // setup subscription server for GooglePubSub  clients
   const queuedSubscriptionServer = new QueuedSubscriptionServer(config, globalGraphQlSchema);
+  Container.set('theQueuedSubscriptionServer', queuedSubscriptionServer);
   const queuedGqlRequestServer = new QueuedGqlRequestServer(config, globalGraphQlSchema);
+  Container.set('theQueuedGqlRequestServer', queuedGqlRequestServer);
 
   server.events.on('start', async () => {
     try {
