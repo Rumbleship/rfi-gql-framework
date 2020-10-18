@@ -116,7 +116,11 @@ export class QueuedSubscriptionServer {
 
     // kick off on its own promise chain
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.qsrChangeObserver.start(this.handler_onQueuedSubscriptionRequestChange);
+    this.qsrChangeObserver.start(
+      async (ctx: RumbleshipContext, response: QueuedSubscriptionMessage): Promise<void> => {
+        await this.handler_onQueuedSubscriptionRequestChange(ctx, response);
+      }
+    );
 
     return;
   }
@@ -292,8 +296,11 @@ export class QueuedSubscriptionServer {
     // We don't care about the response
     this.queuedGqlRequestClient.onResponse({
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
-      handler: this.handler_updateServiceSchemaHandler
+      handler: async (ctx: RumbleshipContext, response: IQueuedGqlResponse) => {
+        await this.handler_updateServiceSchemaHandler(ctx, response);
+      }
     });
+
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: `${this.config.serviceName}_updateServiceSchema`,
       respond_on_error: true,
@@ -316,7 +323,9 @@ export class QueuedSubscriptionServer {
   async initializeCacheRefreshRequest(ctx: RumbleshipContext): Promise<void> {
     this.queuedGqlRequestClient.onResponse({
       client_request_id: 'GetAllQueuedSubscriptionRequests',
-      handler: this.handler_GetAllQueuedSubscriptionRequests
+      handler: async (ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void> => {
+        await this.handler_GetAllQueuedSubscriptionRequests(ctx, response);
+      }
     });
     // we kick off a floating promise chain here...
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -341,7 +350,11 @@ export class QueuedSubscriptionServer {
 
     // kick off on its own promise chain
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.qsrLocalCacheObserver.start(this.handler_localCacheChange);
+    this.qsrLocalCacheObserver.start(
+      async (ctx: RumbleshipContext, response: NodeChangePayload): Promise<void> => {
+        await this.handler_localCacheChange(ctx, response);
+      }
+    );
 
     return;
   }
