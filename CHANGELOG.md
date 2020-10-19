@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * upgraded @google/pubsub to 2.5.0 
 ### Fixed
 ### Deprecated
 ### Security
