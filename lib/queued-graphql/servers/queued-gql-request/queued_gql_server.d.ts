@@ -28,8 +28,8 @@ export declare class QueuedGqlRequestServer {
     protected _pubsub: GooglePubSub;
     constructor(config: ISharedSchema, schema: GraphQLSchema);
     start(ctx: RumbleshipContext): Promise<void>;
-    publishResponse(request: IQueuedGqlRequest, executionResponse: ExecutionResult): Promise<string>;
-    stop(): Promise<void>;
+    publishResponse(ctx: RumbleshipContext, request: IQueuedGqlRequest, executionResponse: ExecutionResult): Promise<string>;
+    stop(ctx: RumbleshipContext): Promise<void>;
     static validateGqlRequest(schema: GraphQLSchema, subscriptionRequest: IQueuedGqlRequest): GqlExecutionParams;
 }
 export declare class QueuedRequestClient {

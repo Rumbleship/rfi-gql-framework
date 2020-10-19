@@ -21,8 +21,8 @@ import {
 
 import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
 import { AddToTrace } from '@rumbleship/o11y';
-import { Ctx } from 'type-graphql';
-import { addErrorToTraceContext } from 'src/app/honeycomb-helpers/add_error_to_trace_context';
+
+import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
 
 /**
  * Complement to the queuedeSubscription service that listens for straight graphql queries and mutations
