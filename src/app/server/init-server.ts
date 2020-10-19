@@ -256,7 +256,7 @@ export async function initServer(
   server.events.on('start', async () => {
     const ctx = RumbleshipContext.make(__filename, {
       initial_trace_metadata: {
-        name: 'Server.startServer'
+        name: 'QueuedQql.start'
       }
     });
     try {
@@ -281,7 +281,7 @@ export async function initServer(
   server.events.on('stop', async () => {
     const ctx = RumbleshipContext.make(__filename, {
       initial_trace_metadata: {
-        name: 'Server.stop'
+        name: 'QueuedGql.stop'
       }
     });
     try {
@@ -289,7 +289,7 @@ export async function initServer(
       await queuedGqlRequestServer.stop(ctx);
     } catch (error) {
       addErrorToTraceContext(ctx, error);
-      serverLogger.error('Error stopping QueuedSubscriptionServer', {
+      serverLogger.error('Error stopping  Queued graphql servers', {
         stack: error.stack,
         message: error.message
       });
