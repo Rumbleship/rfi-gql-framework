@@ -276,8 +276,13 @@ export async function initServer(
   // emit the 'stop' event
   server.events.on('stop', async () => {
     try {
-      await queuedSubscriptionServer.stop();
-      await queuedGqlRequestServer.stop();
+      const ctx = RumbleshipContext.make(__filename, {
+        initial_trace_metadata: {
+          name: 'QueuedSubscriptionServer.stop'
+        }
+      });
+      await queuedSubscriptionServer.stop(ctx);
+      await queuedGqlRequestServer.stop(ctx);
     } catch (error) {
       serverLogger.error('Error stopping QueuedSubscriptionServer', {
         stack: error.stack,

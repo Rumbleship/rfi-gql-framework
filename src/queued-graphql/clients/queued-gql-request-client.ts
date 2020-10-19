@@ -52,13 +52,14 @@ export class QueuedGqlRequestClientOneInstanceResponder {
     // we have a topic defined for each service for responses to be published to
     this.response_topic_name = `${config.PubSub.topicPrefix}${QUEUED_GRAPHQL_RESPONSE_TOPIC}_${this.service_name}`;
     // And a single subscription for each service to listen to that topic
-    this.response_subscription_name = `${this.response_topic_name}`;
+    this.response_subscription_name = `${this.response_topic_name}_subscription`;
     this._pubsub = new GooglePubSub(config.Gcp.Auth);
     this._response_subscription = new RfiPubSubSubscription(
       config,
       this._pubsub,
       this.response_topic_name,
-      this.response_subscription_name
+      this.response_subscription_name,
+      false
     );
   }
   async makeRequest(

@@ -21,6 +21,7 @@ export class RfiPubSubSubscription<T> {
     protected _pubSub: GooglePubSub,
     topic_name: string,
     subscription_name: string,
+    protected delete_on_stop: boolean,
     protected subscriber_options?: SubscriberOptions
   ) {
     this.logger = logging.getLogger(config.Logging, { filename: __filename });
@@ -149,6 +150,9 @@ export class RfiPubSubSubscription<T> {
   }
   public async stop(): Promise<void> {
     await this._subscription?.close();
+    if (this.delete_on_stop) {
+      await this._subscription.delete();
+    }
   }
   /**
    * sets up listener and turns it into an AsyncIterableIterator
