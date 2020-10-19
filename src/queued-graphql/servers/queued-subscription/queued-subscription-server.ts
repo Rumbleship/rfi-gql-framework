@@ -22,6 +22,7 @@ import { NodeChangePayload } from '../../../app/server/rfi-pub-sub-engine.interf
 import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
+import { Transaction } from 'sequelize/types';
 
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC`;
 
@@ -94,14 +95,16 @@ export class QueuedSubscriptionServer {
       this.config,
       pubsub,
       qsrChangeTopic,
-      qsrChangeSubsciptionName
+      qsrChangeSubsciptionName,
+      false
     );
 
     this.qsrLocalCacheObserver = new RfiPubSubSubscription<NodeChangePayload>(
       this.config,
       pubsub,
       qsrCacheChangeTopicName,
-      qsrCacheChangeSubscriptionName
+      qsrCacheChangeSubscriptionName,
+      true // delete_on_stop
     );
 
     this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
@@ -134,7 +137,7 @@ export class QueuedSubscriptionServer {
     if (sequelize) {
       const transaction = await sequelize.transaction(); // we want to lock the cache for writing, so create a transaction
       try {
-        const qsrCache = await loadCache(this.config.Gcp.gaeVersion, { transaction });
+        const qsrCache = await this.loadCache(ctx, this.config.Gcp.gaeVersion, { transaction });
         let cache_dirty = false;
         const validateAndAddToCache = (request: IQueuedSubscriptionRequest): void => {
           try {
@@ -207,13 +210,13 @@ export class QueuedSubscriptionServer {
     // find active subscriptions that need to be removed
     for (const [key] of this.queuedSubscriptions.entries()) {
       if (!qsrCache.cache.has(key)) {
-        await this.removeSubscription(key);
+        await this.removeSubscription(ctx, key);
       }
     }
     // find qsr's that have to be added
     for (const [key, qsr] of qsrCache.cache.entries()) {
       if (!this.queuedSubscriptions.has(key)) {
-        this.addSubscriptionAndStart(key, qsr);
+        this.addSubscriptionAndStart(ctx, key, qsr);
       }
     }
     return qsrCache.highest_cache_consistency_id;
@@ -232,13 +235,15 @@ export class QueuedSubscriptionServer {
     await this.initializeCacheRefreshRequest(ctx);
   }
 
-  async stop(): Promise<void> {
+  @AddToTrace()
+  async stop(ctx: RumbleshipContext): Promise<void> {
     await this.qsrChangeObserver.stop();
     await this.qsrLocalCacheObserver.stop();
-    await this.stopAndClearSubscriptions();
+    await this.stopAndClearSubscriptions(ctx);
   }
 
-  async stopAndClearSubscriptions(): Promise<void> {
+  @AddToTrace()
+  async stopAndClearSubscriptions(ctx: RumbleshipContext): Promise<void> {
     await Promise.all(
       Array.from(this.queuedSubscriptions, async queuedSubscription => {
         return queuedSubscription[1].stop();
@@ -250,7 +255,12 @@ export class QueuedSubscriptionServer {
    * Adds and starts the subscription
    * @param request
    */
-  addSubscriptionAndStart(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription {
+  @AddToTrace()
+  addSubscriptionAndStart(
+    ctx: RumbleshipContext,
+    key: string,
+    request: IQueuedSubscriptionRequest
+  ): QueuedSubscription {
     if (this.queuedSubscriptions.has(key)) {
       throw new Error(
         `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
@@ -264,7 +274,9 @@ export class QueuedSubscriptionServer {
     void queuedSubscription.start();
     return queuedSubscription;
   }
-  async removeSubscription(key: string): Promise<void> {
+
+  @AddToTrace()
+  async removeSubscription(ctx: RumbleshipContext, key: string): Promise<void> {
     const queuedSubscription = this.queuedSubscriptions.get(key);
     if (queuedSubscription) {
       // remove from list first, as await can switch promise chains
@@ -404,7 +416,7 @@ export class QueuedSubscriptionServer {
         // in development we might clear out the database and so we can get this situation where we have a cache but no
         // real qsrs. This is a special case and we deliberately clear the cache at this and active running queuedSubsctiptions
         // This may be better sorted through a flag in config, but fro now we do it this way
-        await this.stopAndClearSubscriptions();
+        await this.stopAndClearSubscriptions(ctx);
         await saveCache(new QueuedSubscriptionCache(this.config.Gcp.gaeVersion));
       }
     }
@@ -426,4 +438,20 @@ export class QueuedSubscriptionServer {
       await this.process_incoming_qsrs(ctx, [changedQueuedRequest]);
     }
   }
+
+  // functions to add tracing
+  loadCache = (
+    ctx: RumbleshipContext,
+    version: string,
+    opts?:
+      | {
+          transaction?: Transaction | undefined;
+        }
+      | undefined
+  ): Promise<QueuedSubscriptionCache> =>
+    ctx.beeline.bindFunctionToTrace(() =>
+      ctx.beeline.withAsyncSpan({ name: 'loadCache', 'meta.type': 'QsrCache' }, async _span => {
+        return loadCache(version, opts);
+      })
+    )();
 }

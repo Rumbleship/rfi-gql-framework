@@ -9,6 +9,7 @@ import { RfiPubSubSubscription } from '../../shared';
 import { QueuedSubscriptionCache } from '../../queued-subscription-cache';
 import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { NodeChangePayload } from '../../../app/server/rfi-pub-sub-engine.interface';
+import { Transaction } from 'sequelize/types';
 export declare const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = "QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC";
 export declare const QSR_GQL_FRAGMENT = "\n  fragment qsr on QueuedSubscriptionRequest {\n    id\n    subscription_name\n    cache_consistency_id\n    marshalled_acl\n    gql_query_string\n    active\n    owner_id\n    operation_name\n    query_attributes\n    publish_to_topic_name\n    serviced_by\n    deleted_at\n  }\n";
 /**
@@ -42,14 +43,14 @@ export declare class QueuedSubscriptionServer {
     logActiveQsrs(ctx: RumbleshipContext): void;
     refreshSubscriptionsFromCache(ctx: RumbleshipContext, qsrCache?: QueuedSubscriptionCache): Promise<number>;
     start(ctx: RumbleshipContext): Promise<void>;
-    stop(): Promise<void>;
-    stopAndClearSubscriptions(): Promise<void>;
+    stop(ctx: RumbleshipContext): Promise<void>;
+    stopAndClearSubscriptions(ctx: RumbleshipContext): Promise<void>;
     /**
      * Adds and starts the subscription
      * @param request
      */
-    addSubscriptionAndStart(key: string, request: IQueuedSubscriptionRequest): QueuedSubscription;
-    removeSubscription(key: string): Promise<void>;
+    addSubscriptionAndStart(ctx: RumbleshipContext, key: string, request: IQueuedSubscriptionRequest): QueuedSubscription;
+    removeSubscription(ctx: RumbleshipContext, key: string): Promise<void>;
     hasSubscription(key: string): boolean;
     getSubscription(key: string): QueuedSubscription | undefined;
     /**
@@ -68,4 +69,7 @@ export declare class QueuedSubscriptionServer {
     handler_updateServiceSchemaHandler(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void>;
     handler_GetAllQueuedSubscriptionRequests(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void>;
     handler_onQueuedSubscriptionRequestChange(ctx: RumbleshipContext, response: QueuedSubscriptionMessage): Promise<void>;
+    loadCache: (ctx: RumbleshipContext, version: string, opts?: {
+        transaction?: Transaction | undefined;
+    } | undefined) => Promise<QueuedSubscriptionCache>;
 }

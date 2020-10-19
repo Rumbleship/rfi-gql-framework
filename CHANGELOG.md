@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * delete on stop subscription option in RfiPubSubSubscritpion fro instance specific subscriptions
+  * added additional tracing to QueuedSubscriptionServer
+### Removed
+### Changed
+### Fixed
+### Deprecated
+### Security
+
+
 ## [13.0.4] -- 2020-10-18
 
 ### Added
