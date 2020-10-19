@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * delete on stop subscription option in RfiPubSubSubscritpion fro instance specific subscriptions
+  * added additional tracing to QueuedSubscriptionServer
 ### Removed
 ### Changed
 ### Fixed

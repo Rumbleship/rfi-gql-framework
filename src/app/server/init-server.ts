@@ -32,6 +32,7 @@ import {
   QueuedGqlRequestServer,
   QueuedSubscriptionServer
 } from '../../queued-graphql';
+import { addErrorToTraceContext } from '../honeycomb-helpers/add_error_to_trace_context';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -253,42 +254,53 @@ export async function initServer(
   Container.set('theQueuedGqlRequestServer', queuedGqlRequestServer);
 
   server.events.on('start', async () => {
-    try {
-      const rumbleshipContext = RumbleshipContext.make(__filename);
-      try {
-        // these function starts all the active queued subscriptions and requests and then returns
-        //
-        await queuedSubscriptionServer.start(rumbleshipContext);
-        await queuedGqlRequestServer.start(rumbleshipContext);
-      } finally {
-        await rumbleshipContext.release();
+    const ctx = RumbleshipContext.make(__filename, {
+      initial_trace_metadata: {
+        name: 'QueuedQql.start'
       }
+    });
+    try {
+      // these function starts all the active queued subscriptions and requests and then returns
+      //
+      await queuedSubscriptionServer.start(ctx);
+      await queuedGqlRequestServer.start(ctx);
     } catch (error) {
+      addErrorToTraceContext(ctx, error);
       serverLogger.error('Error starting Queued graphql servers', {
         stack: error.stack,
         message: error.message
       });
       throw error;
+    } finally {
+      await ctx.release();
     }
   });
   // setup the routines to gracefully shut down the Event Dispatcher and pubsub.
   // Note that startServer calls server.stop() on receipt of a SIGTERM signel, which in turn will
   // emit the 'stop' event
   server.events.on('stop', async () => {
+    const ctx = RumbleshipContext.make(__filename, {
+      initial_trace_metadata: {
+        name: 'QueuedGql.stop'
+      }
+    });
     try {
-      await queuedSubscriptionServer.stop();
-      await queuedGqlRequestServer.stop();
+      await queuedSubscriptionServer.stop(ctx);
+      await queuedGqlRequestServer.stop(ctx);
     } catch (error) {
-      serverLogger.error('Error stopping QueuedSubscriptionServer', {
+      addErrorToTraceContext(ctx, error);
+      serverLogger.error('Error stopping  Queued graphql servers', {
         stack: error.stack,
         message: error.message
       });
       throw error;
+    } finally {
+      await ctx.release();
     }
   });
 
   await server.register(hapi_plugins);
-  await server.route([root_route, health_check_route, ...injected_routes]);
+  server.route([root_route, health_check_route, ...injected_routes]);
 
   server.ext('onRequest', (request: Hapi.Request, h: Hapi.ResponseToolkit) => {
     /**

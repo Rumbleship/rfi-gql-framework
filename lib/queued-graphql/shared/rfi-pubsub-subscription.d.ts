@@ -5,13 +5,14 @@ import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 export declare class RfiPubSubSubscription<T> {
     protected _pubSub: GooglePubSub;
+    protected delete_on_stop: boolean;
     protected subscriber_options?: SubscriberOptions | undefined;
     protected _initiaized: boolean;
     private _subscription;
     protected topic_name: string;
     protected subscription_name: string;
     protected logger: SpyglassLogger;
-    constructor(config: ISharedSchema, _pubSub: GooglePubSub, topic_name: string, subscription_name: string, subscriber_options?: SubscriberOptions | undefined);
+    constructor(config: ISharedSchema, _pubSub: GooglePubSub, topic_name: string, subscription_name: string, delete_on_stop: boolean, subscriber_options?: SubscriberOptions | undefined);
     init(): Promise<void>;
     protected initSubscription(): Promise<Subscription>;
     start(handler: (ctx: RumbleshipContext, payload: T) => Promise<void>, source_name?: string): Promise<void>;

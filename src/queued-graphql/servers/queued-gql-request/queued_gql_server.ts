@@ -20,6 +20,9 @@ import {
 } from '../../interfaces/queued-gql-request.interface';
 
 import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
+import { AddToTrace } from '@rumbleship/o11y';
+
+import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
 
 /**
  * Complement to the queuedeSubscription service that listens for straight graphql queries and mutations
@@ -52,15 +55,18 @@ export class QueuedGqlRequestServer {
       config,
       this._pubsub,
       this.request_topic_name,
-      this.request_subscription_name
+      this.request_subscription_name,
+      false
     );
   }
+  @AddToTrace()
   async start(ctx: RumbleshipContext): Promise<void> {
     // this is a long running promise chain that loops listening for messages
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this._request_subscription.start(
       async (ctx: RumbleshipContext, request: IQueuedGqlRequest): Promise<void> => {
         let executionResult: ExecutionResult | undefined;
+        ctx.beeline.addTraceContext({ request });
         try {
           const executionParams = QueuedGqlRequestServer.validateGqlRequest(this.schema, request);
           executionResult = await execute({
@@ -71,6 +77,7 @@ export class QueuedGqlRequestServer {
             operationName: executionParams.operationName
           });
         } catch (error) {
+          addErrorToTraceContext(ctx, error);
           if (request.respond_on_error) {
             const gqlError =
               error instanceof GraphQLError
@@ -83,34 +90,23 @@ export class QueuedGqlRequestServer {
                     undefined,
                     error
                   );
-            // TODO add traceing honeycomb ?
-            /* ctx.logger.log('Errors in QueuedGqlResponse', {
-              client_request_id: request.client_request_id,
-              query: request.gql_query_string,
-              errors: gqlError
-            });
-            */
+
             if (request.publish_to_topic_name) {
-              await this.publishResponse(request, { errors: [gqlError] });
+              await this.publishResponse(ctx, request, { errors: [gqlError] });
             }
           }
         }
         if (executionResult) {
-          /*if (executionResult.errors) {
-            // TODO add traceing honeycomb ?
-            ctx.logger.log('Errors in QueuedGqlResponse', {
-              client_request_id: request.client_request_id,
-              query: request.gql_query_string,
-              errors: executionResult.errors
-            }); 
-          }*/
-          await this.publishResponse(request, executionResult);
+          ctx.beeline.addTraceContext({ executionResult });
+          await this.publishResponse(ctx, request, executionResult);
         }
       }
     );
   }
 
+  @AddToTrace()
   async publishResponse(
+    ctx: RumbleshipContext,
     request: IQueuedGqlRequest,
     executionResponse: ExecutionResult
   ): Promise<string> {
@@ -124,7 +120,8 @@ export class QueuedGqlRequestServer {
     return topic.publish(Buffer.from(payload));
   }
 
-  async stop(): Promise<void> {
+  @AddToTrace()
+  async stop(ctx: RumbleshipContext): Promise<void> {
     if (this._request_subscription) {
       await this._request_subscription.stop();
     }
