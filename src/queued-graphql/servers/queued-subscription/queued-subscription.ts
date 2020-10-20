@@ -166,7 +166,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         contextValue: onDemandContext
       });
       const logger = onDemandContext.logger;
-
+      await onDemandContext.reset();
       if ('next' in result) {
         this.activeSubscription = result;
         for await (const executionResult of this.activeSubscription) {
