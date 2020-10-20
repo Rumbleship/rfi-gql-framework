@@ -8,9 +8,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * alert parameter to addErrorToTraceContext to allow a Honeycomb alert should/should not be normally raised on this error.
+  * set alert to false on QueuedRequest response error reporting to tracing
 ### Removed
 ### Changed
 ### Fixed
+  * tracing OnDemandContext 
+  * QueuedSubscription initial subscribe ensuring that the context is  onDemandContext.reset() before entering the for await...
+
 ### Deprecated
 ### Security
 
