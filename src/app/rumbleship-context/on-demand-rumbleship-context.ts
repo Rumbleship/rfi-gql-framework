@@ -3,8 +3,10 @@ import { Authorizer } from '@rumbleship/acl';
 import { ContainerInstance } from 'typedi';
 import { HoneycombSpan, RumbleshipBeeline } from '@rumbleship/o11y';
 import { SpyglassLogger } from '@rumbleship/spyglass';
+import { v4 } from 'uuid';
 
 export class OnDemandRumbleshipContext implements RumbleshipContext {
+  private on_demand_context_id = v4();
   private _wrappedContext?: RumbleshipContext;
   private _authorizer?: Authorizer = undefined;
 
@@ -19,8 +21,13 @@ export class OnDemandRumbleshipContext implements RumbleshipContext {
 
   private get wrappedContext(): RumbleshipContext {
     if (!this._wrappedContext) {
-      this._wrappedContext = RumbleshipContext.make(__filename, {
-        authorizer: this.getAuthorizer()
+      this._wrappedContext = RumbleshipBeeline.runWithoutTrace(() => {
+        return RumbleshipContext.make(__filename, {
+          initial_trace_metadata: {
+            on_demand_context_id: this.on_demand_context_id
+          },
+          authorizer: this.getAuthorizer()
+        });
       });
     }
     return this._wrappedContext;
@@ -51,11 +58,14 @@ export class OnDemandRumbleshipContext implements RumbleshipContext {
   async reset(): Promise<void> {
     if (this._wrappedContext) {
       const toRelease = this._wrappedContext;
-      this._wrappedContext = undefined;
-      // reset the authorization as the context is long lived and we will
-      // want to check the authorization in future
-      this._authorizer = undefined;
-      await toRelease.release();
+      await toRelease.beeline.withAsyncSpan({ name: 'release' }, async () => {
+        toRelease.beeline.finishSpan(toRelease.beeline.startSpan({ name: 'reset' }));
+        this._wrappedContext = undefined;
+        // reset the authorization as the context is long lived and we will
+        // want to check the authorization in future
+        this._authorizer = undefined;
+        await toRelease.release();
+      });
     }
   }
 }

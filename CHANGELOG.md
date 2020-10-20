@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * alert parameter to addErrorToTraceContext to allow a Honeycomb alert should/should not be normally raised on this error.
+  * set alert to false on QueuedRequest response error reporting to tracing
+### Removed
+### Changed
+### Fixed
+  * tracing OnDemandContext 
+  * QueuedSubscription initial subscribe ensuring that the context is  onDemandContext.reset() before entering the for await...
+
+### Deprecated
+### Security
+
+
 ## [13.0.6] -- 2020-10-19
 
 ### Changed

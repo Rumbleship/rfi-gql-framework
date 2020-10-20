@@ -77,7 +77,7 @@ export class QueuedGqlRequestServer {
             operationName: executionParams.operationName
           });
         } catch (error) {
-          addErrorToTraceContext(ctx, error);
+          addErrorToTraceContext(ctx, error, false); // add to context but set 'alert to false as this is expected
           if (request.respond_on_error) {
             const gqlError =
               error instanceof GraphQLError
