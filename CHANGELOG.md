@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   * alert parameter to addErrorToTraceContext to allow a Honeycomb alert should/should not be normally raised on this error.
+  * set alert to false on QueuedRequest response error reporting to tracing
 ### Removed
 ### Changed
 ### Fixed
