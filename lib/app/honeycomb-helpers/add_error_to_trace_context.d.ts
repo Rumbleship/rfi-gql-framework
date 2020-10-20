@@ -3,4 +3,4 @@
  * additional attribues off the error instance
  */
 import { RumbleshipContext } from '../rumbleship-context';
-export declare function addErrorToTraceContext(ctx: RumbleshipContext, error: Error): void;
+export declare function addErrorToTraceContext(ctx: RumbleshipContext, error: Error, alert?: boolean): void;

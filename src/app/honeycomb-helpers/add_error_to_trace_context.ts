@@ -10,8 +10,9 @@ import { GraphQLError } from 'graphql';
 import { ConnectionError, DatabaseError, OptimisticLockError, ValidationError } from 'sequelize';
 import { RumbleshipContext } from '../rumbleship-context';
 
-export function addErrorToTraceContext(ctx: RumbleshipContext, error: Error): void {
+export function addErrorToTraceContext(ctx: RumbleshipContext, error: Error, alert = true): void {
   let metadata = {
+    'error.alert': alert,
     'error.name': error.name,
     'error.message': error.message,
     'error.stack': error.stack,
