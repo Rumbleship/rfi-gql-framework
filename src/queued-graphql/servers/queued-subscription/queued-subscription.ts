@@ -18,7 +18,7 @@ import {
 } from './queued-subscription-request.interface';
 import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
-import { AddToTrace } from '@rumbleship/o11y';
+import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
@@ -170,8 +170,11 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       if ('next' in result) {
         this.activeSubscription = result;
         for await (const executionResult of this.activeSubscription) {
-          await this.onGqlSubscribeResponse(onDemandContext, executionResult);
-          await onDemandContext.reset();
+          // NOTE we are inside a for await
+          await RumbleshipBeeline.runWithoutTrace(async () => {
+            await this.onGqlSubscribeResponse(onDemandContext, executionResult);
+            await onDemandContext.reset();
+          });
         }
 
         logger.info(`exited QueuedSubscription: ${this.subscription_name} `);
