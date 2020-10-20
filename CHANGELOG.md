@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * addin check for subscription already exists in src/queued-graphql/helpers/gcp_helpers.ts
 ### Deprecated
 ### Security
 
