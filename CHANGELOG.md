@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * support for returning the delta for any property listed in watchlist parameter in a subscription
 ### Removed
 ### Changed
 ### Fixed

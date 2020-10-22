@@ -37,7 +37,7 @@ export function withSubscriptionResolver<
       @Root() rawPayload: RawPayload,
       @Args(type => subscriptionFilterClsType) args: SubscriptionWatchFilter
     ): Promise<NodeNotification<TApi>> {
-      return createNodeNotification(rawPayload, this, notificationClsType);
+      return createNodeNotification(rawPayload, this, notificationClsType, args?.watch_list);
     }
   }
   return SubscriptionResolver;
