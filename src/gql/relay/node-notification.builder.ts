@@ -27,7 +27,7 @@ export function GqlNodeNotification<T extends Node<T>>(
     node!: T;
 
     @Field(type => [GqlModelDelta])
-    watch_list_deltas: ModelDeltaClass[] = [];
+    watch_list_deltas!: ModelDeltaClass[];
 
     constructor(
       notificationOf: NotificationOf,
