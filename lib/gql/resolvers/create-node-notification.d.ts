@@ -6,4 +6,4 @@ export interface RawPayload {
         toString(): string;
     };
 }
-export declare function createNodeNotification<TApi extends Node<TApi> = any>(raw: RawPayload, resolver: BaseReadableResolverInterface<TApi, any, any>, NotificationType: ClassType<NodeNotification<TApi>>): Promise<NodeNotification<TApi>>;
+export declare function createNodeNotification<TApi extends Node<TApi> = any>(raw: RawPayload, resolver: BaseReadableResolverInterface<TApi, any, any>, NotificationType: ClassType<NodeNotification<TApi>>, delta_keys?: string[]): Promise<NodeNotification<TApi>>;
