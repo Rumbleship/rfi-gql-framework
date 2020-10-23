@@ -36,8 +36,9 @@ export declare class QueuedGqlRequestClientOneInstanceResponder {
     protected _response_subscription: RfiPubSubSubscription<IQueuedGqlResponse>;
     protected _pubsub: GooglePubSub;
     constructor(config: ISharedSchema);
-    makeRequest(ctx: RumbleshipContext, params: Pick<IQueuedGqlRequest, 'client_request_id' | 'respond_on_error' | 'gql_query_string' | 'query_attributes' | 'operation_name'>): Promise<string>;
+    makeRequest(ctx: RumbleshipContext, params: Pick<IQueuedGqlRequest, 'client_request_id' | 'respond_on_error' | 'gql_query_string' | 'query_attributes' | 'operation_name'>, onResponsehandler?: (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>): Promise<string>;
     start(): Promise<void>;
+    defaultHandler(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void>;
     stop(): Promise<void>;
     onResponse(params: {
         client_request_id: string;
