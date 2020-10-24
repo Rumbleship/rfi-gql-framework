@@ -16,8 +16,10 @@ export function initQueuedGraphql(
   Container.set('theQueuedSubscriptionServer', queuedSubscriptionServer);
   const queuedGqlRequestServer = new QueuedGqlRequestServer(config, schema);
   Container.set('theQueuedGqlRequestServer', queuedGqlRequestServer);
-  const queuedSubscriptionObservers = new QueuedSubscriptionObserverManager(config, observers);
-  Container.set('theQueuedSubscriptionObserverManager', queuedSubscriptionObservers);
+  if (observers.length) {
+    const queuedSubscriptionObservers = new QueuedSubscriptionObserverManager(config, observers);
+    Container.set('theQueuedSubscriptionObserverManager', queuedSubscriptionObservers);
+  }
 }
 
 export async function startQueuedGraphQl(ctx: RumbleshipContext): Promise<void> {
@@ -30,11 +32,14 @@ export async function startQueuedGraphQl(ctx: RumbleshipContext): Promise<void> 
   await qsrSubscriptionServer.start(ctx);
   const qsrRequestServer: QueuedGqlRequestServer = Container.get('theQueuedGqlRequestServer');
   await qsrRequestServer.start(ctx);
-  const qsoManager: QueuedSubscriptionObserverManager = Container.get(
+  const qsoManager: QueuedSubscriptionObserverManager | undefined = Container.get(
     'theQueuedSubscriptionObserverManager'
   );
-  await qsoManager.init(ctx);
-  await qsoManager.start(ctx);
+
+  if (qsoManager) {
+    await qsoManager.init(ctx);
+    await qsoManager.start(ctx);
+  }
 }
 
 export async function stopQueuedGraphQl(ctx: RumbleshipContext): Promise<void> {
@@ -44,8 +49,10 @@ export async function stopQueuedGraphQl(ctx: RumbleshipContext): Promise<void> {
   await qsrSubscriptionServer.stop(ctx);
   const qsrRequestServer: QueuedGqlRequestServer = Container.get('theQueuedGqlRequestServer');
   await qsrRequestServer.stop(ctx);
-  const qsoManager: QueuedSubscriptionObserverManager = Container.get(
+  const qsoManager: QueuedSubscriptionObserverManager | undefined = Container.get(
     'theQueuedSubscriptionObserverManager'
   );
-  await qsoManager.stop(ctx);
+  if (qsoManager) {
+    await qsoManager.stop(ctx);
+  }
 }
