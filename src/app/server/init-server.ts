@@ -27,12 +27,14 @@ import hapiRequireHttps = require('hapi-require-https');
 import hapiRequestIdHeader = require('hapi-request-id-header');
 
 import { Oid } from '@rumbleship/oid';
-import {
-  QueuedCacheScopeAndDb,
-  QueuedGqlRequestServer,
-  QueuedSubscriptionServer
-} from '../../queued-graphql';
+import { QueuedCacheScopeAndDb, QueuedSubscriptionObserver } from '../../queued-graphql';
 import { addErrorToTraceContext } from '../honeycomb-helpers/add_error_to_trace_context';
+import {
+  initQueuedGraphql,
+  startQueuedGraphQl,
+  stopQueuedGraphQl
+} from '../../queued-graphql/init_queued_graphql';
+import { ClassType } from '../../helpers';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -43,6 +45,7 @@ export async function initServer(
   injected_apollo_server_options: Pick<Config, 'plugins' | 'uploads'> = {},
   injected_models: DbModelAndOidScope[],
   injected_schema_options: Omit<BuildSchemaOptions, 'authChecker' | 'pubSub' | 'container'>,
+  injected_subscription_observers: ClassType<QueuedSubscriptionObserver>[],
   injected_routes: Hapi.ServerRoute[] = [],
   onContainer: (context: RumbleshipContext, ServiceFactories: ServiceFactoryMap) => void,
   onInitialized: (server: Hapi.Server, pubSub: RfiPubSub) => Promise<void> = (
@@ -248,10 +251,7 @@ export async function initServer(
   // Set up subscriptions for websocket clients
   apolloServer.installSubscriptionHandlers(server.listener);
   // setup subscription server for GooglePubSub  clients
-  const queuedSubscriptionServer = new QueuedSubscriptionServer(config, globalGraphQlSchema);
-  Container.set('theQueuedSubscriptionServer', queuedSubscriptionServer);
-  const queuedGqlRequestServer = new QueuedGqlRequestServer(config, globalGraphQlSchema);
-  Container.set('theQueuedGqlRequestServer', queuedGqlRequestServer);
+  initQueuedGraphql(config, globalGraphQlSchema, injected_subscription_observers);
 
   server.events.on('start', async () => {
     const ctx = RumbleshipContext.make(__filename, {
@@ -262,8 +262,7 @@ export async function initServer(
     try {
       // these function starts all the active queued subscriptions and requests and then returns
       //
-      await queuedSubscriptionServer.start(ctx);
-      await queuedGqlRequestServer.start(ctx);
+      await startQueuedGraphQl(ctx);
     } catch (error) {
       addErrorToTraceContext(ctx, error);
       serverLogger.error('Error starting Queued graphql servers', {
@@ -285,8 +284,7 @@ export async function initServer(
       }
     });
     try {
-      await queuedSubscriptionServer.stop(ctx);
-      await queuedGqlRequestServer.stop(ctx);
+      await stopQueuedGraphQl(ctx);
     } catch (error) {
       addErrorToTraceContext(ctx, error);
       serverLogger.error('Error stopping  Queued graphql servers', {

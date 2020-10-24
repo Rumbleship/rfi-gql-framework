@@ -15,15 +15,16 @@ import { QueuedSubscriptionHandler, QueuedSubscriptionObserver } from './queued_
  */
 export declare class QueuedSubscriptionObserverManager {
     config: ISharedSchema;
+    protected observers: ClassType<QueuedSubscriptionObserver>[];
     qsr_subscription: RfiPubSubSubscription<QueuedSubscriptionMessage>;
     qsrTopicName: string;
     qsrSubscriptionName: string;
     handlers: Map<string, QueuedSubscriptionHandler>;
     _initialized: boolean;
     queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
-    constructor(config: ISharedSchema);
+    constructor(config: ISharedSchema, observers: ClassType<QueuedSubscriptionObserver>[]);
     setHandlers(observers: ClassType<QueuedSubscriptionObserver>[]): void;
-    init(ctx: RumbleshipContext, observers: ClassType<QueuedSubscriptionObserver>[]): Promise<void>;
+    init(ctx: RumbleshipContext): Promise<void>;
     /**
      * This function takes all the decorated Qso metadata and creates
      * QSR definitions that are then sent to the qsr system if then are new,
@@ -33,7 +34,8 @@ export declare class QueuedSubscriptionObserverManager {
      * QSR will be updated or created
      */
     syncQsrs(ctx: RumbleshipContext): Promise<void>;
-    start(): Promise<void>;
+    start(ctx: RumbleshipContext): Promise<void>;
+    stop(ctx: RumbleshipContext): Promise<void>;
     /**
      *
      * @param ctx

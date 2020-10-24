@@ -227,7 +227,7 @@ export class QueuedSubscriptionServer {
     const qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     await this.refreshSubscriptionsFromCache(ctx, qsrCache);
     await this.initializeCacheChangeObserver(ctx);
-    // start listening for changes...
+    // start listening for changes... kicks off its own
     await this.initializeQsrChangeObserver();
 
     await this.publishSchema(ctx);

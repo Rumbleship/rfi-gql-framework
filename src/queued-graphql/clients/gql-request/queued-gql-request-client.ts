@@ -4,7 +4,10 @@ import { ISharedSchema } from '@rumbleship/config';
 import { AddToTrace } from '@rumbleship/o11y';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { gcpGetTopic } from '../../helpers';
-import { IQueuedGqlRequest, IQueuedGqlResponse } from '../../interfaces/queued-gql-request.interface';
+import {
+  IQueuedGqlRequest,
+  IQueuedGqlResponse
+} from '../../interfaces/queued-gql-request.interface';
 import {
   QUEUED_GRAPHQL_REQUEST_TOPIC,
   QUEUED_GRAPHQL_RESPONSE_TOPIC

@@ -30,7 +30,10 @@ export class QueuedSubscriptionObserverManager {
   handlers: Map<string, QueuedSubscriptionHandler> = new Map();
   _initialized = false;
   queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
-  constructor(public config: ISharedSchema) {
+  constructor(
+    public config: ISharedSchema,
+    protected observers: ClassType<QueuedSubscriptionObserver>[]
+  ) {
     const pubsub = new GooglePubSub(this.config.Gcp.Auth);
     this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}`;
     // Only one instance of the service listens to this...But each version of the service live has its own subscription
@@ -56,11 +59,8 @@ export class QueuedSubscriptionObserverManager {
     );
   }
   @AddToTrace()
-  async init(
-    ctx: RumbleshipContext,
-    observers: ClassType<QueuedSubscriptionObserver>[]
-  ): Promise<void> {
-    this.setHandlers(observers);
+  async init(ctx: RumbleshipContext): Promise<void> {
+    this.setHandlers(this.observers);
     await this.qsr_subscription.init();
     await this.syncQsrs(ctx);
     this._initialized = true;
@@ -109,7 +109,8 @@ export class QueuedSubscriptionObserverManager {
     }
   }
 
-  async start(): Promise<void> {
+  @AddToTrace()
+  async start(ctx: RumbleshipContext): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     void this.qsr_subscription.start(
       (ctx: RumbleshipContext, message: QueuedSubscriptionMessage): Promise<void> => {
@@ -117,6 +118,13 @@ export class QueuedSubscriptionObserverManager {
       }
     );
   }
+  @AddToTrace()
+  async stop(ctx: RumbleshipContext): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    void this.qsr_subscription?.stop();
+    void this.queuedGqlRequestClient?.stop();
+  }
+
   /**
    *
    * @param ctx
