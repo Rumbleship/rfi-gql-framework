@@ -4,7 +4,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
-import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
+import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/gql-request/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
