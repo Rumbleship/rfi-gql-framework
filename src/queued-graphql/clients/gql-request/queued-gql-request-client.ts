@@ -1,14 +1,18 @@
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
 
 import { ISharedSchema } from '@rumbleship/config';
-import { RumbleshipContext } from '../../app/rumbleship-context';
-import { gcpGetTopic } from '../helpers';
-import { IQueuedGqlRequest, IQueuedGqlResponse } from '../interfaces/queued-gql-request.interface';
+import { AddToTrace } from '@rumbleship/o11y';
+import { RumbleshipContext } from '../../../app/rumbleship-context';
+import { gcpGetTopic } from '../../helpers';
+import {
+  IQueuedGqlRequest,
+  IQueuedGqlResponse
+} from '../../interfaces/queued-gql-request.interface';
 import {
   QUEUED_GRAPHQL_REQUEST_TOPIC,
   QUEUED_GRAPHQL_RESPONSE_TOPIC
-} from '../interfaces/topic_manifest_constants';
-import { RfiPubSubSubscription } from '../shared/rfi-pubsub-subscription';
+} from '../../interfaces/topic_manifest_constants';
+import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
 
 /**
  * Creates a client to send and listen for reposnes over the 'queue (eg google pubsub)
@@ -52,7 +56,7 @@ export class QueuedGqlRequestClientOneInstanceResponder {
     // we have a topic defined for each service for responses to be published to
     this.response_topic_name = `${config.PubSub.topicPrefix}${QUEUED_GRAPHQL_RESPONSE_TOPIC}_${this.service_name}`;
     // And a single subscription for each service to listen to that topic
-    this.response_subscription_name = `${this.response_topic_name}_subscription`;
+    this.response_subscription_name = `${this.response_topic_name}.${config.Gcp.gaeVersion}`;
     this._pubsub = new GooglePubSub(config.Gcp.Auth);
     this._response_subscription = new RfiPubSubSubscription(
       config,
@@ -71,8 +75,12 @@ export class QueuedGqlRequestClientOneInstanceResponder {
       | 'gql_query_string'
       | 'query_attributes'
       | 'operation_name'
-    >
+    >,
+    onResponsehandler?: (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>
   ): Promise<string> {
+    if (onResponsehandler) {
+      this.onResponse({ client_request_id: params.client_request_id, handler: onResponsehandler });
+    }
     const request: IQueuedGqlRequest = {
       ...params,
       publish_to_topic_name: this.response_topic_name,
@@ -91,11 +99,19 @@ export class QueuedGqlRequestClientOneInstanceResponder {
         const handler = this._client_id_handler_map.get(response.client_request_id);
         if (handler) {
           return handler(ctx, response);
+        } else {
+          return this.defaultHandler(ctx, response);
         }
       },
       this.constructor.name
     );
   }
+
+  @AddToTrace()
+  async defaultHandler(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void> {
+    return;
+  }
+
   async stop(): Promise<void> {
     return this._response_subscription.stop();
   }

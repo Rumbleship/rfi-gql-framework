@@ -1,1 +1,2 @@
-export * from './queued-gql-request-client';
+export * from './gql-request';
+export * from './subscription-observer';

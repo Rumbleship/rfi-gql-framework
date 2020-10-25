@@ -4,7 +4,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
-import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/queued-gql-request-client';
+import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/gql-request/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
@@ -227,7 +227,7 @@ export class QueuedSubscriptionServer {
     const qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     await this.refreshSubscriptionsFromCache(ctx, qsrCache);
     await this.initializeCacheChangeObserver(ctx);
-    // start listening for changes...
+    // start listening for changes... kicks off its own
     await this.initializeQsrChangeObserver();
 
     await this.publishSchema(ctx);
