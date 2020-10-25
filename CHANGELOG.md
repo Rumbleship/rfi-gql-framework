@@ -8,8 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * QueuedSubscriptionManager and QueuedSubscriptionObserver classes
+  * @SubscriptionHandler decorator 
+  * initQueuedGraphQl(), startQueuedGraphQL() and stopQueuedGraphQl() functions to manage all the Queued servers and client managers lifeccyle 
+  
 ### Removed
 ### Changed
+  * BREAKING CHANGE - SubscriptionObserver array needs to be passed in to initServer
+    * can be an empty array, otehrwiise should be classes derived from QueuedSubscriptionObserver
+  * improved internal naming of subscription_name vs gcloud_subscription_name
+  * integrated QueuedObserver lifecyle into initServer
 ### Fixed
 ### Deprecated
 ### Security
