@@ -32,11 +32,11 @@ export async function startQueuedGraphQl(ctx: RumbleshipContext): Promise<void> 
   await qsrSubscriptionServer.start(ctx);
   const qsrRequestServer: QueuedGqlRequestServer = Container.get('theQueuedGqlRequestServer');
   await qsrRequestServer.start(ctx);
-  const qsoManager: QueuedSubscriptionObserverManager | undefined = Container.get(
-    'theQueuedSubscriptionObserverManager'
-  );
 
-  if (qsoManager) {
+  if (Container.has('theQueuedSubscriptionObserverManager')) {
+    const qsoManager: QueuedSubscriptionObserverManager = Container.get(
+      'theQueuedSubscriptionObserverManager'
+    );
     await qsoManager.init(ctx);
     await qsoManager.start(ctx);
   }
@@ -49,10 +49,10 @@ export async function stopQueuedGraphQl(ctx: RumbleshipContext): Promise<void> {
   await qsrSubscriptionServer.stop(ctx);
   const qsrRequestServer: QueuedGqlRequestServer = Container.get('theQueuedGqlRequestServer');
   await qsrRequestServer.stop(ctx);
-  const qsoManager: QueuedSubscriptionObserverManager | undefined = Container.get(
-    'theQueuedSubscriptionObserverManager'
-  );
-  if (qsoManager) {
+  if (Container.has('theQueuedSubscriptionObserverManager')) {
+    const qsoManager: QueuedSubscriptionObserverManager = Container.get(
+      'theQueuedSubscriptionObserverManager'
+    );
     await qsoManager.stop(ctx);
   }
 }
