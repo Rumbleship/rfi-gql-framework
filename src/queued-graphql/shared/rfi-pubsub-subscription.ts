@@ -13,21 +13,24 @@ import { sleep } from '../../helpers/sleep';
 export class RfiPubSubSubscription<T> {
   protected _initiaized = false;
   private _subscription: Subscription;
-  protected topic_name: string;
-  protected subscription_name: string;
+  protected gcloud_topic_name: string;
+  protected gcloud_subscription_name: string;
   protected logger: SpyglassLogger;
   constructor(
     config: ISharedSchema,
     protected _pubSub: GooglePubSub,
-    topic_name: string,
-    subscription_name: string,
+    gcloud_topic_name: string,
+    gcloud_subscription_name: string,
     protected delete_on_stop: boolean,
     protected subscriber_options?: SubscriberOptions
   ) {
     this.logger = logging.getLogger(config.Logging, { filename: __filename });
-    this.topic_name = topic_name;
-    this.subscription_name = subscription_name;
-    this._subscription = this._pubSub.subscription(this.subscription_name, subscriber_options);
+    this.gcloud_topic_name = gcloud_topic_name;
+    this.gcloud_subscription_name = gcloud_subscription_name;
+    this._subscription = this._pubSub.subscription(
+      this.gcloud_subscription_name,
+      subscriber_options
+    );
   }
 
   async init(): Promise<void> {
@@ -41,13 +44,13 @@ export class RfiPubSubSubscription<T> {
     // graphQl queries and mutations should not implicitly worry about order
     const [exists] = await this._subscription.exists();
     if (!exists) {
-      const topic = await gcpGetTopic(this._pubSub, this.topic_name);
+      const topic = await gcpGetTopic(this._pubSub, this.gcloud_topic_name);
       // NOTE we dont need to create an ordered subscription
       // as a graphql query or mnutation should be fairly standalone
       // if a client requires that, then as with a http graphql request, it would be expected
       // to wait for the response of the predecessor before sending the next request.
       // the client maps its requests, if needed via clientRequestId's
-      const [newSub] = await topic.createSubscription(this.subscription_name, {
+      const [newSub] = await topic.createSubscription(this.gcloud_subscription_name, {
         enableMessageOrdering: false
       });
       this._subscription = newSub;
@@ -65,7 +68,7 @@ export class RfiPubSubSubscription<T> {
     let retry = true;
     while (retry) {
       this.logger.info(
-        `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.topic_name}, subscription: ${this.subscription_name}`
+        `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
       );
       try {
         // the API reference says that we ALWAYS provess one message at a time,
@@ -112,7 +115,7 @@ export class RfiPubSubSubscription<T> {
           pending_message = undefined;
         }
         this.logger.info(
-          `Stopped message loop for ${source_name} : ${this.topic_name} ${this.topic_name}, subscription: ${this.subscription_name}`
+          `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
         );
       } catch (error) {
         // if there are any pending messages, they will time out and be sent else where
@@ -122,11 +125,11 @@ export class RfiPubSubSubscription<T> {
           pending_message = undefined;
         }
         this.logger.error(
-          `Exception in message loop for ${source_name} : ${this.topic_name}, subscription: ${this.subscription_name}`,
+          `Exception in message loop for ${source_name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`,
           {
             subscriptionServiceClass: source_name,
-            topic: this.topic_name,
-            subscription: this.subscription_name,
+            topic: this.gcloud_topic_name,
+            subscription: this.gcloud_subscription_name,
             message_data: message_data ?? ''
           }
         );

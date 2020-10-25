@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * QueuedSubscriptionManager and QueuedSubscriptionObserver classes
+  * @SubscriptionHandler decorator 
+  * initQueuedGraphQl(), startQueuedGraphQL() and stopQueuedGraphQl() functions to manage all the Queued servers and client managers lifeccyle 
+  
+### Removed
+### Changed
+  * BREAKING CHANGE - SubscriptionObserver array needs to be passed in to initServer
+    * can be an empty array, otehrwiise should be classes derived from QueuedSubscriptionObserver
+  * improved internal naming of subscription_name vs gcloud_subscription_name
+  * integrated QueuedObserver lifecyle into initServer
+### Fixed
+### Deprecated
+### Security
+
+
 ## [13.1.0] -- 2020-10-22
 
 ### Added

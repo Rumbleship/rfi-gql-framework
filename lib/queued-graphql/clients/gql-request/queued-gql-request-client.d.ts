@@ -1,8 +1,8 @@
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
 import { ISharedSchema } from '@rumbleship/config';
-import { RumbleshipContext } from '../../app/rumbleship-context';
-import { IQueuedGqlRequest, IQueuedGqlResponse } from '../interfaces/queued-gql-request.interface';
-import { RfiPubSubSubscription } from '../shared/rfi-pubsub-subscription';
+import { RumbleshipContext } from '../../../app/rumbleship-context';
+import { IQueuedGqlRequest, IQueuedGqlResponse } from '../../interfaces/queued-gql-request.interface';
+import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
 /**
  * Creates a client to send and listen for reposnes over the 'queue (eg google pubsub)
  *
