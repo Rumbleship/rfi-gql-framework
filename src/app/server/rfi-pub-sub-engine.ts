@@ -46,7 +46,11 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     auth: IGcpAuthConfig,
     beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
   ) {
-    super(auth, uniqueSubscriptionNamePart);
+    const cloned_auth = { ...auth };
+    if (auth.projectId) {
+      cloned_auth.projectId = auth.projectId.replace('private', 'public');
+    }
+    super(cloned_auth, uniqueSubscriptionNamePart);
     this.topicPrefix = config.topicPrefix;
     this.serviceName = serviceName;
     this.publisher_version = publisher_version;
