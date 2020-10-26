@@ -14,6 +14,7 @@ import {
   QueuedSubscriptionHandler,
   QueuedSubscriptionObserver
 } from './queued_subscription_observer';
+import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 
 /**
  * Each service has its own pubsub topic that subscription responses are sent to. We subscribe to this
@@ -34,7 +35,7 @@ export class QueuedSubscriptionObserverManager {
     public config: ISharedSchema,
     protected observers: ClassType<QueuedSubscriptionObserver>[]
   ) {
-    const pubsub = new GooglePubSub(this.config.Gcp.Auth);
+    const pubsub = new GooglePubSub(forcePublicProjectPubsub(this.config.Gcp.Auth));
     this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}`;
     // Only one instance of the service listens to this...But each version of the service live has its own subscription
     // this ensures that if a new QueuedSubscription is live, any versions trhat are live will all get the mesage

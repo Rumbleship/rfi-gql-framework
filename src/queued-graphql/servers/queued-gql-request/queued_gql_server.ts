@@ -23,6 +23,7 @@ import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
 import { AddToTrace } from '@rumbleship/o11y';
 
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
+import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 
 /**
  * Complement to the queuedeSubscription service that listens for straight graphql queries and mutations
@@ -50,7 +51,7 @@ export class QueuedGqlRequestServer {
     this.service_name = config.serviceName;
     // Only one instance of a service should receive and process a request
     this.request_subscription_name = `${this.request_topic_name}_${config.serviceName}`;
-    this._pubsub = new GooglePubSub(config.Gcp.Auth);
+    this._pubsub = new GooglePubSub(forcePublicProjectPubsub(config.Gcp.Auth));
     this._request_subscription = new RfiPubSubSubscription(
       config,
       this._pubsub,

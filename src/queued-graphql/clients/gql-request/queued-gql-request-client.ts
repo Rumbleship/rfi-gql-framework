@@ -2,6 +2,7 @@ import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
 
 import { ISharedSchema } from '@rumbleship/config';
 import { AddToTrace } from '@rumbleship/o11y';
+import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { gcpGetTopic } from '../../helpers';
 import {
@@ -57,7 +58,7 @@ export class QueuedGqlRequestClientOneInstanceResponder {
     this.response_topic_name = `${config.PubSub.topicPrefix}${QUEUED_GRAPHQL_RESPONSE_TOPIC}_${this.service_name}`;
     // And a single subscription for each service to listen to that topic
     this.response_subscription_name = `${this.response_topic_name}.${config.Gcp.gaeVersion}`;
-    this._pubsub = new GooglePubSub(config.Gcp.Auth);
+    this._pubsub = new GooglePubSub(forcePublicProjectPubsub(config.Gcp.Auth));
     this._response_subscription = new RfiPubSubSubscription(
       config,
       this._pubsub,
