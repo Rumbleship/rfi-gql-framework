@@ -1,2 +1,2 @@
 export * from './gql-request';
-export * from './subscription-observer';
+export * from './qs-observer';

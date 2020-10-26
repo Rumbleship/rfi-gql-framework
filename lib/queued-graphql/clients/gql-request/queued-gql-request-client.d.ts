@@ -26,7 +26,7 @@ import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
       A handler is set for each 'client_request_id' and will be typically the
  *
  */
-export declare class QueuedGqlRequestClientOneInstanceResponder {
+export declare class QueuedGqlRequestClientSingleInstanceResponder {
     config: ISharedSchema;
     request_topic_name: string;
     response_topic_name: string;

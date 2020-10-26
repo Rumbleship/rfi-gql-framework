@@ -3,7 +3,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
-import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/gql-request/queued-gql-request-client';
+import { QueuedGqlRequestClientSingleInstanceResponder } from '../../clients/gql-request/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { QueuedSubscriptionCache } from '../../queued-subscription-cache';
@@ -28,7 +28,7 @@ export declare class QueuedSubscriptionServer {
     queuedSubscriptions: Map<string, QueuedSubscription>;
     qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
     qsrLocalCacheObserver: RfiPubSubSubscription<NodeChangePayload>;
-    queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
+    queuedGqlRequestClient: QueuedGqlRequestClientSingleInstanceResponder;
     constructor(config: ISharedSchema, schema: GraphQLSchema);
     /**
      * Setup a subscription to the QueuedSubscriptionRequest model to
