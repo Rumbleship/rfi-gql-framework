@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * renamed SubscriptionHandler to QSObserver
+  * Made the list of the Resolvers passed into the initServer function also the list of QSObservers
+  * renamed the class QueuedGqlRequestClientOneInstanceResponder  to class QueuedGqlRequestClientSingleInstanceResponder 
+  * changed the invocation of an QSObserver handler, to use TypeDI's service mechanism to inject the services etc.
+
 ### Fixed
 ### Deprecated
 ### Security
