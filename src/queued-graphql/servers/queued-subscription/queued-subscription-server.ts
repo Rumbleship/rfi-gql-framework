@@ -208,8 +208,13 @@ export class QueuedSubscriptionServer {
       qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     }
     // find active subscriptions that need to be removed
-    for (const [key] of this.queuedSubscriptions.entries()) {
-      if (!qsrCache.cache.has(key)) {
+    for (const [key, queued] of this.queuedSubscriptions.entries()) {
+      const cachedSubscription = qsrCache.cache.get(key);
+      if (
+        !cachedSubscription ||
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        queued.cache_consistency_id! < cachedSubscription.cache_consistency_id!
+      ) {
         await this.removeSubscription(ctx, key);
       }
     }
