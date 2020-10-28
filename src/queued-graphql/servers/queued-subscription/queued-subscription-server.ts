@@ -4,7 +4,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest } from './queued-subscription-request.interface';
 import { QueuedSubscription } from './queued-subscription';
-import { QueuedGqlRequestClientOneInstanceResponder } from '../../clients/gql-request/queued-gql-request-client';
+import { QueuedGqlRequestClientSingleInstanceResponder } from '../../clients/gql-request/queued-gql-request-client';
 import { IQueuedGqlResponse } from '../../interfaces';
 import { RfiPubSubSubscription } from '../../shared';
 import { PubSub as GooglePubSub } from '@google-cloud/pubsub';
@@ -78,7 +78,7 @@ export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
   qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
   qsrLocalCacheObserver: RfiPubSubSubscription<NodeChangePayload>;
-  queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
+  queuedGqlRequestClient: QueuedGqlRequestClientSingleInstanceResponder;
 
   constructor(protected config: ISharedSchema, public schema: GraphQLSchema) {
     const qsrChangeTopic = `${this.config.PubSub.topicPrefix}_${QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC}`;
@@ -107,7 +107,7 @@ export class QueuedSubscriptionServer {
       true // delete_on_stop
     );
 
-    this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
+    this.queuedGqlRequestClient = new QueuedGqlRequestClientSingleInstanceResponder(config);
   }
   /**
    * Setup a subscription to the QueuedSubscriptionRequest model to
@@ -208,8 +208,13 @@ export class QueuedSubscriptionServer {
       qsrCache = await loadCache(this.config.Gcp.gaeVersion);
     }
     // find active subscriptions that need to be removed
-    for (const [key] of this.queuedSubscriptions.entries()) {
-      if (!qsrCache.cache.has(key)) {
+    for (const [key, queued] of this.queuedSubscriptions.entries()) {
+      const cachedSubscription = qsrCache.cache.get(key);
+      if (
+        !cachedSubscription ||
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        queued.cache_consistency_id! < cachedSubscription.cache_consistency_id!
+      ) {
         await this.removeSubscription(ctx, key);
       }
     }

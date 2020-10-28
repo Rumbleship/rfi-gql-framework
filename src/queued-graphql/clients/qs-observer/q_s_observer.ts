@@ -1,15 +1,12 @@
 import { DocumentNode } from 'graphql';
-import { ClassType } from '../../../helpers';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
+import { ClassType } from '../../../helpers';
 import { QueuedSubscriptionMessage } from '../../servers';
 /**
  * QsrObservers are similar to Resolvers, however rahter than doing a class level
  * decorator, we make all QsrObservers derive from this base calss.. this may change in future
  * to match the style of type-graphql...
  */
-export abstract class QueuedSubscriptionObserver {
-  constructor(public ctx: RumbleshipContext) {}
-}
 
 export const QUEUED_SUBSCRIPTION_OBSERVER_META = Symbol('QueuedSubscriptionObserver');
 
@@ -22,13 +19,15 @@ export interface QueuedSubscriptionObserverMetadata {
 }
 export interface QueuedSubscriptionHandler {
   qso_metadata: QueuedSubscriptionObserverMetadata;
-  observer_class?: ClassType<QueuedSubscriptionObserver>;
-  handler(this: QueuedSubscriptionObserver, message: QueuedSubscriptionMessage): Promise<void>;
+  observer_class?: ClassType<Record<string, any>>;
+  handler(
+    this: Record<string, any>,
+    ctx: RumbleshipContext,
+    message: QueuedSubscriptionMessage
+  ): Promise<void>;
 }
 
-export function SubscriptionHandler<T>(
-  metadata: QueuedSubscriptionObserverMetadata
-): MethodDecorator {
+export function QSObserver<T>(metadata: QueuedSubscriptionObserverMetadata): MethodDecorator {
   return function (
     target: any,
     propertyKey: string | symbol,
@@ -49,7 +48,7 @@ export function SubscriptionHandler<T>(
 }
 
 export function getQsoHandlers(
-  target: ClassType<QueuedSubscriptionObserver>
+  target: ClassType<Record<string, any>>
 ): QueuedSubscriptionHandler[] {
   // We need to set the target class here, as it is at this point that the
   // class is fully formed
