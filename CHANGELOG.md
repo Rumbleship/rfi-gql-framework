@@ -5,10 +5,8 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [13.3.0] -- 2020-10-28
 
-### Added
-### Removed
 ### Changed
   * renamed SubscriptionHandler to QSObserver
   * Made the list of the Resolvers passed into the initServer function also the list of QSObservers
@@ -18,9 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
   * When a Qsr changes, ensures that it is reloaded by the active QueuedSubscription
-### Deprecated
-### Security
-
 
 ## [13.2.0] -- 2020-10-25
 
