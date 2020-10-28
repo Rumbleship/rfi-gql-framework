@@ -3,8 +3,8 @@ import { ClassType } from '../../../helpers';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { QueuedSubscriptionMessage } from '../../servers';
 import { RfiPubSubSubscription } from '../../shared';
-import { QueuedGqlRequestClientOneInstanceResponder } from '../gql-request/queued-gql-request-client';
-import { QueuedSubscriptionHandler, QueuedSubscriptionObserver } from './queued_subscription_observer';
+import { QueuedGqlRequestClientSingleInstanceResponder } from '../gql-request/queued-gql-request-client';
+import { QueuedSubscriptionHandler } from './q_s_observer';
 /**
  * Each service has its own pubsub topic that subscription responses are sent to. We subscribe to this
  * topic using a 'service' subscription (ie each message is handled by a single instance)
@@ -15,15 +15,15 @@ import { QueuedSubscriptionHandler, QueuedSubscriptionObserver } from './queued_
  */
 export declare class QueuedSubscriptionObserverManager {
     config: ISharedSchema;
-    protected observers: ClassType<QueuedSubscriptionObserver>[];
+    protected observers: readonly ClassType<Record<string, any>>[];
     qsr_subscription: RfiPubSubSubscription<QueuedSubscriptionMessage>;
     qsrTopicName: string;
     qsrSubscriptionName: string;
     handlers: Map<string, QueuedSubscriptionHandler>;
     _initialized: boolean;
-    queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
-    constructor(config: ISharedSchema, observers: ClassType<QueuedSubscriptionObserver>[]);
-    setHandlers(observers: ClassType<QueuedSubscriptionObserver>[]): void;
+    queuedGqlRequestClient: QueuedGqlRequestClientSingleInstanceResponder;
+    constructor(config: ISharedSchema, observers: readonly ClassType<Record<string, any>>[]);
+    setHandlers(observers: readonly ClassType<Record<string, any>>[]): void;
     init(ctx: RumbleshipContext): Promise<void>;
     /**
      * This function takes all the decorated Qso metadata and creates

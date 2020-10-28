@@ -3,12 +3,12 @@ import { GraphQLSchema } from 'graphql';
 import { RumbleshipContext } from '../app/rumbleship-context';
 import { ClassType } from '../helpers';
 import { Container } from 'typedi';
-import { QueuedSubscriptionObserver, QueuedSubscriptionObserverManager } from './clients';
+import { QueuedSubscriptionObserverManager } from './clients';
 import { QueuedGqlRequestServer, QueuedSubscriptionServer } from './servers';
 export function initQueuedGraphql(
   config: ISharedSchema,
   schema: GraphQLSchema,
-  observers: ClassType<QueuedSubscriptionObserver>[]
+  observers: readonly ClassType<Record<string, any>>[]
 ): void {
   // We set these objects to the container as they can be referenced in client apps
   // and we want to reduce the dependancies

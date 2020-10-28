@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [13.3.0] -- 2020-10-28
+
+### Changed
+  * renamed SubscriptionHandler to QSObserver
+  * Made the list of the Resolvers passed into the initServer function also the list of QSObservers
+    * removed base class QueuedSubscriptionObserver so that any class can have a QSObserver method
+  * renamed the class QueuedGqlRequestClientOneInstanceResponder  to class QueuedGqlRequestClientSingleInstanceResponder 
+  * changed the invocation of an QSObserver handler, to use TypeDI's service mechanism to inject the services etc.
+
+### Fixed
+  * When a Qsr changes, ensures that it is reloaded by the active QueuedSubscription
+
 ## [13.2.0] -- 2020-10-25
 
 ### Added
