@@ -7,13 +7,9 @@ import { ClassType } from '../../../helpers';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { QueuedSubscriptionMessage } from '../../servers';
 import { RfiPubSubSubscription } from '../../shared';
-import { QueuedGqlRequestClientOneInstanceResponder } from '../gql-request/queued-gql-request-client';
+import { QueuedGqlRequestClientSingleInstanceResponder } from '../gql-request/queued-gql-request-client';
 import { syncQsrGql, syncQsrVariables } from './sync_qsr.interface';
-import {
-  getQsoHandlers,
-  QueuedSubscriptionHandler,
-  QueuedSubscriptionObserver
-} from './queued_subscription_observer';
+import { getQsoHandlers, QueuedSubscriptionHandler } from './q_s_observer';
 
 /**
  * Each service has its own pubsub topic that subscription responses are sent to. We subscribe to this
@@ -29,10 +25,10 @@ export class QueuedSubscriptionObserverManager {
   qsrSubscriptionName: string;
   handlers: Map<string, QueuedSubscriptionHandler> = new Map();
   _initialized = false;
-  queuedGqlRequestClient: QueuedGqlRequestClientOneInstanceResponder;
+  queuedGqlRequestClient: QueuedGqlRequestClientSingleInstanceResponder;
   constructor(
     public config: ISharedSchema,
-    protected observers: ClassType<QueuedSubscriptionObserver>[]
+    protected observers: readonly ClassType<Record<string, any>>[]
   ) {
     const pubsub = new GooglePubSub(this.config.Gcp.Auth);
     this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}`;
@@ -48,9 +44,9 @@ export class QueuedSubscriptionObserverManager {
       this.qsrSubscriptionName,
       false
     );
-    this.queuedGqlRequestClient = new QueuedGqlRequestClientOneInstanceResponder(config);
+    this.queuedGqlRequestClient = new QueuedGqlRequestClientSingleInstanceResponder(config);
   }
-  setHandlers(observers: ClassType<QueuedSubscriptionObserver>[]): void {
+  setHandlers(observers: readonly ClassType<Record<string, any>>[]): void {
     this.handlers = new Map(
       observers
         .map(observer => getQsoHandlers(observer))
@@ -137,9 +133,10 @@ export class QueuedSubscriptionObserverManager {
   ): Promise<void> {
     const handler = this.handlers.get(message.subscription_name);
     if (handler && handler.observer_class) {
-      const observer = new handler.observer_class(ctx);
+      // We use typedi to construct the resolver..
+      const observer = ctx.container.get(handler.observer_class);
       const hndlr = handler.handler.bind(observer);
-      return hndlr(message);
+      return hndlr(ctx, message);
     }
   }
 }
