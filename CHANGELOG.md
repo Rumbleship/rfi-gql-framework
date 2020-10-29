@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
-  * Instantiating RfiPubSub in a private project (e.g. banking) connects to PubSub in the associated public project
 ### Fixed
 ### Deprecated
 ### Security
 
+
+## [13.4.0] -- 2020-10-29
+
+### Changed
+  * Instantiating RfiPubSub in a private project (e.g. banking) connects to PubSub in the associated public project
 
 ## [13.3.0] -- 2020-10-28
 
