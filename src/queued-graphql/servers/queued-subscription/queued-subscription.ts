@@ -123,7 +123,10 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
    */
   @AddToTrace()
   async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
-    ctx.beeline.addTraceContext({ response });
+    ctx.beeline.addTraceContext({
+      response,
+      pubsub: { projectId: this.googlePublisher.projectId }
+    });
     const subscription_name = this.subscription_name ?? '';
     const message: QueuedSubscriptionMessage = {
       owner_id: this.owner_id ?? '',
@@ -131,12 +134,13 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       subscription_id: this.id.toString(),
       subscription_response: response
     };
-    const topic = await this.getTopic();
+    const topic = await this.getTopic(ctx);
     const payload = JSON.stringify(message);
     return topic.publish(Buffer.from(payload));
   }
 
-  protected async getTopic(): Promise<Topic> {
+  @AddToTrace()
+  protected async getTopic(ctx: RumbleshipContext): Promise<Topic> {
     if (!this._topic) {
       this._topic = await gcpGetTopic(this.googlePublisher, this.publish_to_topic_name);
     }
@@ -207,6 +211,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     ctx.beeline.addTraceContext({
       subscription_name: this.subscription_name,
       publish_topic: this.publish_to_topic_name,
+      pubsub: { projectId: this.googlePublisher.projectId },
       executionResult
     });
     if (this.publish_to_topic_name.length) {

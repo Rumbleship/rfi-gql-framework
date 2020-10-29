@@ -68,6 +68,7 @@ export class QueuedGqlRequestServer {
       async (ctx: RumbleshipContext, request: IQueuedGqlRequest): Promise<void> => {
         let executionResult: ExecutionResult | undefined;
         ctx.beeline.addTraceContext({ request });
+        ctx.beeline.addTraceContext({ pubsub: { projectId: this._pubsub.projectId } });
         try {
           const executionParams = QueuedGqlRequestServer.validateGqlRequest(this.schema, request);
           executionResult = await execute({
@@ -118,11 +119,13 @@ export class QueuedGqlRequestServer {
     };
     const topic = await gcpGetTopic(this._pubsub, request.publish_to_topic_name);
     const payload = JSON.stringify(message);
+    ctx.beeline.addTraceContext({ pubsub: { projectId: this._pubsub.projectId } });
     return topic.publish(Buffer.from(payload));
   }
 
   @AddToTrace()
   async stop(ctx: RumbleshipContext): Promise<void> {
+    ctx.beeline.addTraceContext({ pubsub: { projectId: this._pubsub.projectId } });
     if (this._request_subscription) {
       await this._request_subscription.stop();
     }
