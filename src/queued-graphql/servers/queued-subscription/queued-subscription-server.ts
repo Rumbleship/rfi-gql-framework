@@ -23,6 +23,7 @@ import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
 import { Transaction } from 'sequelize/types';
+import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC`;
 
@@ -90,7 +91,7 @@ export class QueuedSubscriptionServer {
       config.Gcp.gaeVersion
     }.${hostname()}`; // Each instance recieves this
 
-    const pubsub = new GooglePubSub(this.config.Gcp.Auth);
+    const pubsub = new GooglePubSub(forcePublicProjectPubsub(this.config.Gcp.Auth));
     this.qsrChangeObserver = new RfiPubSubSubscription<QueuedSubscriptionMessage>(
       this.config,
       pubsub,

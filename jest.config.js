@@ -1,10 +1,7 @@
 module.exports = {
   collectCoverage: true,
-  coveragePathIgnorePatterns: [
-    '/node_modules',
-    '/node_modules.linux/',
-    '/node_modules.mac/'
-  ],
+  coveragePathIgnorePatterns: ['/node_modules', '/node_modules.linux/', '/node_modules.mac/'],
+  maxWorkers: 1,
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   modulePathIgnorePatterns: [
     'npm-cache',

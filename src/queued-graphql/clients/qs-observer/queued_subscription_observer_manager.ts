@@ -9,6 +9,7 @@ import { QueuedSubscriptionMessage } from '../../servers';
 import { RfiPubSubSubscription } from '../../shared';
 import { QueuedGqlRequestClientSingleInstanceResponder } from '../gql-request/queued-gql-request-client';
 import { syncQsrGql, syncQsrVariables } from './sync_qsr.interface';
+import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 import { getQsoHandlers, QueuedSubscriptionHandler } from './q_s_observer';
 
 /**
@@ -30,7 +31,7 @@ export class QueuedSubscriptionObserverManager {
     public config: ISharedSchema,
     protected observers: readonly ClassType<Record<string, any>>[]
   ) {
-    const pubsub = new GooglePubSub(this.config.Gcp.Auth);
+    const pubsub = new GooglePubSub(forcePublicProjectPubsub(this.config.Gcp.Auth));
     this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}`;
     // Only one instance of the service listens to this...But each version of the service live has its own subscription
     // this ensures that if a new QueuedSubscription is live, any versions trhat are live will all get the mesage
