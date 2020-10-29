@@ -6,7 +6,6 @@ import { Watchable } from '../watchable';
 export function withTimeStampsFilter<TFilterBase extends ClassType<object>>(Base: TFilterBase) {
   @ArgsType()
   class TimeStampsFilter extends Base {
-    @Watchable
     @Field(type => Date, { nullable: true })
     created_at?: Date;
 
