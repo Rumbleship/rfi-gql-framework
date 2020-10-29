@@ -45,7 +45,7 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
      * publishes repsononses to the QueuedSubscriptionRequest
      */
     publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string>;
-    protected getTopic(): Promise<Topic>;
+    protected getTopic(ctx: RumbleshipContext): Promise<Topic>;
     start(): Promise<void>;
     onGqlSubscribeResponse(ctx: RumbleshipContext, executionResult: ExecutionResult): Promise<void>;
     stop(): Promise<void>;
