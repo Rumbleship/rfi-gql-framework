@@ -50,11 +50,13 @@ export async function filterBySubscriptionFilter({
 
           const { watch_list, ...rest } = args;
           filter = rest ?? {};
-        } else {
-          // set the id on the filter, so findOne can do an auth check on
-          // whether the client is allowed to see this notification
+        }
+        // set the id on the filter, so findOne can do an auth check on
+        // whether the client is allowed to see this notification
+        if (!filter.id) {
           filter.id = nodePayload.oid;
         }
+
         const oid = new Oid(nodePayload.oid);
         const { scope } = oid.unwrap();
         const nodeServices = context.container.get<NodeServiceMap<string>>('nodeServices');
