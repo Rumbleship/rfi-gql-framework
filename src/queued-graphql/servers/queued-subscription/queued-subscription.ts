@@ -213,9 +213,11 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     executionResult: ExecutionResult
   ): Promise<void> {
     ctx.beeline.addTraceContext({
-      subscription_name: this.subscription_name,
-      publish_topic: this.publish_to_topic_name,
-      pubsub: { projectId: this.googlePublisher.projectId },
+      pubsub: {
+        projectId: this.googlePublisher.projectId,
+        subscription: { name: this.subscription_name },
+        topic: { name: this.publish_to_topic_name }
+      },
       executionResult
     });
     if (this.publish_to_topic_name.length) {
