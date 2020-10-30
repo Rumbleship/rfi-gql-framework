@@ -57,6 +57,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     config: IGcpConfig,
     private googlePublisher = new GooglePubSub(forcePublicProjectPubsub(config.Auth))
   ) {
+    this.googlePublisher.projectId = this.googlePublisher.projectId.replace('-private', '-public');
     // This object is a very longlived 'active' object, so we dont want to have
     // any unexpected side-effects of holding relay objects in memory and the
     // potential for large networks of objects and services never being garbage collected

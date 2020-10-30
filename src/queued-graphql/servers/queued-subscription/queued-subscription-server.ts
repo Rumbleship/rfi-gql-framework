@@ -92,6 +92,7 @@ export class QueuedSubscriptionServer {
     }.${hostname()}`; // Each instance recieves this
 
     const pubsub = new GooglePubSub(forcePublicProjectPubsub(this.config.Gcp.Auth));
+    pubsub.projectId = pubsub.projectId.replace('-private', '-public');
     this.qsrChangeObserver = new RfiPubSubSubscription<QueuedSubscriptionMessage>(
       this.config,
       pubsub,

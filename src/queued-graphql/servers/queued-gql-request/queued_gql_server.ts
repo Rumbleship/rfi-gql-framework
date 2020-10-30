@@ -52,6 +52,7 @@ export class QueuedGqlRequestServer {
     // Only one instance of a service should receive and process a request
     this.request_subscription_name = `${this.request_topic_name}_${config.serviceName}`;
     this._pubsub = new GooglePubSub(forcePublicProjectPubsub(config.Gcp.Auth));
+    this._pubsub.projectId = this._pubsub.projectId.replace('-private', '-public');
     this._request_subscription = new RfiPubSubSubscription(
       config,
       this._pubsub,

@@ -59,6 +59,7 @@ export class QueuedGqlRequestClientSingleInstanceResponder {
     // And a single subscription for each service to listen to that topic
     this.response_subscription_name = `${this.response_topic_name}.${config.Gcp.gaeVersion}`;
     this._pubsub = new GooglePubSub(forcePublicProjectPubsub(config.Gcp.Auth));
+    this._pubsub.projectId = this._pubsub.projectId.replace('-private', '-public');
     this._response_subscription = new RfiPubSubSubscription(
       config,
       this._pubsub,
