@@ -71,8 +71,10 @@ export class QueuedGqlRequestServer {
         ctx.beeline.addTraceContext({
           pubsub: { projectId: this._pubsub.projectId },
           config: {
-            ...this.config,
-            transformed: { ...forcePublicProjectPubsub(this.config.Gcp.Auth) }
+            Gcp: {
+              Auth: this.config.Gcp.Auth,
+              Transformed: forcePublicProjectPubsub(this.config.Gcp.Auth)
+            }
           }
         });
         try {
@@ -130,8 +132,10 @@ export class QueuedGqlRequestServer {
         projectId: this._pubsub.projectId,
         topic: { name: topic.name },
         config: {
-          ...this.config,
-          transformed: { ...forcePublicProjectPubsub(this.config.Gcp.Auth) }
+          Gcp: {
+            Auth: this.config.Gcp.Auth,
+            Transformed: forcePublicProjectPubsub(this.config.Gcp.Auth)
+          }
         }
       }
     });
@@ -143,8 +147,10 @@ export class QueuedGqlRequestServer {
     ctx.beeline.addTraceContext({
       pubsub: { projectId: this._pubsub.projectId },
       config: {
-        ...this.config,
-        transformed: { ...forcePublicProjectPubsub(this.config.Gcp.Auth) }
+        Gcp: {
+          Auth: this.config.Gcp.Auth,
+          Transformed: forcePublicProjectPubsub(this.config.Gcp.Auth)
+        }
       }
     });
     if (this._request_subscription) {
