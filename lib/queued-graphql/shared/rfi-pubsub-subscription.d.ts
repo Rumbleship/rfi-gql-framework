@@ -3,6 +3,7 @@ import { SpyglassLogger } from '@rumbleship/spyglass';
 import { SubscriberOptions } from '@google-cloud/pubsub/build/src/subscriber';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
+import { RumbleshipBeeline } from '@rumbleship/o11y';
 export declare class RfiPubSubSubscription<T> {
     protected _pubSub: GooglePubSub;
     protected delete_on_stop: boolean;
@@ -12,6 +13,7 @@ export declare class RfiPubSubSubscription<T> {
     protected gcloud_topic_name: string;
     protected gcloud_subscription_name: string;
     protected logger: SpyglassLogger;
+    protected beeline: RumbleshipBeeline;
     constructor(config: ISharedSchema, _pubSub: GooglePubSub, gcloud_topic_name: string, gcloud_subscription_name: string, delete_on_stop: boolean, subscriber_options?: SubscriberOptions | undefined);
     init(): Promise<void>;
     protected initSubscription(): Promise<Subscription>;

@@ -9,6 +9,8 @@ import { gcpGetTopic } from '../helpers';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { sleep } from '../../helpers/sleep';
+import { RumbleshipBeeline } from '@rumbleship/o11y';
+import { v4 } from 'uuid';
 
 export class RfiPubSubSubscription<T> {
   protected _initiaized = false;
@@ -16,6 +18,7 @@ export class RfiPubSubSubscription<T> {
   protected gcloud_topic_name: string;
   protected gcloud_subscription_name: string;
   protected logger: SpyglassLogger;
+  protected beeline: RumbleshipBeeline;
   constructor(
     config: ISharedSchema,
     protected _pubSub: GooglePubSub,
@@ -31,11 +34,15 @@ export class RfiPubSubSubscription<T> {
       this.gcloud_subscription_name,
       subscriber_options
     );
+    this.beeline = RumbleshipBeeline.make(v4());
   }
 
   async init(): Promise<void> {
     if (!this._initiaized) {
-      await this.initSubscription();
+      await this.beeline.withAsyncSpan(
+        { name: 'RfiPubSubSubscription.init' },
+        async () => await this.initSubscription()
+      );
     }
   }
   protected async initSubscription(): Promise<Subscription> {
@@ -62,82 +69,98 @@ export class RfiPubSubSubscription<T> {
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
   ): Promise<void> {
-    let pending_message: Message | undefined;
-    let message_data: string | undefined;
-    await this.init();
-    let retry = true;
-    while (retry) {
-      this.logger.info(
-        `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
-      );
-      try {
-        // the API reference says that we ALWAYS provess one message at a time,
-        // even though we receive an array. We add in a listerner for 'close' to the iterator - see ServiceSubscription
-        for await (const [message] of this.messages) {
-          // for instrumentation discussion....start context
-          // emit contextHookEvent with context + contextHandler (distinct from handler, which user has defined )
-          pending_message = message;
-          if (!message) {
-            // emit contextHookEvent, this handler
-            // see 'get messages()': both close and message events are merged into one iterable
-            // so we can stop the loop on a 'close'. 'error's get thrown by the 'on' methods
-            retry = false;
-            break;
-          }
-          message_data = message.data.toString();
-          const payload = this.parseMessage(message_data);
-
-          if (payload) {
-            const marshalled_trace = Reflect.get(
-              (payload as unknown) as Record<string, unknown>,
-              'marshalled_trace'
-            ) as string | undefined;
-
-            const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
-              __filename,
-              {
-                marshalled_trace
-              }
-            );
-            await handler(ctx, payload as T)
-              .catch(error => {
-                // Explicitly do not rethrow error; doing so will kill the dispatch manager.
-                ctx.logger.error(error.message);
-                ctx.logger.error(error.stack);
-                ctx.beeline.addTraceContext({
-                  'error.message': error.message,
-                  'error.stack': error.stack
-                });
-              })
-              .finally(() => ctx.release());
-          }
-          message.ack();
-          pending_message = undefined;
-        }
+    await this.beeline.withTrace({ name: 'RfiPubSubSubscription.start' }, async () => {
+      this.beeline.addTraceContext({
+        gcloud_topic_name: this.gcloud_topic_name,
+        gcloud_subscription_name: this.gcloud_subscription_name,
+        projectId: this._pubSub.projectId
+      });
+      let pending_message: Message | undefined;
+      let message_data: string | undefined;
+      await this.init();
+      let retry = true;
+      while (retry) {
         this.logger.info(
-          `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
+          `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
         );
-      } catch (error) {
-        // if there are any pending messages, they will time out and be sent else where
-        // but more responsive to nack it
-        if (pending_message) {
-          pending_message.nack();
-          pending_message = undefined;
-        }
-        this.logger.error(
-          `Exception in message loop for ${source_name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`,
-          {
-            subscriptionServiceClass: source_name,
-            topic: this.gcloud_topic_name,
-            subscription: this.gcloud_subscription_name,
-            message_data: message_data ?? ''
+        this.beeline.finishSpan(
+          this.beeline.startSpan({ name: 'RfiPubSubSubscription.messageLoopStarting' })
+        );
+        try {
+          // the API reference says that we ALWAYS provess one message at a time,
+          // even though we receive an array. We add in a listerner for 'close' to the iterator - see ServiceSubscription
+          for await (const [message] of this.messages) {
+            // for instrumentation discussion....start context
+            // emit contextHookEvent with context + contextHandler (distinct from handler, which user has defined )
+            pending_message = message;
+            if (!message) {
+              // emit contextHookEvent, this handler
+              // see 'get messages()': both close and message events are merged into one iterable
+              // so we can stop the loop on a 'close'. 'error's get thrown by the 'on' methods
+              retry = false;
+              break;
+            }
+            message_data = message.data.toString();
+            const payload = this.parseMessage(message_data);
+
+            if (payload) {
+              const marshalled_trace = Reflect.get(
+                (payload as unknown) as Record<string, unknown>,
+                'marshalled_trace'
+              ) as string | undefined;
+
+              const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+                __filename,
+                {
+                  marshalled_trace,
+                  linked_span: this.beeline.getTraceContext()
+                }
+              );
+              await this.beeline.runWithoutTrace(() =>
+                handler(ctx, payload as T)
+                  .catch(error => {
+                    // Explicitly do not rethrow error; doing so will kill the dispatch manager.
+                    ctx.logger.error(error.message);
+                    ctx.logger.error(error.stack);
+                    ctx.beeline.addTraceContext({
+                      'error.message': error.message,
+                      'error.stack': error.stack
+                    });
+                  })
+                  .finally(() => ctx.release())
+              );
+            }
+            message.ack();
+            pending_message = undefined;
           }
-        );
-        this.logger.error(error.stack, { error });
+          this.beeline.finishSpan(
+            this.beeline.startSpan({ name: 'RfiPubSubSubscription.messageLoopStopped' })
+          );
+          this.logger.info(
+            `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
+          );
+        } catch (error) {
+          // if there are any pending messages, they will time out and be sent else where
+          // but more responsive to nack it
+          if (pending_message) {
+            pending_message.nack();
+            pending_message = undefined;
+          }
+          this.logger.error(
+            `Exception in message loop for ${source_name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`,
+            {
+              subscriptionServiceClass: source_name,
+              topic: this.gcloud_topic_name,
+              subscription: this.gcloud_subscription_name,
+              message_data: message_data ?? ''
+            }
+          );
+          this.logger.error(error.stack, { error });
+        }
+        // in case we get into a nasty failure loop
+        await sleep(500);
       }
-      // in case we get into a nasty failure loop
-      await sleep(500);
-    }
+    });
   }
   parseMessage(message_data: string): T | undefined {
     try {
