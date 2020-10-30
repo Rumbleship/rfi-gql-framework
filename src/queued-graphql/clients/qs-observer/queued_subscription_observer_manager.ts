@@ -96,6 +96,7 @@ export class QueuedSubscriptionObserverManager {
         publish_to_topic_name: this.qsrTopicName,
         query_attributes: handler.qso_metadata.query_attributes
       };
+      ctx.beeline.addTraceContext({ qso: { queryAttributes } });
       // we dont care about the response, so let default do nothing handler act
       await this.queuedGqlRequestClient.makeRequest(ctx, {
         client_request_id,

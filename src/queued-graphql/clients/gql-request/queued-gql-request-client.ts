@@ -67,6 +67,8 @@ export class QueuedGqlRequestClientSingleInstanceResponder {
       false
     );
   }
+
+  @AddToTrace()
   async makeRequest(
     ctx: RumbleshipContext,
     params: Pick<

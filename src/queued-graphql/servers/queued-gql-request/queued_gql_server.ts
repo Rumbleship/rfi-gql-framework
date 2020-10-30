@@ -85,7 +85,7 @@ export class QueuedGqlRequestServer {
               error instanceof GraphQLError
                 ? error
                 : new GraphQLError(
-                    'error during request ewxecution',
+                    'error during request execution',
                     undefined,
                     undefined,
                     undefined,
@@ -119,7 +119,9 @@ export class QueuedGqlRequestServer {
     };
     const topic = await gcpGetTopic(this._pubsub, request.publish_to_topic_name);
     const payload = JSON.stringify(message);
-    ctx.beeline.addTraceContext({ pubsub: { projectId: this._pubsub.projectId } });
+    ctx.beeline.addTraceContext({
+      pubsub: { projectId: this._pubsub.projectId, topic: { name: topic.name } }
+    });
     return topic.publish(Buffer.from(payload));
   }
 
