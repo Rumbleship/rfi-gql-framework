@@ -135,6 +135,10 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       subscription_response: response
     };
     const topic = await this.getTopic(ctx);
+    ctx.beeline.addTraceContext({
+      topic: { name: topic.name },
+      subscription: { name: subscription_name, id: message.subscription_id }
+    });
     const payload = JSON.stringify(message);
     return topic.publish(Buffer.from(payload));
   }
