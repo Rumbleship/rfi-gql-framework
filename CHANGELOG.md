@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * src/gql/resolvers/filter-by-subscription-filter.ts to always add id to the filter for the findOne auth check
 ### Deprecated
 ### Security
 
