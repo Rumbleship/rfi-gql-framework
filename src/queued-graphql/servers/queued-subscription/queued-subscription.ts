@@ -20,7 +20,6 @@ import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
-import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
@@ -55,7 +54,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     private schema: GraphQLSchema,
     subscriptionRequest: IQueuedSubscriptionRequest,
     config: IGcpConfig,
-    private googlePublisher = new GooglePubSub(forcePublicProjectPubsub(config.Auth))
+    private googlePublisher = new GooglePubSub(config.Auth)
   ) {
     this.googlePublisher.projectId = this.googlePublisher.projectId.replace('-private', '-public');
     // This object is a very longlived 'active' object, so we dont want to have
