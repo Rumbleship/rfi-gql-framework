@@ -17,7 +17,6 @@ import { uniqueSubscriptionNamePart } from './unique-subscription-name-part';
 import { CreateOptions, UpdateOptions, Model as SequelizeModel, Transaction } from 'sequelize';
 import { getContextId, getAuthorizedUser } from '../rumbleship-context';
 import uuid = require('uuid');
-import { forcePublicProjectPubsub } from '../../helpers/pubsub-auth-project';
 /**
  * @NOTE This pubsub is used for both websocket graphql subscriptions (eg playground, ApolloClient)
  * as well as graphql subscriptions delivered over a google pubsub topic. Eg 'QueuedSubscriptions'
@@ -47,7 +46,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     auth: IGcpAuthConfig,
     beeline: ClassType<RumbleshipBeeline> & typeof RumbleshipBeeline
   ) {
-    super(forcePublicProjectPubsub(auth), uniqueSubscriptionNamePart);
+    super(auth, uniqueSubscriptionNamePart);
     this.topicPrefix = config.topicPrefix;
     this.serviceName = serviceName;
     this.publisher_version = publisher_version;

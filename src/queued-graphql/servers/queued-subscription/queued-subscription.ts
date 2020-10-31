@@ -20,7 +20,6 @@ import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
-import { forcePublicProjectPubsub } from '../../../helpers/pubsub-auth-project';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
@@ -55,8 +54,9 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     private schema: GraphQLSchema,
     subscriptionRequest: IQueuedSubscriptionRequest,
     config: IGcpConfig,
-    private googlePublisher = new GooglePubSub(forcePublicProjectPubsub(config.Auth))
+    private googlePublisher = new GooglePubSub(config.Auth)
   ) {
+    this.googlePublisher.projectId = this.googlePublisher.projectId.replace('-private', '-public');
     // This object is a very longlived 'active' object, so we dont want to have
     // any unexpected side-effects of holding relay objects in memory and the
     // potential for large networks of objects and services never being garbage collected
@@ -135,6 +135,10 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       subscription_response: response
     };
     const topic = await this.getTopic(ctx);
+    ctx.beeline.addTraceContext({
+      topic: { name: topic.name },
+      subscription: { name: subscription_name, id: message.subscription_id }
+    });
     const payload = JSON.stringify(message);
     return topic.publish(Buffer.from(payload));
   }
@@ -209,9 +213,11 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     executionResult: ExecutionResult
   ): Promise<void> {
     ctx.beeline.addTraceContext({
-      subscription_name: this.subscription_name,
-      publish_topic: this.publish_to_topic_name,
-      pubsub: { projectId: this.googlePublisher.projectId },
+      pubsub: {
+        projectId: this.googlePublisher.projectId,
+        subscription: { name: this.subscription_name },
+        topic: { name: this.publish_to_topic_name }
+      },
       executionResult
     });
     if (this.publish_to_topic_name.length) {
