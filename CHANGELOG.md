@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [UNRELEASED]
 
-### Added
+### Added 
+  * improved tracing in queued graphql
 ### Removed
+  * helper to force `-private` to `-public` for pubsub
 ### Changed
 ### Fixed
 ### Deprecated

@@ -9,6 +9,8 @@ import { gcpGetTopic } from '../helpers';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
 import { sleep } from '../../helpers/sleep';
+import { RumbleshipBeeline } from '@rumbleship/o11y';
+import { v4 } from 'uuid';
 
 export class RfiPubSubSubscription<T> {
   protected _initiaized = false;
@@ -16,6 +18,7 @@ export class RfiPubSubSubscription<T> {
   protected gcloud_topic_name: string;
   protected gcloud_subscription_name: string;
   protected logger: SpyglassLogger;
+  protected beeline: RumbleshipBeeline;
   constructor(
     config: ISharedSchema,
     protected _pubSub: GooglePubSub,
@@ -31,6 +34,7 @@ export class RfiPubSubSubscription<T> {
       this.gcloud_subscription_name,
       subscriber_options
     );
+    this.beeline = RumbleshipBeeline.make(v4());
   }
 
   async init(): Promise<void> {
@@ -62,13 +66,23 @@ export class RfiPubSubSubscription<T> {
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
   ): Promise<void> {
+    const trace = this.beeline.startTrace({ name: 'RfiPubSubSubscription.start' });
+    this.beeline.addTraceContext({
+      gcloud_topic_name: this.gcloud_topic_name,
+      gcloud_subscription_name: this.gcloud_subscription_name,
+      projectId: this._pubSub.projectId
+    });
     let pending_message: Message | undefined;
     let message_data: string | undefined;
-    await this.init();
+    await this.beeline.withAsyncSpan(
+      { name: 'RfiPubSubSubscription.init' },
+      async () => await this.init()
+    );
+    this.beeline.finishTrace(trace);
     let retry = true;
     while (retry) {
       this.logger.info(
-        `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
+        `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
       );
       try {
         // the API reference says that we ALWAYS provess one message at a time,
@@ -84,35 +98,53 @@ export class RfiPubSubSubscription<T> {
             retry = false;
             break;
           }
-          message_data = message.data.toString();
-          const payload = this.parseMessage(message_data);
-
-          if (payload) {
-            const marshalled_trace = Reflect.get(
-              (payload as unknown) as Record<string, unknown>,
-              'marshalled_trace'
-            ) as string | undefined;
-
-            const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
-              __filename,
-              {
-                marshalled_trace
+          await this.beeline.withTrace({ name: 'RfiPubSubSubscription.message' }, async () => {
+            this.beeline.addTraceContext({
+              gcloud_topic_name: this.gcloud_topic_name,
+              gcloud_subscription_name: this.gcloud_subscription_name,
+              projectId: this._pubSub.projectId,
+              message: {
+                id: message.id,
+                deliveryAttempt: message.deliveryAttempt,
+                attributes: message.attributes,
+                orderingKey: message.orderingKey,
+                publishTime: message.publishTime,
+                received: message.received
               }
-            );
-            await handler(ctx, payload as T)
-              .catch(error => {
-                // Explicitly do not rethrow error; doing so will kill the dispatch manager.
-                ctx.logger.error(error.message);
-                ctx.logger.error(error.stack);
-                ctx.beeline.addTraceContext({
-                  'error.message': error.message,
-                  'error.stack': error.stack
-                });
-              })
-              .finally(() => ctx.release());
-          }
-          message.ack();
-          pending_message = undefined;
+            });
+            message_data = message.data.toString();
+            const payload = this.parseMessage(message_data);
+
+            if (payload) {
+              const marshalled_trace = Reflect.get(
+                (payload as unknown) as Record<string, unknown>,
+                'marshalled_trace'
+              ) as string | undefined;
+
+              const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+                __filename,
+                {
+                  marshalled_trace,
+                  linked_span: this.beeline.getTraceContext()
+                }
+              );
+              await this.beeline.runWithoutTrace(() =>
+                handler(ctx, payload as T)
+                  .catch(error => {
+                    // Explicitly do not rethrow error; doing so will kill the dispatch manager.
+                    ctx.logger.error(error.message);
+                    ctx.logger.error(error.stack);
+                    ctx.beeline.addTraceContext({
+                      'error.message': error.message,
+                      'error.stack': error.stack
+                    });
+                  })
+                  .finally(() => ctx.release())
+              );
+            }
+            message.ack();
+            pending_message = undefined;
+          });
         }
         this.logger.info(
           `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
