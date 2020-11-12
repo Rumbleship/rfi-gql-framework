@@ -127,8 +127,8 @@ export async function initServer(
     injected_models,
     dbOptions
   );
-  attachConnectionHooks();
   await sequelize.authenticate();
+  attachConnectionHooks();
 
   const pubSub = new RfiPubSub(
     config.Gcp.gaeVersion,
