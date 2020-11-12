@@ -17,6 +17,7 @@ import { RumbleshipBeeline, HoneycombMiddleware, addGaeVersionDataToTrace } from
 import { RumbleshipContext } from './../rumbleship-context';
 import { initSequelize, DbModelAndOidScope } from './init-sequelize';
 import { RFIAuthChecker, LogErrorMiddlewareFn } from './middleware';
+import { attachConnectionHooks } from './watch-connection-pool';
 
 import { goodRfi, logErrorsPlugin } from './plugins';
 import { RfiPubSub } from './rfi-pub-sub-engine';
@@ -126,6 +127,7 @@ export async function initServer(
     injected_models,
     dbOptions
   );
+  attachConnectionHooks();
   await sequelize.authenticate();
 
   const pubSub = new RfiPubSub(
