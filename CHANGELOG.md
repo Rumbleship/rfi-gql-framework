@@ -7,14 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [UNRELEASED]
 
-### Added 
-  * tracing for db connection pool
+### Added
 ### Removed
 ### Changed
 ### Fixed
 ### Deprecated
 ### Security
 
+
+## [13.4.5] -- 2020-11-12
+
+### Added 
+  * tracing for db connection pool
 
 ## [13.4.4] -- 2020-11-05
 
