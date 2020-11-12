@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 
+## [13.4.4] -- 2020-11-05
+
+### Changed
+  * export addErrorToTraceContext to index.ts
+
 ## [13.4.3] -- 2020-10-31
 
 ### Added 
