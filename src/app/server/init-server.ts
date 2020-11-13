@@ -128,7 +128,9 @@ export async function initServer(
     dbOptions
   );
   await sequelize.authenticate();
-  attachConnectionHooks();
+  if (config.traceDatabaseConnectionHooks) {
+    attachConnectionHooks();
+  }
 
   const pubSub = new RfiPubSub(
     config.Gcp.gaeVersion,
