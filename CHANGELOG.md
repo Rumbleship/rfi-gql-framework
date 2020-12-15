@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * newTransaction, endTransaction emit log info @ debug
 ### Fixed
 ### Deprecated
 ### Security

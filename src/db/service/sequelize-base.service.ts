@@ -483,7 +483,7 @@ export class SequelizeBaseService<
         options: (txn as any).options
       }
     });
-    this.ctx.logger.info('transaction_started');
+    this.ctx.logger.debug('transaction_started');
     return (txn as unknown) as NodeServiceTransaction;
   }
 
@@ -495,10 +495,10 @@ export class SequelizeBaseService<
     this.ctx.beeline.addTraceContext({ 'db.transaction.end': action });
     switch (action) {
       case 'commit':
-        this.ctx.logger.info('transaction_commit');
+        this.ctx.logger.debug('transaction_commit');
         return transaction.commit();
       case 'rollback':
-        this.ctx.logger.info('transaction_rollback');
+        this.ctx.logger.debug('transaction_rollback');
         return transaction.rollback();
     }
   }
