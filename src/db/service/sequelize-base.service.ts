@@ -335,11 +335,13 @@ export class SequelizeBaseService<
   ): Promise<T> {
     const { opts, authorizableClass } = options;
     let transactionCreated = false;
+    let transaction: NodeServiceTransaction | undefined = undefined;
     if (!opts.transaction) {
-      opts.transaction = await this.newTransaction({
+      transaction = await this.newTransaction({
         isolation: NodeServiceIsolationLevel.READ_COMMITTED,
         autocommit: false
       });
+      opts.transaction = transaction;
       opts.lockLevel = NodeServiceLock.SHARE;
 
       transactionCreated = true;
@@ -352,20 +354,22 @@ export class SequelizeBaseService<
       opts,
       authorizableClass
     );
+    let res: T | undefined;
     try {
-      return await theFunctionToWrap(sequelizeOptions);
+      res = await theFunctionToWrap(sequelizeOptions);
     } catch (e) {
       this.ctx.logger.error(e.stack);
-      if (transactionCreated && opts.transaction) {
-        await this.endTransaction(opts.transaction, 'rollback');
+      if (transactionCreated && transaction) {
+        await this.endTransaction(transaction, 'rollback');
         opts.transaction = undefined;
       }
       throw e;
     } finally {
-      if (transactionCreated && opts.transaction) {
-        await this.endTransaction(opts.transaction, 'commit');
+      if (transactionCreated && transaction) {
+        await this.endTransaction(transaction, 'commit');
       }
     }
+    return res as T;
   }
 
   setServiceRegister(services: NodeServiceMap): void {
