@@ -326,6 +326,7 @@ export class SequelizeBaseService<
     }
   }
 
+  @AddToTrace()
   async addAuthorizationFiltersAndWrapWithTransaction<T>(
     options: {
       opts: NodeServiceOptions;
