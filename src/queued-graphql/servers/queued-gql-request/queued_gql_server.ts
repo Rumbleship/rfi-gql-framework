@@ -92,7 +92,7 @@ export class QueuedGqlRequestServer {
               error instanceof GraphQLError
                 ? error
                 : new GraphQLError(
-                    'error during request execution',
+                    error.message ?? 'error during request execution',
                     undefined,
                     undefined,
                     undefined,
