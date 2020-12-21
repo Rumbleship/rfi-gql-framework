@@ -453,7 +453,7 @@ export class QueuedSubscriptionServer {
           await this.queuedGqlRequestClient.makeRequest(ctx, {
             client_request_id: 'GetAllQueuedSubscriptionRequests',
             respond_on_error: true,
-            gql_query_string: buildPrimeQsrCacheListQuery({ first: 100, after: pageInfo.endCursor })
+            gql_query_string: buildPrimeQsrCacheListQuery({ first: 2, after: pageInfo.endCursor })
           });
         }
       } else {
