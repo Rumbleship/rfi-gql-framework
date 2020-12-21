@@ -447,7 +447,10 @@ export class QueuedSubscriptionServer {
       }
     }
     if (response.response.errors) {
-      ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
+      for (const error of response.response.errors) {
+        ctx.logger.log(`Error in response: ${error.toString()}`);
+        ctx.beeline.finishSpan(ctx.beeline.startSpan({ ...error }));
+      }
     }
   }
 
