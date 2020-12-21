@@ -1,26 +1,37 @@
-import { Connection, Node, RelayFilterBase } from './relay.interface';
+import { PageInfo } from './page-info.type';
 import { PaginationQuery } from './pagination-query.interface';
+import { Node, RelayFilterBase } from './relay.interface';
+
+type ApiNode<T> = Omit<Node<T>, '_service'>;
+interface ApiEdge<T extends ApiNode<T>> {
+  node: T;
+  cursor: string;
+}
+interface ApiConnection<T extends ApiNode<T>> {
+  pageInfo: PageInfo;
+  edges: Array<ApiEdge<T>>;
+}
 
 /**
- * Helper to iterate over an *internally* facing collection.
+ * Helper to iterate over an *externally* facing collection.
  *
- * If you're iterating over a pagable connection at the API layer
- * @see {iterable-external-connection.type.ts}
+ * If you're iterating over a pagable connection from the database
+ * @see {iterable-connection.type.ts}
  */
-export class IterableConnection<
-  T extends Node<T>,
+export class IterableExternalConnection<
+  T extends ApiNode<any>,
   TFilter extends PaginationQuery | RelayFilterBase<TFilter>
 > implements AsyncIterable<T> {
   constructor(
     private filterBy: TFilter,
-    private nextPage: (filter: TFilter) => Promise<Connection<T>>
+    private nextPage: (filter: TFilter) => Promise<ApiConnection<T>>
   ) {}
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
     const filterBy: TFilter = ({} as any) as TFilter;
     Object.assign(filterBy, this.filterBy); // shallow copy as we track where we are
     const nextPage = this.nextPage;
-    let connection: Connection<T>;
+    let connection: ApiConnection<T>;
     let itemPosition = 0;
     return {
       async next(): Promise<IteratorResult<T>> {

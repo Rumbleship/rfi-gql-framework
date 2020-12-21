@@ -63,12 +63,41 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
     ${QSR_GQL_FRAGMENT}
     `;
 
-export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs {
-      queuedSubscriptionRequests(order_by:{ keys: [["cache_consistency_id","ASC"]]}, first: 100 ) {
+function buildPrimeQsrCacheListQuery(
+  { first, after }: { first: number; after?: string } = { first: 2 }
+): string {
+  return `query qsrs {
+        queuedSubscriptionRequests(
+          order_by: { keys: [["cache_consistency_id", "ASC"]] }
+          first: ${first}
+          after: "${after ?? ''}"
+        ) {
+          edges {
+            node {
+              ...qsr
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      },
+      ${QSR_GQL_FRAGMENT},
+    `;
+}
+
+// I think this is deleteable.
+export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs($first: Int, $after: String) {
+      queuedSubscriptionRequests(order_by:{ keys: [["cache_consistency_id","ASC"]]}, first: $first, after: $after ) {
         edges {
           node {
             ... qsr
           }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
         }
       }
     }
@@ -354,7 +383,8 @@ export class QueuedSubscriptionServer {
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: 'GetAllQueuedSubscriptionRequests',
       respond_on_error: true,
-      gql_query_string: QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL
+      gql_query_string: buildPrimeQsrCacheListQuery({ first: 3 })
+      // gql_query_string: QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL
     });
   }
 
@@ -413,11 +443,19 @@ export class QueuedSubscriptionServer {
     // We can get a response from multiple services, and google pub sub can
     // deliver it twice.
     if (response.response.data) {
-      const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
-        'queuedSubscriptionRequests'
-      ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
+      const { edges, pageInfo } = response.response.data['queuedSubscriptionRequests'];
+      const qsrs: IQueuedSubscriptionRequest[] = (edges as Array<{
+        node: IQueuedSubscriptionRequest;
+      }>).map(entry => entry.node);
       if (qsrs.length) {
         await this.process_incoming_qsrs(ctx, qsrs);
+        if (pageInfo && pageInfo.hasNextPage) {
+          await this.queuedGqlRequestClient.makeRequest(ctx, {
+            client_request_id: 'GetAllQueuedSubscriptionRequests',
+            respond_on_error: true,
+            gql_query_string: buildPrimeQsrCacheListQuery({ first: 100, after: pageInfo.endCursor })
+          });
+        }
       } else {
         // in development we might clear out the database and so we can get this situation where we have a cache but no
         // real qsrs. This is a special case and we deliberately clear the cache at this and active running queuedSubsctiptions
