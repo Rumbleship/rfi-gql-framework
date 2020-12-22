@@ -63,17 +63,29 @@ export const QUEUED_SUBSCRIPTION_REPO_CHANGE_GQL = `
     ${QSR_GQL_FRAGMENT}
     `;
 
-export const QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL = `query qsrs {
-      queuedSubscriptionRequests(order_by:{ keys: [["cache_consistency_id","ASC"]]}, first: 100 ) {
-        edges {
-          node {
-            ... qsr
+function buildPrimeQsrCacheListQuery(
+  { first, after }: { first: number; after?: string } = { first: 100 }
+): string {
+  return `query qsrs {
+        queuedSubscriptionRequests(
+          order_by: { keys: [["cache_consistency_id", "ASC"]] }
+          first: ${first}
+          after: "${after ?? ''}"
+        ) {
+          edges {
+            node {
+              ...qsr
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
           }
         }
-      }
-    }
-    ${QSR_GQL_FRAGMENT}
+      },
+      ${QSR_GQL_FRAGMENT},
     `;
+}
 export class QueuedSubscriptionServer {
   queuedSubscriptions: Map<string, QueuedSubscription> = new Map();
   qsrChangeObserver: RfiPubSubSubscription<QueuedSubscriptionMessage>;
@@ -206,7 +218,7 @@ export class QueuedSubscriptionServer {
     qsrCache?: QueuedSubscriptionCache
   ): Promise<number> {
     if (!qsrCache) {
-      qsrCache = await loadCache(this.config.Gcp.gaeVersion);
+      qsrCache = await this.loadCache(ctx, this.config.Gcp.gaeVersion);
     }
     // find active subscriptions that need to be removed
     for (const [key, queued] of this.queuedSubscriptions.entries()) {
@@ -230,7 +242,7 @@ export class QueuedSubscriptionServer {
 
   @AddToTrace()
   async start(ctx: RumbleshipContext): Promise<void> {
-    const qsrCache = await loadCache(this.config.Gcp.gaeVersion);
+    const qsrCache = await this.loadCache(ctx, this.config.Gcp.gaeVersion);
     await this.refreshSubscriptionsFromCache(ctx, qsrCache);
     await this.initializeCacheChangeObserver(ctx);
     // start listening for changes... kicks off its own
@@ -354,7 +366,7 @@ export class QueuedSubscriptionServer {
     await this.queuedGqlRequestClient.makeRequest(ctx, {
       client_request_id: 'GetAllQueuedSubscriptionRequests',
       respond_on_error: true,
-      gql_query_string: QUEUED_SUBSCRIPTION_REQUEST_LIST_GQL
+      gql_query_string: buildPrimeQsrCacheListQuery({ first: 100 })
     });
   }
 
@@ -413,11 +425,19 @@ export class QueuedSubscriptionServer {
     // We can get a response from multiple services, and google pub sub can
     // deliver it twice.
     if (response.response.data) {
-      const qsrs: IQueuedSubscriptionRequest[] = (response.response.data[
-        'queuedSubscriptionRequests'
-      ].edges as Array<{ node: IQueuedSubscriptionRequest }>).map(entry => entry.node);
+      const { edges, pageInfo } = response.response.data['queuedSubscriptionRequests'];
+      const qsrs: IQueuedSubscriptionRequest[] = (edges as Array<{
+        node: IQueuedSubscriptionRequest;
+      }>).map(entry => entry.node);
       if (qsrs.length) {
         await this.process_incoming_qsrs(ctx, qsrs);
+        if (pageInfo && pageInfo.hasNextPage) {
+          await this.queuedGqlRequestClient.makeRequest(ctx, {
+            client_request_id: 'GetAllQueuedSubscriptionRequests',
+            respond_on_error: true,
+            gql_query_string: buildPrimeQsrCacheListQuery({ first: 100, after: pageInfo.endCursor })
+          });
+        }
       } else {
         // in development we might clear out the database and so we can get this situation where we have a cache but no
         // real qsrs. This is a special case and we deliberately clear the cache at this and active running queuedSubsctiptions
@@ -427,7 +447,10 @@ export class QueuedSubscriptionServer {
       }
     }
     if (response.response.errors) {
-      ctx.logger.log(`Error in response: ${response.response.errors.toString()}`);
+      for (const error of response.response.errors) {
+        ctx.logger.log(`Error in response: ${error.toString()}`);
+        ctx.beeline.finishSpan(ctx.beeline.startSpan({ ...error }));
+      }
     }
   }
 

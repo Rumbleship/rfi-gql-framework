@@ -1,8 +1,10 @@
 import { Connection, Node, RelayFilterBase } from './relay.interface';
 import { PaginationQuery } from './pagination-query.interface';
 /**
- * Helper class that takes a function to 'get next page' of a pagable collection
+ * Helper to iterate over an *internally* facing collection.
  *
+ * If you're iterating over a pagable connection at the API layer
+ * @see {iterable-external-connection.type.ts}
  */
 export declare class IterableConnection<T extends Node<T>, TFilter extends PaginationQuery | RelayFilterBase<TFilter>> implements AsyncIterable<T> {
     private filterBy;
