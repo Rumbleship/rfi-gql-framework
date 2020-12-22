@@ -4,6 +4,7 @@ export * from './base-attribs.builder';
 export * from './connection.builder';
 export * from './edge.builder';
 export * from './iterable-connection.type';
+export * from './iterable-external-connection.type';
 export * from './node-notification';
 export * from './node-notification.builder';
 export * from './notification-of.enum';

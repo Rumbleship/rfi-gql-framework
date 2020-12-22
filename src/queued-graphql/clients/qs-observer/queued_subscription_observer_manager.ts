@@ -44,6 +44,10 @@ export class QueuedSubscriptionObserverManager {
       this.qsrTopicName,
       this.qsrSubscriptionName,
       false
+      // @todo(isaac): Consider ramifications of enabling this. Should be zero, but...
+      // {
+      //   enableOpenTelemetryTracing: true
+      // }
     );
     this.queuedGqlRequestClient = new QueuedGqlRequestClientSingleInstanceResponder(config);
   }
