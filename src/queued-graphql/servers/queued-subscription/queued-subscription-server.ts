@@ -218,7 +218,7 @@ export class QueuedSubscriptionServer {
     qsrCache?: QueuedSubscriptionCache
   ): Promise<number> {
     if (!qsrCache) {
-      qsrCache = await loadCache(this.config.Gcp.gaeVersion);
+      qsrCache = await this.loadCache(ctx, this.config.Gcp.gaeVersion);
     }
     // find active subscriptions that need to be removed
     for (const [key, queued] of this.queuedSubscriptions.entries()) {
@@ -242,7 +242,7 @@ export class QueuedSubscriptionServer {
 
   @AddToTrace()
   async start(ctx: RumbleshipContext): Promise<void> {
-    const qsrCache = await loadCache(this.config.Gcp.gaeVersion);
+    const qsrCache = await this.loadCache(ctx, this.config.Gcp.gaeVersion);
     await this.refreshSubscriptionsFromCache(ctx, qsrCache);
     await this.initializeCacheChangeObserver(ctx);
     // start listening for changes... kicks off its own
