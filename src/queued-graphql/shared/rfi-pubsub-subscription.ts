@@ -138,6 +138,7 @@ export class RfiPubSubSubscription<T> {
                       'error.message': error.message,
                       'error.stack': error.stack
                     });
+                    throw error;
                   })
                   .finally(() => ctx.release())
               );

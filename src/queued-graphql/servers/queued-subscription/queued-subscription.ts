@@ -148,6 +148,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     if (!this._topic) {
       this._topic = await gcpGetTopic(this.googlePublisher, this.publish_to_topic_name);
     }
+    ctx.beeline.addTraceContext({ topic: { name: this._topic.name } });
     return this._topic;
   }
   async start(): Promise<void> {
