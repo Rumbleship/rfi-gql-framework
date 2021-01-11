@@ -22,6 +22,9 @@ export const DateRangeGQL = new GraphQLScalarType({
         if (field.value.kind === 'StringValue') {
           value[field.name.value] = new Date(field.value.value);
         }
+        if (field.value.kind === 'Variable' && variables) {
+          value[field.name.value] = Reflect.get(variables, field.name.value);
+        }
       });
       return plainToClass(DateRange, value); // value from the client query
     }
