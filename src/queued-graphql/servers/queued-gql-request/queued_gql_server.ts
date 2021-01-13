@@ -35,9 +35,9 @@ import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error
  *
  *
  * This is an 'inner ring' service that only runs internally to the
- *
+ * @note publishes responses to gql queries/mutations recieved over queue.
+ * @see queued-gql-request-client
  */
-
 export class QueuedGqlRequestServer {
   public request_topic_name: string;
   public request_subscription_name: string;
@@ -124,7 +124,7 @@ export class QueuedGqlRequestServer {
       service_name: this.service_name,
       response: executionResponse
     };
-    const topic = await gcpGetTopic(this._pubsub, request.publish_to_topic_name);
+    const topic = await gcpGetTopic(this._pubsub, request.publish_to_topic_name, false);
     const payload = JSON.stringify(message);
     ctx.beeline.addTraceContext({
       pubsub: {

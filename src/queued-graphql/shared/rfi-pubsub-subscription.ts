@@ -48,14 +48,14 @@ export class RfiPubSubSubscription<T> {
     // graphQl queries and mutations should not implicitly worry about order
     const [exists] = await this._subscription.exists();
     if (!exists) {
-      const topic = await gcpGetTopic(this._pubSub, this.gcloud_topic_name);
+      const topic = await gcpGetTopic(this._pubSub, this.gcloud_topic_name, true);
       // NOTE we dont need to create an ordered subscription
       // as a graphql query or mnutation should be fairly standalone
       // if a client requires that, then as with a http graphql request, it would be expected
       // to wait for the response of the predecessor before sending the next request.
       // the client maps its requests, if needed via clientRequestId's
       const [newSub] = await topic.createSubscription(this.gcloud_subscription_name, {
-        enableMessageOrdering: false
+        enableMessageOrdering: true
       });
       this._subscription = newSub;
     }
@@ -98,6 +98,9 @@ export class RfiPubSubSubscription<T> {
             retry = false;
             break;
           }
+          /**
+           * this is not being sent to honeycomb
+           */
           await this.beeline.withTrace({ name: 'RfiPubSubSubscription.message' }, async () => {
             this.beeline.addTraceContext({
               gcloud_topic_name: this.gcloud_topic_name,
@@ -128,10 +131,25 @@ export class RfiPubSubSubscription<T> {
                   linked_span: this.beeline.getTraceContext()
                 }
               );
+              const wrapped = ctx.beeline.bindFunctionToTrace(() => {
+                ctx.beeline.addTraceContext({
+                  gcloud_topic_name: this.gcloud_topic_name,
+                  gcloud_subscription_name: this.gcloud_subscription_name,
+                  projectId: this._pubSub.projectId,
+                  message: {
+                    id: message.id,
+                    deliveryAttempt: message.deliveryAttempt,
+                    attributes: message.attributes,
+                    orderingKey: message.orderingKey,
+                    publishTime: message.publishTime,
+                    received: message.received
+                  }
+                });
+                return handler(ctx, payload as T);
+              });
               await this.beeline.runWithoutTrace(() =>
-                handler(ctx, payload as T)
+                wrapped()
                   .catch(error => {
-                    // Explicitly do not rethrow error; doing so will kill the dispatch manager.
                     ctx.logger.error(error.message);
                     ctx.logger.error(error.stack);
                     ctx.beeline.addTraceContext({
