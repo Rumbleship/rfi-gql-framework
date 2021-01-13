@@ -13,10 +13,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * Enable message ordering
   * Upgrade to `@google-cloud/pubsub#2.8.0` + UPGRADE ALL PEERS
 ### Fixed
-  * Correct parse daterange when variable name does not coincidentally match field name
 ### Deprecated
 ### Security
 
+
+## [13.6.2] -- 2021-01-11
+
+### Fixed
+  * Correct parse daterange when variable name does not coincidentally match field name
 
 ## [13.6.1] -- 2021-01-11
 
