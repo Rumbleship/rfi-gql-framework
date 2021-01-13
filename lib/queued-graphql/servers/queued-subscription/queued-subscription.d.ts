@@ -42,7 +42,7 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
      */
     static validateSubscriptionRequest(schema: GraphQLSchema, subscriptionRequest: IQueuedSubscriptionRequest): GqlExecutionParams;
     /**
-     * publishes repsononses to the QueuedSubscriptionRequest
+     * @note publishes responses to the QueuedSubscriptionRequest
      */
     publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string>;
     protected getTopic(ctx: RumbleshipContext): Promise<Topic>;

@@ -20,6 +20,7 @@ import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
+import { MessageOptions } from '@google-cloud/pubsub/build/src/topic';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
@@ -119,7 +120,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   }
 
   /**
-   * publishes repsononses to the QueuedSubscriptionRequest
+   * @note publishes responses to the QueuedSubscriptionRequest
    */
   @AddToTrace()
   async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
@@ -128,7 +129,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       pubsub: { projectId: this.googlePublisher.projectId }
     });
     const subscription_name = this.subscription_name ?? '';
-    const message: QueuedSubscriptionMessage = {
+    const message_body: QueuedSubscriptionMessage = {
       owner_id: this.owner_id ?? '',
       subscription_name,
       subscription_id: this.id.toString(),
@@ -137,18 +138,22 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
     const topic = await this.getTopic(ctx);
     ctx.beeline.addTraceContext({
       topic: { name: topic.name },
-      subscription: { name: subscription_name, id: message.subscription_id }
+      subscription: { name: subscription_name, id: message_body.subscription_id }
     });
-    const payload = JSON.stringify(message);
-    return topic.publish(Buffer.from(payload));
+    const message: MessageOptions = {
+      data: Buffer.from(JSON.stringify(message_body)),
+      orderingKey: 'qsr'
+    };
+    const [published] = await topic.publishMessage(message);
+    return published;
   }
 
   @AddToTrace()
   protected async getTopic(ctx: RumbleshipContext): Promise<Topic> {
     if (!this._topic) {
-      this._topic = await gcpGetTopic(this.googlePublisher, this.publish_to_topic_name);
+      this._topic = await gcpGetTopic(this.googlePublisher, this.publish_to_topic_name, true);
     }
-    ctx.beeline.addTraceContext({ topic: { name: this._topic.name } });
+    ctx.beeline.addTraceContext({ topic: { name: this._topic.name, messageOrdering: true } });
     return this._topic;
   }
   async start(): Promise<void> {

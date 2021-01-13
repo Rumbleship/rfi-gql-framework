@@ -16,7 +16,8 @@ import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
  *
  *
  * This is an 'inner ring' service that only runs internally to the
- *
+ * @note publishes responses to gql queries/mutations recieved over queue.
+ * @see queued-gql-request-client
  */
 export declare class QueuedGqlRequestServer {
     config: ISharedSchema;

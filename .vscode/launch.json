@@ -56,6 +56,30 @@
         "program": "${workspaceFolder}/node_modules/jest/bin/jest"
       },
       "smartStep": false
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Test Publish Script",
+      "program": "${workspaceFolder}/lib/scripts/publisher.js",
+      "args": ["unordered", "listen"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+      "showAsyncStacks": true,
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NODE_PATH": "${workspaceRoot}",
+        "LOGGING_LEVEL":"info"
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js",
+        "${workspaceRoot}/node_modules/@rumbleship/o11y/**/*.js",
+        "${workspaceRoot}/node_modules.mac/@rumbleship/o11y/**/*.js",
+        "${workspaceRoot}/node_modules/honeycomb-beeline/**/*.js",
+        "${workspaceRoot}/node_modules.mac/honeycomb-beeline/**/*.js",
+      ],
+      "trace": true
     }
   ]
 }

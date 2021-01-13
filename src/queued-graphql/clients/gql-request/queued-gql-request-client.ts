@@ -36,6 +36,8 @@ import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
 
       A handler is set for each 'client_request_id' and will be typically the 
  * 
+ * @note this is used to make a gql request (query/mutation) over pubsub.
+ * @see queued_gql_server
  */
 export class QueuedGqlRequestClientSingleInstanceResponder {
   public request_topic_name: string;
@@ -68,6 +70,14 @@ export class QueuedGqlRequestClientSingleInstanceResponder {
     );
   }
 
+  /**
+   *
+   * @param ctx
+   * @param params
+   * @param onResponsehandler
+   * @returns
+   *
+   */
   @AddToTrace()
   async makeRequest(
     ctx: RumbleshipContext,
@@ -91,7 +101,7 @@ export class QueuedGqlRequestClientSingleInstanceResponder {
       owner_id: ctx.authorizer.getUser()
     };
 
-    const topic = await gcpGetTopic(this._pubsub, this.request_topic_name);
+    const topic = await gcpGetTopic(this._pubsub, this.request_topic_name, false);
     const payload = JSON.stringify(request);
     return topic.publish(Buffer.from(payload));
   }

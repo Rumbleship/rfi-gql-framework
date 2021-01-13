@@ -25,6 +25,8 @@ import { RfiPubSubSubscription } from '../../shared/rfi-pubsub-subscription';
 
       A handler is set for each 'client_request_id' and will be typically the
  *
+ * @note this is used to make a gql request (query/mutation) over pubsub.
+ * @see queued_gql_server
  */
 export declare class QueuedGqlRequestClientSingleInstanceResponder {
     config: ISharedSchema;
@@ -36,6 +38,14 @@ export declare class QueuedGqlRequestClientSingleInstanceResponder {
     protected _response_subscription: RfiPubSubSubscription<IQueuedGqlResponse>;
     protected _pubsub: GooglePubSub;
     constructor(config: ISharedSchema);
+    /**
+     *
+     * @param ctx
+     * @param params
+     * @param onResponsehandler
+     * @returns
+     *
+     */
     makeRequest(ctx: RumbleshipContext, params: Pick<IQueuedGqlRequest, 'client_request_id' | 'respond_on_error' | 'gql_query_string' | 'query_attributes' | 'operation_name'>, onResponsehandler?: (ctx: RumbleshipContext, response: IQueuedGqlResponse) => Promise<void>): Promise<string>;
     start(): Promise<void>;
     defaultHandler(ctx: RumbleshipContext, response: IQueuedGqlResponse): Promise<void>;

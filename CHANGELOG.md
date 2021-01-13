@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Enable message ordering
+  * Upgrade to `@google-cloud/pubsub#2.8.0` + UPGRADE ALL PEERS
 ### Fixed
   * Correct parse daterange when variable name does not coincidentally match field name
 ### Deprecated

@@ -4,18 +4,23 @@ import {
   Subscription,
   CreateSubscriptionOptions
 } from '@google-cloud/pubsub';
-export async function gcpGetTopic(pubsub: GooglePubSub, topic_name: string): Promise<Topic> {
-  let topic = pubsub.topic(topic_name);
+export async function gcpGetTopic(
+  pubsub: GooglePubSub,
+  topic_name: string,
+  messageOrdering: boolean
+): Promise<Topic> {
+  let topic = pubsub.topic(topic_name, { messageOrdering });
   const [exists] = await topic.exists();
   if (!exists) {
     try {
-      [topic] = await pubsub.createTopic(topic_name);
+      await pubsub.createTopic(topic_name);
+      topic = pubsub.topic(topic_name, { messageOrdering });
     } catch (e) {
       const TOPIC_ALREADY_EXISTS_GCP_MAGIC_NUMBER = 6;
       if (e.code === TOPIC_ALREADY_EXISTS_GCP_MAGIC_NUMBER) {
         // It can be created during a race condition,
         // so try again
-        topic = pubsub.topic(topic_name);
+        topic = pubsub.topic(topic_name, { messageOrdering });
       } else {
         throw e;
       }
