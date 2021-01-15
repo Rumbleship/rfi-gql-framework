@@ -1,4 +1,4 @@
-import { GraphQLSchema, printSchema } from 'graphql';
+import { GraphQLSchema, printError, printSchema } from 'graphql';
 import { hostname } from 'os';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
@@ -452,8 +452,8 @@ export class QueuedSubscriptionServer {
     }
     if (response.response.errors) {
       for (const error of response.response.errors) {
-        ctx.logger.log(`Error in response: ${error.toString()}`);
-        ctx.beeline.finishSpan(ctx.beeline.startSpan({ ...error }));
+        ctx.logger.error(`Error in response: ${printError(error)}`);
+        ctx.beeline.finishSpan(ctx.beeline.startSpan({ ...error, plain: printError(error) }));
       }
     }
   }

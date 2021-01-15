@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * Tracing for PubSub message dispatching
+  * Error printing for queuedGQLrequests
 ### Deprecated
 ### Security
 
