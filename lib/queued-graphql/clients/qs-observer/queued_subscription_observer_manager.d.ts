@@ -34,7 +34,7 @@ export declare class QueuedSubscriptionObserverManager {
      * QSR will be updated or created
      */
     syncQsrs(ctx: RumbleshipContext): Promise<void>;
-    start(ctx: RumbleshipContext): Promise<void>;
+    start(_ctx: RumbleshipContext): Promise<void>;
     stop(ctx: RumbleshipContext): Promise<void>;
     /**
      *
