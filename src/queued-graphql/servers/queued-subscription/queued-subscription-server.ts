@@ -453,7 +453,17 @@ export class QueuedSubscriptionServer {
     if (response.response.errors) {
       for (const error of response.response.errors) {
         ctx.logger.error(`Error in response: ${printError(error)}`);
-        ctx.beeline.finishSpan(ctx.beeline.startSpan({ ...error, plain: printError(error) }));
+        ctx.beeline.finishSpan(
+          ctx.beeline.startSpan({
+            name: 'error',
+            error: {
+              ...error,
+              plain: printError(error),
+              stack: error.originalError?.stack,
+              message: error.originalError?.message
+            }
+          })
+        );
       }
     }
   }
