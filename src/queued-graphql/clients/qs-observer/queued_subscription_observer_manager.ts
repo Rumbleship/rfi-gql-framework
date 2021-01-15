@@ -112,14 +112,11 @@ export class QueuedSubscriptionObserverManager {
   }
 
   @AddToTrace()
-  async start(_ctx: RumbleshipContext): Promise<void> {
+  async start(ctx: RumbleshipContext): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     void this.qsr_subscription.start(
-      (_ctx: RumbleshipContext, message: QueuedSubscriptionMessage): Promise<void> => {
-        const ctx = RumbleshipContext.make(__filename, {
-          marshalled_trace: message.marshalled_trace
-        });
-        return this.message_dispatcher(ctx, message).then(() => ctx.release());
+      (ctx: RumbleshipContext, message: QueuedSubscriptionMessage): Promise<void> => {
+        return this.message_dispatcher(ctx, message);
       }
     );
   }
