@@ -17,6 +17,7 @@ export declare class RfiPubSubSubscription<T> {
     constructor(config: ISharedSchema, _pubSub: GooglePubSub, gcloud_topic_name: string, gcloud_subscription_name: string, delete_on_stop: boolean, subscriber_options?: SubscriberOptions | undefined);
     init(): Promise<void>;
     protected initSubscription(): Promise<Subscription>;
+    dispatch(message: Message, handler: (ctx: RumbleshipContext, payload: T) => Promise<void>): Promise<void>;
     start(handler: (ctx: RumbleshipContext, payload: T) => Promise<void>, source_name?: string): Promise<void>;
     parseMessage(message_data: string): T | undefined;
     stop(): Promise<void>;

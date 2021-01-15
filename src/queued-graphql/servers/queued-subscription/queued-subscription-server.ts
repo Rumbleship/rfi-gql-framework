@@ -189,6 +189,10 @@ export class QueuedSubscriptionServer {
               validateAndAddToCache(incomingQsr);
             }
           }
+          /**
+           *  @note open question: else should clear anything in the cache that is
+           * *not* in the list of incoming QSRs?
+           */
         }
         if (cache_dirty) {
           await saveCache(qsrCache, { transaction });

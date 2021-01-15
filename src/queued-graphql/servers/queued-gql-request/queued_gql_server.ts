@@ -71,6 +71,7 @@ export class QueuedGqlRequestServer {
         ctx.beeline.addTraceContext({
           pubsub: { projectId: this._pubsub.projectId },
           config: {
+            PubSub: this.config.PubSub,
             Gcp: {
               Auth: this.config.Gcp.Auth
             }
@@ -131,6 +132,7 @@ export class QueuedGqlRequestServer {
         projectId: this._pubsub.projectId,
         topic: { name: topic.name },
         config: {
+          PubSub: this.config.PubSub,
           Gcp: {
             Auth: this.config.Gcp.Auth
           }
@@ -145,6 +147,7 @@ export class QueuedGqlRequestServer {
     ctx.beeline.addTraceContext({
       pubsub: { projectId: this._pubsub.projectId },
       config: {
+        PubSub: this.config.PubSub,
         Gcp: {
           Auth: this.config.Gcp.Auth
         }
