@@ -32,7 +32,7 @@ export declare class NodeResolver implements RelayResolver {
     private readonly nodeServices;
     constructor(nodeServices: Array<NodeService<any>>);
     node(oidString: string, ctx: RumbleshipContext): Promise<Node<any> | null>;
-    publishLastKnownState(oidString: string, pubSub: PubSubEngine, ctx: RumbleshipContext): boolean;
+    publishLastKnownState(oidString: string, pubSub: PubSubEngine, ctx: RumbleshipContext): Promise<boolean>;
     onChange(rawPayload: RawPayload, args: NodeSubscriptionFilter): Promise<ClassGqlNodeNotification>;
     unWrapOid(oidString: string, ctx: RumbleshipContext): Promise<string>;
     makeOid(scope: string, id: string, ctx: RumbleshipContext): Promise<string>;

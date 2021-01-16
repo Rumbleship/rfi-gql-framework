@@ -62,8 +62,8 @@ export class NodeResolver implements RelayResolver {
   ) {}
   // to conform with the Relay Connection spec
   // this is the generic resolver givin an ID, it can always resolcve to one of the domain objects..
-  @AddToTrace()
   @Query(returns => Node, { nullable: true })
+  @AddToTrace()
   async node(
     @Arg('id', type => ID) oidString: string,
     @Ctx() ctx: RumbleshipContext
@@ -76,13 +76,13 @@ export class NodeResolver implements RelayResolver {
     throw Error('Invalid OID. Scope:' + scope);
   }
 
-  @AddToTrace()
   @Mutation(returns => Boolean)
-  publishLastKnownState(
+  @AddToTrace()
+  async publishLastKnownState(
     @Arg('id', type => ID) oidString: string,
     @PubSub() pubSub: PubSubEngine,
     @Ctx() ctx: RumbleshipContext
-  ): boolean {
+  ): Promise<boolean> {
     const oid = new Oid(oidString);
     const { scope } = oid.unwrap();
     if (scope in this.nodeServices) {
@@ -97,6 +97,7 @@ export class NodeResolver implements RelayResolver {
     filter: filterBySubscriptionFilter,
     nullable: true
   })
+  @AddToTrace()
   async onChange(
     @Root() rawPayload: RawPayload,
     @Args(type => NodeSubscriptionFilter) args: NodeSubscriptionFilter
@@ -119,6 +120,7 @@ export class NodeResolver implements RelayResolver {
   }
   // for developers and system support,
   @Query(returns => String)
+  @AddToTrace()
   async unWrapOid(
     @Arg('id', type => ID) oidString: string,
     @Ctx() ctx: RumbleshipContext
@@ -129,6 +131,7 @@ export class NodeResolver implements RelayResolver {
   }
 
   @Query(returns => String)
+  @AddToTrace()
   async makeOid(
     @Arg('scope', type => String) scope: string,
     @Arg('id', type => String) id: string,

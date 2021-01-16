@@ -26,13 +26,13 @@ export function withSubscriptionResolver<
 ) {
   @Resolver({ isAbstract: true })
   class SubscriptionResolver extends Base {
-    @AddToTrace()
     @Authorized(defaultScope)
     @RumbleshipSubscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
       nullable: true
     })
+    @AddToTrace()
     async onChange(
       @Root() rawPayload: RawPayload,
       @Args(type => subscriptionFilterClsType) args: SubscriptionWatchFilter
