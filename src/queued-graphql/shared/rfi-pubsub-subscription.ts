@@ -62,75 +62,7 @@ export class RfiPubSubSubscription<T> {
 
     return this._subscription;
   }
-  public dispatch(
-    message: Message,
-    handler: (ctx: RumbleshipContext, payload: T) => Promise<void>
-  ): Promise<void> {
-    return this.beeline.withTrace({ name: 'RfiPubSubSubscription.message' }, async () => {
-      return this.beeline.withAsyncSpan({ name: 'message_dispatch' }, async () => {
-        this.beeline.addTraceContext({
-          gcloud_topic_name: this.gcloud_topic_name,
-          gcloud_subscription_name: this.gcloud_subscription_name,
-          projectId: this._pubSub.projectId,
-          message: {
-            id: message.id,
-            deliveryAttempt: message.deliveryAttempt,
-            attributes: message.attributes,
-            orderingKey: message.orderingKey,
-            publishTime: message.publishTime,
-            received: message.received
-          }
-        });
-        const message_data = message.data.toString();
-        const payload = this.parseMessage(message_data);
 
-        if (payload) {
-          const marshalled_trace = Reflect.get(
-            (payload as unknown) as Record<string, unknown>,
-            'marshalled_trace'
-          ) as string | undefined;
-
-          const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
-            __filename,
-            {
-              marshalled_trace,
-              linked_span: this.beeline.getTraceContext()
-            }
-          );
-          const wrapped = ctx.beeline.bindFunctionToTrace(() => {
-            ctx.beeline.addTraceContext({
-              gcloud_topic_name: this.gcloud_topic_name,
-              gcloud_subscription_name: this.gcloud_subscription_name,
-              projectId: this._pubSub.projectId,
-              message: {
-                id: message.id,
-                deliveryAttempt: message.deliveryAttempt,
-                attributes: message.attributes,
-                orderingKey: message.orderingKey,
-                publishTime: message.publishTime,
-                received: message.received
-              }
-            });
-            return handler(ctx, payload as T);
-          });
-          await this.beeline.runWithoutTrace(() =>
-            wrapped()
-              .catch(error => {
-                ctx.logger.error(error.message);
-                ctx.logger.error(error.stack);
-                ctx.beeline.addTraceContext({
-                  'error.message': error.message,
-                  'error.stack': error.stack
-                });
-                throw error;
-              })
-              .finally(() => ctx.release())
-          );
-        }
-        message.ack();
-      });
-    });
-  }
   public start(
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
@@ -191,7 +123,68 @@ export class RfiPubSubSubscription<T> {
           restart_on_iterable_error = false;
           break;
         }
-        await this.dispatch(message, handler);
+        await this.beeline.withAsyncSpan({ name: 'message_dispatch' }, async () => {
+          this.beeline.addTraceContext({
+            gcloud_topic_name: this.gcloud_topic_name,
+            gcloud_subscription_name: this.gcloud_subscription_name,
+            projectId: this._pubSub.projectId,
+            message: {
+              id: message.id,
+              deliveryAttempt: message.deliveryAttempt,
+              attributes: message.attributes,
+              orderingKey: message.orderingKey,
+              publishTime: message.publishTime,
+              received: message.received
+            }
+          });
+          const message_data = message.data.toString();
+          const payload = this.parseMessage(message_data);
+
+          if (payload) {
+            const marshalled_trace = Reflect.get(
+              (payload as unknown) as Record<string, unknown>,
+              'marshalled_trace'
+            ) as string | undefined;
+
+            const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+              __filename,
+              {
+                marshalled_trace,
+                linked_span: this.beeline.getTraceContext()
+              }
+            );
+            const wrapped = ctx.beeline.bindFunctionToTrace(() => {
+              ctx.beeline.addTraceContext({
+                gcloud_topic_name: this.gcloud_topic_name,
+                gcloud_subscription_name: this.gcloud_subscription_name,
+                projectId: this._pubSub.projectId,
+                message: {
+                  id: message.id,
+                  deliveryAttempt: message.deliveryAttempt,
+                  attributes: message.attributes,
+                  orderingKey: message.orderingKey,
+                  publishTime: message.publishTime,
+                  received: message.received
+                }
+              });
+              return handler(ctx, payload as T);
+            });
+            await this.beeline.runWithoutTrace(() =>
+              wrapped()
+                .catch(error => {
+                  ctx.logger.error(error.message);
+                  ctx.logger.error(error.stack);
+                  ctx.beeline.addTraceContext({
+                    'error.message': error.message,
+                    'error.stack': error.stack
+                  });
+                  throw error;
+                })
+                .finally(() => ctx.release())
+            );
+          }
+          message.ack();
+        });
       }
       this.logger.info(
         `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
