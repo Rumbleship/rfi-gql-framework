@@ -79,9 +79,12 @@ export class RfiPubSubSubscription<T> {
         { name: 'RfiPubSubSubscription.init' },
         async () => await this.init()
       );
-      return this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.iterate' }, async () => {
-        return this.iterate(handler, source_name);
-      });
+      return await this.beeline.withAsyncSpan(
+        { name: 'RfiPubSubSubscription.iterate' },
+        async () => {
+          return await this.iterate(handler, source_name);
+        }
+      );
     };
     const wrapped = this.beeline.bindFunctionToTrace(() =>
       initStartAndIterate().finally(() => this.beeline.finishTrace(trace))
