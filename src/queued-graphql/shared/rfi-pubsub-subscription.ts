@@ -146,7 +146,6 @@ export class RfiPubSubSubscription<T> {
       { name: 'RfiPubSubSubscription.init' },
       async () => await this.init()
     );
-    this.beeline.finishTrace(trace);
     let retry = true;
     this.logger.info(
       `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
