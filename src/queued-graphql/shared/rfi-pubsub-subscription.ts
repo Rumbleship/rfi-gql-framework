@@ -131,7 +131,7 @@ export class RfiPubSubSubscription<T> {
       });
     });
   }
-  public async start(
+  public start(
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
   ): Promise<void> {
@@ -141,12 +141,29 @@ export class RfiPubSubSubscription<T> {
       gcloud_subscription_name: this.gcloud_subscription_name,
       projectId: this._pubSub.projectId
     });
-    let pending_message: Message | undefined;
-    await this.beeline.withAsyncSpan(
-      { name: 'RfiPubSubSubscription.init' },
-      async () => await this.init()
+    const initStartAndIterate = async () => {
+      await this.beeline.withAsyncSpan(
+        { name: 'RfiPubSubSubscription.init' },
+        async () => await this.init()
+      );
+      await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.iterate' }, async () => {
+        await this.iterate(handler, source_name);
+      });
+    };
+    const wrapped = this.beeline.bindFunctionToTrace(() =>
+      initStartAndIterate().finally(() => {
+        this.beeline.finishTrace(trace);
+      })
     );
-    let retry = true;
+    return wrapped();
+  }
+
+  private async iterate(
+    handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
+    source_name: string = this.constructor.name
+  ) {
+    let pending_message: Message | undefined;
+    let restart_on_iterable_error = true;
     this.logger.info(
       `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
     );
@@ -163,12 +180,9 @@ export class RfiPubSubSubscription<T> {
       for await (const [message] of this.messages) {
         pending_message = message;
         if (!message) {
-          retry = false;
+          restart_on_iterable_error = false;
           break;
         }
-        /**
-         * this is not being sent to honeycomb
-         */
         await this.dispatch(message, handler);
       }
       this.logger.info(
@@ -189,11 +203,9 @@ export class RfiPubSubSubscription<T> {
       this.logger.error(error.stack, { error });
       // in case we get into a nasty failure loop
       await sleep(500);
-      if (retry) {
+      if (restart_on_iterable_error) {
         return this.start(handler, source_name);
       }
-    } finally {
-      this.beeline.finishTrace(trace);
     }
   }
   parseMessage(message_data: string): T | undefined {
