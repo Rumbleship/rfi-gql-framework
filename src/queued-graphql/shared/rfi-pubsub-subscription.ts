@@ -138,10 +138,16 @@ export class RfiPubSubSubscription<T> {
         await this.beeline.withAsyncSpan(
           { name: 'RfiPubSubSubscription.dispatchToHandler' },
           async () => {
-            const { data, ...rest_of_message } = message;
             // add message to trace context of dispatcher
             this.beeline.addTraceContext({
-              message: rest_of_message
+              message: {
+                id: message.id,
+                deliveryAttempt: message.deliveryAttempt,
+                attributes: message.attributes,
+                orderingKey: message.orderingKey,
+                publishTime: message.publishTime,
+                received: message.received
+              }
             });
             const message_data = message.data.toString();
             const payload = this.parseMessage(message_data);
@@ -166,7 +172,14 @@ export class RfiPubSubSubscription<T> {
                   gcloud_topic_name: this.gcloud_topic_name,
                   gcloud_subscription_name: this.gcloud_subscription_name,
                   projectId: this._pubSub.projectId,
-                  message: rest_of_message
+                  message: {
+                    id: message.id,
+                    deliveryAttempt: message.deliveryAttempt,
+                    attributes: message.attributes,
+                    orderingKey: message.orderingKey,
+                    publishTime: message.publishTime,
+                    received: message.received
+                  }
                 });
                 return handler(ctx, payload as T)
                   .catch(error => {
