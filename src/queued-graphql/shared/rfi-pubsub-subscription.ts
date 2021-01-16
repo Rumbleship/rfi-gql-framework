@@ -146,22 +146,30 @@ export class RfiPubSubSubscription<T> {
         { name: 'RfiPubSubSubscription.init' },
         async () => await this.init()
       );
-      await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.iterate' }, async () => {
-        await this.iterate(handler, source_name);
+      return this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.iterate' }, async () => {
+        return this.iterate(handler, source_name);
       });
     };
     const wrapped = this.beeline.bindFunctionToTrace(() =>
-      initStartAndIterate().finally(() => {
-        this.beeline.finishTrace(trace);
-      })
+      initStartAndIterate().finally(() => this.beeline.finishTrace(trace))
     );
-    return wrapped();
+    return wrapped().then(should_restart =>
+      should_restart ? this.start(handler, source_name) : undefined
+    );
   }
 
+  /**
+   *
+   * @param handler
+   * @param source_name
+   * @returns {Promise<boolean>} whether or not the process should be restarted
+   *
+   * @note this function swallows errors and manages reporting them itself
+   */
   private async iterate(
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
-  ) {
+  ): Promise<boolean> {
     let pending_message: Message | undefined;
     let restart_on_iterable_error = true;
     this.logger.info(
@@ -189,9 +197,6 @@ export class RfiPubSubSubscription<T> {
         `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
       );
     } catch (error) {
-      /**
-       * There's
-       */
       // if there are any pending messages, they will time out and be sent else where
       // but more responsive to nack it
       if (pending_message) {
@@ -203,10 +208,8 @@ export class RfiPubSubSubscription<T> {
       this.logger.error(error.stack, { error });
       // in case we get into a nasty failure loop
       await sleep(500);
-      if (restart_on_iterable_error) {
-        return this.start(handler, source_name);
-      }
     }
+    return restart_on_iterable_error;
   }
   parseMessage(message_data: string): T | undefined {
     try {

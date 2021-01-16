@@ -19,6 +19,14 @@ export declare class RfiPubSubSubscription<T> {
     protected initSubscription(): Promise<Subscription>;
     dispatch(message: Message, handler: (ctx: RumbleshipContext, payload: T) => Promise<void>): Promise<void>;
     start(handler: (ctx: RumbleshipContext, payload: T) => Promise<void>, source_name?: string): Promise<void>;
+    /**
+     *
+     * @param handler
+     * @param source_name
+     * @returns {Promise<boolean>} whether or not the process should be restarted
+     *
+     * @note this function swallows errors and manages reporting them itself
+     */
     private iterate;
     parseMessage(message_data: string): T | undefined;
     stop(): Promise<void>;
