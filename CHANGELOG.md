@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * Actually publish the marshalled trace with QSR messages
   * Tracing for PubSub message dispatching
   * Error printing for queuedGQLrequests
+  * Services that are not `orders` will not respond to `syncQsrs`
 ### Deprecated
 ### Security
 
