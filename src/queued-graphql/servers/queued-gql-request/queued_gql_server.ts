@@ -79,7 +79,7 @@ export class QueuedGqlRequestServer {
           }
         });
         try {
-          if (this.isRequestSyncQsrs(request) && this.shouldProcessSyncRequest) {
+          if (this.isRequestSyncQsrs(request) && this.shouldProcessSyncRequest()) {
             const executionParams = ctx.beeline.bindFunctionToTrace(() =>
               QueuedGqlRequestServer.validateGqlRequest(this.schema, request)
             )();
