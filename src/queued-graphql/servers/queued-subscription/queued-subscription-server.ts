@@ -428,6 +428,14 @@ export class QueuedSubscriptionServer {
   ): Promise<void> {
     // We can get a response from multiple services, and google pub sub can
     // deliver it twice.
+    ctx.beeline.addTraceContext({
+      gql: {
+        response: {
+          client_request_id: response.client_request_id,
+          serviced_by: response.service_name
+        }
+      }
+    });
     if (response.response.data) {
       const { edges, pageInfo } = response.response.data['queuedSubscriptionRequests'];
       const qsrs: IQueuedSubscriptionRequest[] = (edges as Array<{

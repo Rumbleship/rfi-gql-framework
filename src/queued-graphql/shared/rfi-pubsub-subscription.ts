@@ -134,7 +134,10 @@ export class RfiPubSubSubscription<T> {
           received: message.received
         }
       });
-      return handler(ctx, (rest_of_payload as unknown) as T)
+      return ctx.beeline
+        .withAsyncSpan({ name: 'RfiPubSubSubscription.dispatch' }, () =>
+          handler(ctx, (rest_of_payload as unknown) as T)
+        )
         .catch(error => {
           ctx.logger.error(error.message);
           ctx.logger.error(error.stack);
