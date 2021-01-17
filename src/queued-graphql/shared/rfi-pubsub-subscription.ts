@@ -107,6 +107,7 @@ export class RfiPubSubSubscription<T> {
   }
 
   private dispatch(
+    ctx: RumbleshipContext,
     message: Message,
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
@@ -117,10 +118,6 @@ export class RfiPubSubSubscription<T> {
       const { marshalled_trace, ...rest_of_payload } = (payload as unknown) as {
         marshalled_trace?: string;
       } & Record<string, unknown>;
-      const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(__filename, {
-        marshalled_trace,
-        linked_span: this.beeline.getTraceContext()
-      });
       ctx.beeline.addTraceContext({
         gcloud_topic_name: this.gcloud_topic_name,
         gcloud_subscription_name: this.gcloud_subscription_name,
@@ -186,11 +183,26 @@ export class RfiPubSubSubscription<T> {
         if (!message) {
           throw new StopRetryingIteratorError();
         }
-        await this.beeline.runWithoutTrace(() => this.dispatch(message, handler, source_name));
-        if (!start_success) {
-          start_success = true;
-          this.beeline.finishTrace(trace);
+        const message_data = message.data.toString();
+        const payload = this.parseMessage(message_data);
+        if (payload) {
+          const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+            __filename,
+            {
+              marshalled_trace: (payload as any).marshalled_trace,
+              linked_span: this.beeline.getTraceContext()
+            }
+          );
+
+          await this.beeline.runWithoutTrace(() =>
+            this.dispatch(ctx, pending_message as Message, handler, source_name)
+          );
+          if (!start_success) {
+            start_success = true;
+            this.beeline.finishTrace(trace);
+          }
         }
+        pending_message.ack();
       }
     } catch (error) {
       // if there are any pending messages, they will time out and be sent else where
