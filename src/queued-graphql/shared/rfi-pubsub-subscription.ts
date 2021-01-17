@@ -90,14 +90,17 @@ export class RfiPubSubSubscription<T> {
           });
         },
         {
-          minTimeout: 2000,
+          minTimeout: 1,
           // Better to keep retrying until infinity, or set an arbitrary high number, at which point
           // we just kill the process?
           // If former, do we mask a problem?
           // If the latter, then GCP will restart process with low backoff, maybe thrashing?
-          retries: 100
+          retries: 5
         }
-      );
+      ).catch(error => {
+        console.error(error);
+        process.kill(process.pid, 'SIGTERM');
+      });
     };
 
     const wrapped = this.beeline.bindFunctionToTrace(async () => {
@@ -163,6 +166,7 @@ export class RfiPubSubSubscription<T> {
     source_name: string = this.constructor.name,
     trace: HoneycombSpan
   ): Promise<void> {
+    throw new Error('test retry error');
     let start_success = false;
     let pending_message: Message | undefined;
     this.logger.info(
@@ -202,13 +206,13 @@ export class RfiPubSubSubscription<T> {
             this.beeline.finishTrace(trace);
           }
         }
-        pending_message.ack();
+        // pending_message.ack();
       }
     } catch (error) {
       // if there are any pending messages, they will time out and be sent else where
       // but more responsive to nack it
       if (pending_message) {
-        pending_message.nack();
+        // pending_message.nack();
         pending_message = undefined;
       }
 
