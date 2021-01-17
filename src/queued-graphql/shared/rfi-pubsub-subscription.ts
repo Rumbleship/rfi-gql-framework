@@ -9,7 +9,7 @@ import { Container } from 'typedi';
 import { gcpGetTopic } from '../helpers';
 import { RumbleshipContext } from '../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
-import { RumbleshipBeeline } from '@rumbleship/o11y';
+import { HoneycombSpan, RumbleshipBeeline } from '@rumbleship/o11y';
 import { v4 } from 'uuid';
 
 class StopRetryingIteratorError extends Error {}
@@ -81,31 +81,73 @@ export class RfiPubSubSubscription<T> {
       );
       await promiseRetry(
         async (retry, number) => {
-          await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.iterate' }, async () => {
+          await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.listen' }, async () => {
             this.beeline.addTraceContext({ 'RfiPubSubSubscription.retry.number': number });
-            return await this.iterate(handler, source_name).catch(error => {
+            return await this.listen(handler, source_name, trace).catch(error => {
               console.log(error);
               retry(error);
             });
           });
         },
         {
-          minTimeout: 500,
-          // Better to keep retrying until infiinity, or set an arbitrary high number, at which point
+          minTimeout: 2000,
+          // Better to keep retrying until infinity, or set an arbitrary high number, at which point
           // we just kill the process?
           // If former, do we mask a problem?
           // If the latter, then GCP will restart process with low backoff, maybe thrashing?
-          retries: 10
+          retries: 100
         }
       );
     };
 
     const wrapped = this.beeline.bindFunctionToTrace(async () => {
-      await initAndIterate().finally(() => {
-        this.beeline.finishTrace(trace);
-      });
+      await initAndIterate();
     });
     return wrapped();
+  }
+
+  private dispatch(
+    message: Message,
+    handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
+    source_name: string = this.constructor.name
+  ): Promise<void> {
+    const message_data = message.data.toString();
+    const payload = this.parseMessage(message_data);
+    if (payload) {
+      const { marshalled_trace, ...rest_of_payload } = (payload as unknown) as {
+        marshalled_trace?: string;
+      } & Record<string, unknown>;
+      const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(__filename, {
+        marshalled_trace,
+        linked_span: this.beeline.getTraceContext()
+      });
+      ctx.beeline.addTraceContext({
+        gcloud_topic_name: this.gcloud_topic_name,
+        gcloud_subscription_name: this.gcloud_subscription_name,
+        projectId: this._pubSub.projectId,
+        message: {
+          id: message.id,
+          deliveryAttempt: message.deliveryAttempt,
+          attributes: message.attributes,
+          orderingKey: message.orderingKey,
+          publishTime: message.publishTime,
+          received: message.received
+        }
+      });
+      return handler(ctx, (rest_of_payload as unknown) as T)
+        .catch(error => {
+          ctx.logger.error(error.message);
+          ctx.logger.error(error.stack);
+          ctx.beeline.addTraceContext({
+            'error.message': error.message,
+            'error.stack': error.stack
+          });
+          throw error;
+        })
+        .finally(() => ctx.release());
+    }
+    // This is maybe wrong
+    throw new Error('missing payload');
   }
 
   /**
@@ -116,10 +158,12 @@ export class RfiPubSubSubscription<T> {
    *
    * @note this function swallows errors and manages reporting them itself
    */
-  private async iterate(
+  private async listen(
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
-    source_name: string = this.constructor.name
+    source_name: string = this.constructor.name,
+    trace: HoneycombSpan
   ): Promise<void> {
+    let start_success = false;
     let pending_message: Message | undefined;
     this.logger.info(
       `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
@@ -139,68 +183,11 @@ export class RfiPubSubSubscription<T> {
         if (!message) {
           throw new StopRetryingIteratorError();
         }
-        await this.beeline.withAsyncSpan(
-          { name: 'RfiPubSubSubscription.dispatchToHandler' },
-          async () => {
-            // add message to trace context of dispatcher
-            this.beeline.addTraceContext({
-              message: {
-                id: message.id,
-                deliveryAttempt: message.deliveryAttempt,
-                attributes: message.attributes,
-                orderingKey: message.orderingKey,
-                publishTime: message.publishTime,
-                received: message.received
-              }
-            });
-            const message_data = message.data.toString();
-            const payload = this.parseMessage(message_data);
-            if (payload) {
-              const { marshalled_trace, ...rest_of_payload } = (payload as unknown) as {
-                marshalled_trace?: string;
-              } & Record<string, unknown>;
-              this.beeline.addTraceContext({ message: { payload: rest_of_payload } });
-
-              // Set up an entirely new ctx (and trace) to execute the handler -- and feed it whatever
-              // trace data has come in on message
-              await this.beeline.runWithoutTrace(() => {
-                const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
-                  __filename,
-                  {
-                    marshalled_trace,
-                    linked_span: this.beeline.getTraceContext()
-                  }
-                );
-
-                ctx.beeline.addTraceContext({
-                  gcloud_topic_name: this.gcloud_topic_name,
-                  gcloud_subscription_name: this.gcloud_subscription_name,
-                  projectId: this._pubSub.projectId,
-                  message: {
-                    id: message.id,
-                    deliveryAttempt: message.deliveryAttempt,
-                    attributes: message.attributes,
-                    orderingKey: message.orderingKey,
-                    publishTime: message.publishTime,
-                    received: message.received
-                  }
-                });
-                return handler(ctx, payload as T)
-                  .catch(error => {
-                    ctx.logger.error(error.message);
-                    ctx.logger.error(error.stack);
-                    ctx.beeline.addTraceContext({
-                      'error.message': error.message,
-                      'error.stack': error.stack
-                    });
-                    throw error;
-                  })
-                  .finally(() => ctx.release());
-              });
-            }
-            message.ack();
-          }
-        );
+        if (!start_success) {
+          start_success = true;
+          this.beeline.finishTrace(trace);
+        }
+        await this.dispatch(message, handler, source_name);
       }
     } catch (error) {
       // if there are any pending messages, they will time out and be sent else where
