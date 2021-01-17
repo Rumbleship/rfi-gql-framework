@@ -12,6 +12,7 @@ import { ISharedSchema } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { v4 } from 'uuid';
 
+class StopRetryingIteratorError extends Error {}
 export class RfiPubSubSubscription<T> {
   protected _initiaized = false;
   private _subscription: Subscription;
@@ -63,44 +64,6 @@ export class RfiPubSubSubscription<T> {
     return this._subscription;
   }
 
-  public start_homerolled(
-    handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
-    source_name: string = this.constructor.name
-  ): Promise<void> {
-    const trace = this.beeline.startTrace({ name: 'RfiPubSubSubscription.start' });
-    this.beeline.addTraceContext({
-      gcloud_topic_name: this.gcloud_topic_name,
-      gcloud_subscription_name: this.gcloud_subscription_name,
-      projectId: this._pubSub.projectId
-    });
-
-    const initStartAndIterate = async () => {
-      await this.beeline.withAsyncSpan(
-        { name: 'RfiPubSubSubscription.init' },
-        async () => await this.init()
-      );
-      const should_restart = await this.beeline.withAsyncSpan(
-        { name: 'RfiPubSubSubscription.iterate' },
-        async () => {
-          return await this.iterate(handler, source_name);
-        }
-      );
-      return should_restart;
-    };
-    const wrapped = this.beeline.bindFunctionToTrace(async () => {
-      const should_restart = await initStartAndIterate().finally(() => {
-        // Force the finishing of the trace before recursing and restarting
-        this.beeline.finishTrace(trace);
-      });
-      return should_restart;
-    });
-    return wrapped().then(should_restart => {
-      if (should_restart) {
-        return this.start_homerolled(handler, source_name);
-      }
-      return undefined;
-    });
-  }
   public start(
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
@@ -111,7 +74,6 @@ export class RfiPubSubSubscription<T> {
       gcloud_subscription_name: this.gcloud_subscription_name,
       projectId: this._pubSub.projectId
     });
-
     const initAndIterate = async () => {
       await this.beeline.withAsyncSpan(
         { name: 'RfiPubSubSubscription.init' },
@@ -123,20 +85,21 @@ export class RfiPubSubSubscription<T> {
             this.beeline.addTraceContext({ 'RfiPubSubSubscription.retry.number': number });
             return await this.iterate(handler, source_name).catch(error => {
               console.log(error);
-              return this.beeline.bindFunctionToTrace(retry);
+              retry(error);
             });
           });
         },
         {
-          minTimeout: 10000,
+          minTimeout: 500,
           // Better to keep retrying until infiinity, or set an arbitrary high number, at which point
           // we just kill the process?
           // If former, do we mask a problem?
           // If the latter, then GCP will restart process with low backoff, maybe thrashing?
-          retries: Infinity
+          retries: 10
         }
       );
     };
+
     const wrapped = this.beeline.bindFunctionToTrace(async () => {
       await initAndIterate().finally(() => {
         this.beeline.finishTrace(trace);
@@ -156,9 +119,8 @@ export class RfiPubSubSubscription<T> {
   private async iterate(
     handler: (ctx: RumbleshipContext, payload: T) => Promise<void>,
     source_name: string = this.constructor.name
-  ): Promise<boolean> {
+  ): Promise<void> {
     let pending_message: Message | undefined;
-    let queue_still_open = true;
     this.logger.info(
       `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
     );
@@ -175,8 +137,7 @@ export class RfiPubSubSubscription<T> {
       for await (const [message] of this.messages) {
         pending_message = message;
         if (!message) {
-          queue_still_open = false;
-          break;
+          throw new StopRetryingIteratorError();
         }
         await this.beeline.withAsyncSpan(
           { name: 'RfiPubSubSubscription.dispatchToHandler' },
@@ -260,7 +221,6 @@ export class RfiPubSubSubscription<T> {
     this.logger.info(
       `Stopped message loop for ${source_name} : ${this.gcloud_topic_name} ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}`
     );
-    return queue_still_open;
   }
   parseMessage(message_data: string): T | undefined {
     try {
