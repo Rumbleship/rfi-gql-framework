@@ -183,11 +183,11 @@ export class RfiPubSubSubscription<T> {
         if (!message) {
           throw new StopRetryingIteratorError();
         }
+        await this.beeline.runWithoutTrace(() => this.dispatch(message, handler, source_name));
         if (!start_success) {
           start_success = true;
           this.beeline.finishTrace(trace);
         }
-        await this.dispatch(message, handler, source_name);
       }
     } catch (error) {
       // if there are any pending messages, they will time out and be sent else where
