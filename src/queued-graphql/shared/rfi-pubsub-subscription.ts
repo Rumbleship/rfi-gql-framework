@@ -74,7 +74,7 @@ export class RfiPubSubSubscription<T> {
       gcloud_subscription_name: this.gcloud_subscription_name,
       projectId: this._pubSub.projectId
     });
-    const initAndIterate = async () => {
+    const initAndListen = async () => {
       await this.beeline.withAsyncSpan(
         { name: 'RfiPubSubSubscription.init' },
         async () => await this.init()
@@ -108,7 +108,7 @@ export class RfiPubSubSubscription<T> {
     };
 
     const wrapped = this.beeline.bindFunctionToTrace(async () => {
-      await initAndIterate();
+      await initAndListen();
     });
     return wrapped();
   }
@@ -139,18 +139,21 @@ export class RfiPubSubSubscription<T> {
         }
       });
       return ctx.beeline
-        .withAsyncSpan({ name: 'RfiPubSubSubscription.dispatch' }, () =>
-          handler(ctx, (rest_of_payload as unknown) as T)
-        )
-        .catch(error => {
-          ctx.logger.error(error.message);
-          ctx.logger.error(error.stack);
-          ctx.beeline.addTraceContext({
-            'error.message': error.message,
-            'error.stack': error.stack
-          });
-          throw error;
-        })
+        .bindFunctionToTrace(() =>
+          ctx.beeline
+            .withAsyncSpan({ name: 'RfiPubSubSubscription.dispatch' }, () =>
+              handler(ctx, (rest_of_payload as unknown) as T)
+            )
+            .catch(error => {
+              ctx.logger.error(error.message);
+              ctx.logger.error(error.stack);
+              ctx.beeline.addTraceContext({
+                'error.message': error.message,
+                'error.stack': error.stack
+              });
+              throw error;
+            })
+        )()
         .finally(() => ctx.release());
     }
     // This is maybe wrong
