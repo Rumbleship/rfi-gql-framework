@@ -89,16 +89,21 @@ export class RfiPubSubSubscription<T> {
           });
         },
         {
-          minTimeout: 1,
+          minTimeout: 2000,
           // Better to keep retrying until infinity, or set an arbitrary high number, at which point
           // we just kill the process?
           // If former, do we mask a problem?
           // If the latter, then GCP will restart process with low backoff, maybe thrashing?
-          retries: 2
+          retries: 20
         }
       ).catch(error => {
-        console.error(error);
-        throw error;
+        // Promise Retry has failed to bring the subscription up. Note the failure, and sigterm the whole process.
+        // GAE will take care of bringing it back up.
+        this.beeline.addTraceContext({ RfiPubSubSubscription: { start: false } });
+        this.beeline.addTraceContext({ error });
+        this.logger.error(error);
+        this.beeline.finishSpan(this.beeline.startTrace({ name: 'error' }));
+        process.kill(process.pid, 'SIGTERM');
       });
     };
 
@@ -165,7 +170,6 @@ export class RfiPubSubSubscription<T> {
     source_name: string = this.constructor.name,
     trace: HoneycombSpan
   ): Promise<void> {
-    throw new Error('test retry');
     let start_success = false;
     let pending_message: Message | undefined;
     this.logger.info(
