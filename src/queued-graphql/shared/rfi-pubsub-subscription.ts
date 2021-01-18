@@ -83,15 +83,9 @@ export class RfiPubSubSubscription<T> {
         async (retry, number) => {
           await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.listen' }, async () => {
             this.beeline.addTraceContext({ 'RfiPubSubSubscription.retry.number': number });
-            return await this.listen(handler, source_name, trace)
-              .catch(error => {
-                console.log(error);
-                retry(error);
-              })
-              .catch(error => {
-                console.error(error);
-                throw error;
-              });
+            return await this.listen(handler, source_name, trace).catch(error => {
+              return retry(error);
+            });
           });
         },
         {
@@ -102,7 +96,10 @@ export class RfiPubSubSubscription<T> {
           // If the latter, then GCP will restart process with low backoff, maybe thrashing?
           retries: 2
         }
-      );
+      ).catch(error => {
+        console.error(error);
+        throw error;
+      });
     };
 
     const wrapped = this.beeline.bindFunctionToTrace(async () => {
