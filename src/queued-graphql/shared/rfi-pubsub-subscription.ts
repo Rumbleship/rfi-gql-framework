@@ -83,19 +83,24 @@ export class RfiPubSubSubscription<T> {
         async (retry, number) => {
           await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.listen' }, async () => {
             this.beeline.addTraceContext({ 'RfiPubSubSubscription.retry.number': number });
-            return await this.listen(handler, source_name, trace).catch(error => {
-              console.log(error);
-              retry(error);
-            });
+            return await this.listen(handler, source_name, trace)
+              .catch(error => {
+                console.log(error);
+                retry(error);
+              })
+              .catch(error => {
+                console.error(error);
+                throw error;
+              });
           });
         },
         {
-          minTimeout: 2000,
+          minTimeout: 1,
           // Better to keep retrying until infinity, or set an arbitrary high number, at which point
           // we just kill the process?
           // If former, do we mask a problem?
           // If the latter, then GCP will restart process with low backoff, maybe thrashing?
-          retries: 100
+          retries: 2
         }
       );
     };
@@ -214,8 +219,6 @@ export class RfiPubSubSubscription<T> {
 
       this.beeline.addTraceContext({ error });
       this.logger.error(error.stack, { error });
-      // in case we get into a nasty failure loop
-      // await sleep(500);
       throw error;
     }
     this.beeline.addTraceContext({ 'RfiPubSubSubscription.iterate.stopped': true });
