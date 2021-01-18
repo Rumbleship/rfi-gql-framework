@@ -178,54 +178,48 @@ export class RfiPubSubSubscription<T> {
     this.logger.info(
       `RfiPubSubSubscription: Starting message loop for ${this.constructor.name} : ${this.gcloud_topic_name}, subscription: ${this.gcloud_subscription_name}, pubsubProjectId: ${this._pubSub.projectId}`
     );
-    try {
-      /**
-       * @note google api docs say we always receive one message at a time, even though it is
-       * an array type.
-       *
-       * We explicitly add in a listerner for 'close' to the iterator - see ServiceSubscription
-       *
-       * @see {messages()} getter that merges both `close` and `message` events into a single iterable
-       * which allows us to stop the loop on `close`. Errors are throw by the `on` method.
-       */
-      for await (const [message] of this.messages) {
-        pending_message = message;
-        if (!message) {
-          throw new StopRetryingIteratorError();
-        }
-        const message_data = message.data.toString();
-        const payload = this.parseMessage(message_data);
-        if (payload) {
-          const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
-            __filename,
-            {
-              marshalled_trace: (payload as any).marshalled_trace,
-              linked_span: this.beeline.getTraceContext()
-            }
-          );
 
-          await this.beeline.runWithoutTrace(() =>
-            this.dispatch(ctx, pending_message as Message, handler, source_name)
-          );
-          if (!start_success) {
-            start_success = true;
-            this.beeline.finishTrace(trace);
-          }
-        }
-        pending_message?.ack();
+    /**
+     * @note google api docs say we always receive one message at a time, even though it is
+     * an array type.
+     *
+     * We explicitly add in a listerner for 'close' to the iterator - see ServiceSubscription
+     *
+     * @see {messages()} getter that merges both `close` and `message` events into a single iterable
+     * which allows us to stop the loop on `close`. Errors are throw by the `on` method.
+     */
+    for await (const [message] of this.messages) {
+      pending_message = message;
+      if (!message) {
+        throw new StopRetryingIteratorError();
       }
-    } catch (error) {
-      // if there are any pending messages, they will time out and be sent else where
-      // but more responsive to nack it
-      if (pending_message) {
-        pending_message?.nack();
-        pending_message = undefined;
-      }
+      const message_data = message.data.toString();
+      const payload = this.parseMessage(message_data);
+      if (payload) {
+        const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(__filename, {
+          marshalled_trace: (payload as any).marshalled_trace,
+          linked_span: this.beeline.getTraceContext()
+        });
 
-      this.beeline.addTraceContext({ error });
-      this.logger.error(error.stack, { error });
-      throw error;
+        await this.beeline.runWithoutTrace(() =>
+          this.dispatch(ctx, pending_message as Message, handler, source_name)
+            .then(() => {
+              pending_message?.ack();
+            })
+            .catch(error => {
+              this.beeline.addTraceContext({ error });
+              this.logger.error(error.stack, { error });
+              pending_message?.nack();
+              pending_message = undefined;
+            })
+        );
+        if (!start_success) {
+          start_success = true;
+          this.beeline.finishTrace(trace);
+        }
+      }
     }
+
     this.beeline.addTraceContext({ 'RfiPubSubSubscription.iterate.stopped': true });
     this.beeline.finishSpan(this.beeline.startSpan({ name: 'RfiPubSubSubscription.iterate.stop' }));
     this.logger.info(
