@@ -11,10 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
-  * Actually publish the marshalled trace with QSR messages
+  * Actually publish the marshalled trace with QSO messages
   * Tracing for PubSub message dispatching
   * Error printing for queuedGQLrequests
   * Services that are not `orders` will not respond to `syncQsrs`
+  * Exponential backoff if errors setting up the QSListeners
 ### Deprecated
 ### Security
 
