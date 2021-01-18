@@ -168,6 +168,7 @@ export class RfiPubSubSubscription<T> {
     source_name: string = this.constructor.name,
     trace: HoneycombSpan
   ): Promise<void> {
+    throw new Error('test retry');
     let start_success = false;
     let pending_message: Message | undefined;
     this.logger.info(
@@ -207,13 +208,13 @@ export class RfiPubSubSubscription<T> {
             this.beeline.finishTrace(trace);
           }
         }
-        pending_message.ack();
+        pending_message?.ack();
       }
     } catch (error) {
       // if there are any pending messages, they will time out and be sent else where
       // but more responsive to nack it
       if (pending_message) {
-        pending_message.nack();
+        pending_message?.nack();
         pending_message = undefined;
       }
 
