@@ -144,6 +144,7 @@ export class RfiPubSubSubscription<T> {
             .withAsyncSpan({ name: 'RfiPubSubSubscription.dispatch' }, () =>
               handler(ctx, (rest_of_payload as unknown) as T)
             )
+            .then(() => message.ack())
             .catch(error => {
               ctx.logger.error(error.message);
               ctx.logger.error(error.stack);
@@ -151,7 +152,7 @@ export class RfiPubSubSubscription<T> {
                 'error.message': error.message,
                 'error.stack': error.stack
               });
-              throw error;
+              message.nack();
             })
         )()
         .finally(() => ctx.release());
@@ -203,15 +204,6 @@ export class RfiPubSubSubscription<T> {
 
         await this.beeline.runWithoutTrace(() =>
           this.dispatch(ctx, pending_message as Message, handler, source_name)
-            .then(() => {
-              pending_message?.ack();
-            })
-            .catch(error => {
-              this.beeline.addTraceContext({ error });
-              this.logger.error(error.stack, { error });
-              pending_message?.nack();
-              pending_message = undefined;
-            })
         );
         if (!start_success) {
           start_success = true;
