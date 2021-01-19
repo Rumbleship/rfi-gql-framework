@@ -84,6 +84,10 @@ export class RfiPubSubSubscription<T> {
           await this.beeline.withAsyncSpan({ name: 'RfiPubSubSubscription.listen' }, async () => {
             this.beeline.addTraceContext({ 'RfiPubSubSubscription.retry.number': number });
             return await this.listen(handler, source_name, trace).catch(error => {
+              this.beeline.addTraceContext({ error });
+              if (error instanceof StopRetryingIteratorError) {
+                return;
+              }
               return retry(error);
             });
           });
