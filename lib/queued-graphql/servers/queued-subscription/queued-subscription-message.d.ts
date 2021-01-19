@@ -4,4 +4,5 @@ export interface QueuedSubscriptionMessage {
     subscription_name: string;
     subscription_id: string;
     subscription_response: SubscriptionResponse;
+    marshalled_trace?: string;
 }

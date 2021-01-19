@@ -31,6 +31,8 @@ export declare class QueuedGqlRequestServer {
     start(ctx: RumbleshipContext): Promise<void>;
     publishResponse(ctx: RumbleshipContext, request: IQueuedGqlRequest, executionResponse: ExecutionResult): Promise<string>;
     stop(ctx: RumbleshipContext): Promise<void>;
+    isRequestSyncQsrs(request: IQueuedGqlRequest): boolean;
+    shouldProcessSyncRequest(): boolean;
     static validateGqlRequest(schema: GraphQLSchema, subscriptionRequest: IQueuedGqlRequest): GqlExecutionParams;
 }
 export declare class QueuedRequestClient {

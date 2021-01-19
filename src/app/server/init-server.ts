@@ -259,7 +259,7 @@ export async function initServer(
   server.events.on('start', async () => {
     const ctx = RumbleshipContext.make(__filename, {
       initial_trace_metadata: {
-        name: 'QueuedQql.start'
+        name: 'QueuedGql.start'
       }
     });
     try {

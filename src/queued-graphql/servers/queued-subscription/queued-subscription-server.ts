@@ -1,4 +1,4 @@
-import { GraphQLSchema, printSchema } from 'graphql';
+import { GraphQLSchema, printError, printSchema } from 'graphql';
 import { hostname } from 'os';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { ISharedSchema } from '@rumbleship/config';
@@ -189,6 +189,10 @@ export class QueuedSubscriptionServer {
               validateAndAddToCache(incomingQsr);
             }
           }
+          /**
+           *  @note open question: else should clear anything in the cache that is
+           * *not* in the list of incoming QSRs?
+           */
         }
         if (cache_dirty) {
           await saveCache(qsrCache, { transaction });
@@ -424,6 +428,14 @@ export class QueuedSubscriptionServer {
   ): Promise<void> {
     // We can get a response from multiple services, and google pub sub can
     // deliver it twice.
+    ctx.beeline.addTraceContext({
+      gql: {
+        response: {
+          client_request_id: response.client_request_id,
+          serviced_by: response.service_name
+        }
+      }
+    });
     if (response.response.data) {
       const { edges, pageInfo } = response.response.data['queuedSubscriptionRequests'];
       const qsrs: IQueuedSubscriptionRequest[] = (edges as Array<{
@@ -448,8 +460,18 @@ export class QueuedSubscriptionServer {
     }
     if (response.response.errors) {
       for (const error of response.response.errors) {
-        ctx.logger.log(`Error in response: ${error.toString()}`);
-        ctx.beeline.finishSpan(ctx.beeline.startSpan({ ...error }));
+        ctx.logger.error(`Error in response: ${printError(error)}`);
+        ctx.beeline.finishSpan(
+          ctx.beeline.startSpan({
+            name: 'error',
+            error: {
+              ...error,
+              plain: printError(error),
+              stack: error.originalError?.stack,
+              message: error.originalError?.message
+            }
+          })
+        );
       }
     }
   }

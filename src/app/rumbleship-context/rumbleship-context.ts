@@ -5,7 +5,6 @@ import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { logging } from '@rumbleship/spyglass';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
-import { getSequelizeInstance } from '../server/init-sequelize';
 import { ISharedSchema } from '@rumbleship/config';
 
 export interface RumbleshipContextOptionsPlain {
@@ -202,27 +201,27 @@ export class RumbleshipContext implements Context {
   }
 
   async release(): Promise<void> {
-    interface TextRow {
-      Variable_name: string;
-      Value: string;
-    }
+    // interface TextRow {
+    //   Variable_name: string;
+    //   Value: string;
+    // }
     try {
-      const queries = [
-        "SHOW GLOBAL STATUS LIKE 'com_stmt%';",
-        "SHOW GLOBAL STATUS LIKE 'prepared_stmt_count';",
-        "SHOW GLOBAL VARIABLES LIKE 'max_prepared_stmt_count';"
-      ];
-      const db_vars_honeycomb = {};
-      for (const query of queries) {
-        const [db_variables]: TextRow[][] = ((await getSequelizeInstance()?.query(query)) ?? [
-          []
-        ]) as TextRow[][];
-        for (const text_row of db_variables) {
-          const { Variable_name, Value } = text_row;
-          Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Number(Value));
-        }
-      }
-      this.beeline.addContext(db_vars_honeycomb);
+      // const queries = [
+      //   "SHOW GLOBAL STATUS LIKE 'com_stmt%';",
+      //   "SHOW GLOBAL STATUS LIKE 'prepared_stmt_count';",
+      //   "SHOW GLOBAL VARIABLES LIKE 'max_prepared_stmt_count';"
+      // ];
+      // const db_vars_honeycomb = {};
+      // for (const query of queries) {
+      //   const [db_variables]: TextRow[][] = ((await getSequelizeInstance()?.query(query)) ?? [
+      //     []
+      //   ]) as TextRow[][];
+      //   for (const text_row of db_variables) {
+      //     const { Variable_name, Value } = text_row;
+      //     Reflect.set(db_vars_honeycomb, `db.variable.${Variable_name}`, Number(Value));
+      //   }
+      // }
+      // this.beeline.addContext(db_vars_honeycomb);
       if (this.trace) {
         this.beeline.finishTrace(this.trace);
       }

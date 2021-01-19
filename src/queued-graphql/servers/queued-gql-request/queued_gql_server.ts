@@ -7,6 +7,7 @@ import {
   GraphQLError,
   GraphQLSchema,
   parse,
+  printError,
   specifiedRules,
   validate
 } from 'graphql';
@@ -71,20 +72,25 @@ export class QueuedGqlRequestServer {
         ctx.beeline.addTraceContext({
           pubsub: { projectId: this._pubsub.projectId },
           config: {
+            PubSub: this.config.PubSub,
             Gcp: {
               Auth: this.config.Gcp.Auth
             }
           }
         });
         try {
-          const executionParams = QueuedGqlRequestServer.validateGqlRequest(this.schema, request);
-          executionResult = await execute({
-            schema: this.schema,
-            contextValue: ctx,
-            document: executionParams.query,
-            variableValues: executionParams.variables,
-            operationName: executionParams.operationName
-          });
+          if (this.isRequestSyncQsrs(request) && this.shouldProcessSyncRequest()) {
+            const executionParams = ctx.beeline.bindFunctionToTrace(() =>
+              QueuedGqlRequestServer.validateGqlRequest(this.schema, request)
+            )();
+            executionResult = await execute({
+              schema: this.schema,
+              contextValue: ctx,
+              document: executionParams.query,
+              variableValues: executionParams.variables,
+              operationName: executionParams.operationName
+            });
+          }
         } catch (error) {
           addErrorToTraceContext(ctx, error, false); // add to context but set 'alert to false as this is expected
           if (request.respond_on_error) {
@@ -131,6 +137,7 @@ export class QueuedGqlRequestServer {
         projectId: this._pubsub.projectId,
         topic: { name: topic.name },
         config: {
+          PubSub: this.config.PubSub,
           Gcp: {
             Auth: this.config.Gcp.Auth
           }
@@ -145,6 +152,7 @@ export class QueuedGqlRequestServer {
     ctx.beeline.addTraceContext({
       pubsub: { projectId: this._pubsub.projectId },
       config: {
+        PubSub: this.config.PubSub,
         Gcp: {
           Auth: this.config.Gcp.Auth
         }
@@ -155,6 +163,12 @@ export class QueuedGqlRequestServer {
     }
   }
 
+  isRequestSyncQsrs(request: IQueuedGqlRequest): boolean {
+    return !!request.client_request_id.match(/\w+\.syncQsrs/);
+  }
+  shouldProcessSyncRequest(): boolean {
+    return this.config.serviceName === 'orders';
+  }
   static validateGqlRequest(
     schema: GraphQLSchema,
     subscriptionRequest: IQueuedGqlRequest
@@ -171,7 +185,11 @@ export class QueuedGqlRequestServer {
 
     const errors = validate(schema, gqlDocument, specifiedRules);
     if (errors.length) {
-      const errString = JSON.stringify(errors, undefined, 2);
+      const errString = JSON.stringify(
+        errors.map(error => printError(error)),
+        undefined,
+        2
+      );
       // todo add explict tracing
       throw new Error(errString);
     }

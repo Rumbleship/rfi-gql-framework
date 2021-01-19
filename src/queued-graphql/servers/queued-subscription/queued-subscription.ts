@@ -133,7 +133,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       owner_id: this.owner_id ?? '',
       subscription_name,
       subscription_id: this.id.toString(),
-      subscription_response: response
+      subscription_response: response,
+      marshalled_trace: RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext())
     };
     const topic = await this.getTopic(ctx);
     ctx.beeline.addTraceContext({
