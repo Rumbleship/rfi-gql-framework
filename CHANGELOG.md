@@ -5,20 +5,14 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [14.1.0] -- 2021-01-19
 
-### Added
-### Removed
-### Changed
 ### Fixed
   * Actually publish the marshalled trace with QSO messages
   * Tracing for PubSub message dispatching
   * Error printing for queuedGQLrequests
   * Services that are not `orders` will not respond to `syncQsrs`
   * Exponential backoff if errors setting up the QSListeners
-### Deprecated
-### Security
-
 
 ## [14.0.0] -- 2021-01-13
 
