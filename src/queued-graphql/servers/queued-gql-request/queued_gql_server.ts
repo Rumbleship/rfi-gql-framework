@@ -79,18 +79,16 @@ export class QueuedGqlRequestServer {
           }
         });
         try {
-          if (this.isRequestSyncQsrs(request) && this.shouldProcessSyncRequest()) {
-            const executionParams = ctx.beeline.bindFunctionToTrace(() =>
-              QueuedGqlRequestServer.validateGqlRequest(this.schema, request)
-            )();
-            executionResult = await execute({
-              schema: this.schema,
-              contextValue: ctx,
-              document: executionParams.query,
-              variableValues: executionParams.variables,
-              operationName: executionParams.operationName
-            });
-          }
+          const executionParams = ctx.beeline.bindFunctionToTrace(() =>
+            QueuedGqlRequestServer.validateGqlRequest(this.schema, request)
+          )();
+          executionResult = await execute({
+            schema: this.schema,
+            contextValue: ctx,
+            document: executionParams.query,
+            variableValues: executionParams.variables,
+            operationName: executionParams.operationName
+          });
         } catch (error) {
           addErrorToTraceContext(ctx, error, false); // add to context but set 'alert to false as this is expected
           if (request.respond_on_error) {

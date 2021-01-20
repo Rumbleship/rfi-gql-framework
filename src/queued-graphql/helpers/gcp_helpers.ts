@@ -36,6 +36,16 @@ export async function gcpGetTopic(
   return topic;
 }
 
+/**
+ *
+ * @param topic
+ * @param subscription_name
+ * @param subscription_url
+ * @param service_account_email
+ * @returns
+ *
+ * @note This is used by Orders/QSRService to create the subscription topics that power webhook delivery
+ */
 export async function gcpCreatePushSubscription(
   topic: Topic,
   subscription_name: string,
