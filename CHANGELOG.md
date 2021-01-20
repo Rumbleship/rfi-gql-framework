@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+  * start/finish error span in `addErrorToTraceContext'
+### Removed
+### Changed
+### Fixed
+  * better erroring if the graphql server fails to start
+### Deprecated
+### Security
+
+
 ## [14.1.1] -- 2021-01-19
 
 ### Fixed

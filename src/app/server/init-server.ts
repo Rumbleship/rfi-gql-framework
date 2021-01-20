@@ -268,10 +268,8 @@ export async function initServer(
       await startQueuedGraphQl(ctx);
     } catch (error) {
       addErrorToTraceContext(ctx, error);
-      serverLogger.error('Error starting Queued graphql servers', {
-        stack: error.stack,
-        message: error.message
-      });
+      serverLogger.error(error);
+      serverLogger.error('Error starting Queued graphql servers');
       throw error;
     } finally {
       await ctx.release();
