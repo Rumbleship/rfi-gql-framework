@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * start/finish error span in `addErrorToTraceContext'
 ### Removed
 ### Changed
 ### Fixed
