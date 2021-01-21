@@ -12,7 +12,8 @@ import {
   Mutation,
   PubSubEngine,
   PubSub,
-  Args
+  Args,
+  Authorized
 } from 'type-graphql';
 import { Oid } from '@rumbleship/oid';
 import { AddToTrace } from '@rumbleship/o11y';
@@ -32,6 +33,7 @@ import { withSubscriptionFilter } from '../relay/mixins/with-subscription-filter
 
 import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
 import { RumbleshipContext } from './../../app/rumbleship-context';
+import { Scopes } from '@rumbleship/acl';
 
 class Empty {}
 class NodeSubscriptionFilter extends withSubscriptionFilter(
@@ -45,6 +47,9 @@ class ClassGqlNodeNotification extends NodeNotification<any> {
   idempotency_key!: string;
   @Field(type => NotificationOf)
   notificationOf!: NotificationOf;
+  @Field(type => String)
+  @Authorized(Scopes.SYSADMIN)
+  marshalledTrace?: string;
   @Field(type => Node, { nullable: true })
   node!: Node<any>;
   constructor(notificationOf: NotificationOf, idempotency_key: string, node: Node<any>) {
@@ -100,7 +105,8 @@ export class NodeResolver implements RelayResolver {
   @AddToTrace()
   async onChange(
     @Root() rawPayload: RawPayload,
-    @Args(type => NodeSubscriptionFilter) args: NodeSubscriptionFilter
+    @Args(type => NodeSubscriptionFilter) args: NodeSubscriptionFilter,
+    @Ctx() ctx: RumbleshipContext
   ): Promise<ClassGqlNodeNotification> {
     const recieved = JSON.parse(rawPayload.data.toString());
     const strOid = recieved?.oid;

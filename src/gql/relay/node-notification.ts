@@ -28,7 +28,7 @@ export abstract class NodeNotification<T extends Node<T>> {
     idempotency_key: string,
     node: T,
     watch_list_deltas?: ModelDelta[],
-    public marshalled_trace?: string
+    public marshalledTrace?: string
   ) {
     if (!idempotency_key) {
       throw Error(`Must have a idempotency_key set on change of ${node.constructor.name}`);
