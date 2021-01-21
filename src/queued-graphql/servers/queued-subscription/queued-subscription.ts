@@ -189,10 +189,10 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
           // NOTE we are inside a for await
           await RumbleshipBeeline.runWithoutTrace(async () => {
             const marshalled_trace = (() => {
-              if (this.executionContext.operationName) {
-                return (executionResult as any)[this.executionContext.operationName]
-                  ?.marshalledTrace;
-              }
+              const first_operation_name = Object.keys(executionResult.data ?? {})[0];
+              const first_operation_result =
+                first_operation_name && executionResult?.data?.[first_operation_name];
+              return first_operation_result?.marshalledTrace;
             })();
             if (marshalled_trace) {
               const ctx = RumbleshipContext.make(__filename, {
