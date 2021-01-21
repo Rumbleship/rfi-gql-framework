@@ -9,7 +9,11 @@ import { QueuedSubscriptionMessage } from '../../servers';
 import { RfiPubSubSubscription } from '../../shared';
 import { QueuedGqlRequestClientSingleInstanceResponder } from '../gql-request/queued-gql-request-client';
 import { syncQsrGql, syncQsrVariables } from './sync_qsr.interface';
-import { getQsoHandlers, QueuedSubscriptionHandler } from './q_s_observer';
+import {
+  getQsoHandlers,
+  QueuedSubscriptionHandler,
+  QueuedSubscriptionObserverMetadata
+} from './q_s_observer';
 
 /**
  * Each service has its own pubsub topic that subscription responses are sent to. We subscribe to this
@@ -77,38 +81,44 @@ export class QueuedSubscriptionObserverManager {
    */
   @AddToTrace()
   async syncQsrs(ctx: RumbleshipContext): Promise<void> {
-    // we use the same client request for each sync message as
-    // we don't really care about the response.
-    const client_request_id = `${this.config.serviceName}.syncQsrs`;
-    const marshalled_acl = ctx.authorizer.marshalClaims();
-    const owner_id = ctx.authorizer.getUser();
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     void this.queuedGqlRequestClient.start();
 
     for (const handler of this.handlers.values()) {
-      const gql_query_string =
-        typeof handler.qso_metadata.gql_document === 'string'
-          ? handler.qso_metadata.gql_document
-          : print(handler.qso_metadata.gql_document);
-      const queryAttributes: syncQsrVariables = {
-        subscription_name: handler.qso_metadata.subscription_name,
-        gql_query_string,
-        operation_name: handler.qso_metadata.operation_name,
-        active: handler.qso_metadata.active,
-        marshalled_acl: marshalled_acl,
-        owner_id: owner_id,
-        publish_to_topic_name: this.qsrTopicName,
-        query_attributes: handler.qso_metadata.query_attributes
-      };
-      ctx.beeline.addTraceContext({ qso: { queryAttributes } });
-      // we dont care about the response, so let default do nothing handler act
-      await this.queuedGqlRequestClient.makeRequest(ctx, {
-        client_request_id,
-        respond_on_error: false,
-        gql_query_string: print(syncQsrGql),
-        query_attributes: JSON.stringify(queryAttributes)
-      });
+      await this.syncQsr(ctx, handler.qso_metadata);
     }
+  }
+
+  @AddToTrace()
+  async syncQsr(
+    ctx: RumbleshipContext,
+    qso_metadata: QueuedSubscriptionObserverMetadata
+  ): Promise<void> {
+    const client_request_id = `${this.config.serviceName}.syncQsrs`;
+    const marshalled_acl = ctx.authorizer.marshalClaims();
+    const owner_id = ctx.authorizer.getUser();
+    const gql_query_string =
+      typeof qso_metadata.gql_document === 'string'
+        ? qso_metadata.gql_document
+        : print(qso_metadata.gql_document);
+    const queryAttributes: syncQsrVariables = {
+      subscription_name: qso_metadata.subscription_name,
+      gql_query_string,
+      operation_name: qso_metadata.operation_name,
+      active: qso_metadata.active,
+      marshalled_acl: marshalled_acl,
+      owner_id: owner_id,
+      publish_to_topic_name: this.qsrTopicName,
+      query_attributes: qso_metadata.query_attributes
+    };
+    ctx.beeline.addTraceContext({ qso: queryAttributes });
+    // we dont care about the response, so let default do nothing handler act
+    await this.queuedGqlRequestClient.makeRequest(ctx, {
+      client_request_id,
+      respond_on_error: false,
+      gql_query_string: print(syncQsrGql),
+      query_attributes: JSON.stringify(queryAttributes)
+    });
   }
 
   @AddToTrace()

@@ -4,7 +4,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { QueuedSubscriptionMessage } from '../../servers';
 import { RfiPubSubSubscription } from '../../shared';
 import { QueuedGqlRequestClientSingleInstanceResponder } from '../gql-request/queued-gql-request-client';
-import { QueuedSubscriptionHandler } from './q_s_observer';
+import { QueuedSubscriptionHandler, QueuedSubscriptionObserverMetadata } from './q_s_observer';
 /**
  * Each service has its own pubsub topic that subscription responses are sent to. We subscribe to this
  * topic using a 'service' subscription (ie each message is handled by a single instance)
@@ -34,6 +34,7 @@ export declare class QueuedSubscriptionObserverManager {
      * QSR will be updated or created
      */
     syncQsrs(ctx: RumbleshipContext): Promise<void>;
+    syncQsr(ctx: RumbleshipContext, qso_metadata: QueuedSubscriptionObserverMetadata): Promise<void>;
     start(ctx: RumbleshipContext): Promise<void>;
     stop(ctx: RumbleshipContext): Promise<void>;
     /**
