@@ -35,7 +35,6 @@ import {
   startQueuedGraphQl,
   stopQueuedGraphQl
 } from '../../queued-graphql/init_queued_graphql';
-import { SubscriptionTracePropagation } from './middleware/subscription-trace-propagation.middleware';
 
 export let globalGraphQlSchema: GraphQLSchema | undefined;
 
@@ -156,7 +155,7 @@ export async function initServer(
   const default_schema_options: BuildSchemaOptions = {
     authChecker: RFIAuthChecker,
     scalarsMap: [{ type: DateRange, scalar: DateRangeGQL }],
-    globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn, SubscriptionTracePropagation],
+    globalMiddlewares: [HoneycombMiddleware, LogErrorMiddlewareFn],
     resolvers: [] as any,
     pubSub,
     container: ({ context }: { context: RumbleshipContext }) => context.container
