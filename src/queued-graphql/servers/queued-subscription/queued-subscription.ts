@@ -188,9 +188,27 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         for await (const executionResult of this.activeSubscription) {
           // NOTE we are inside a for await
           await RumbleshipBeeline.runWithoutTrace(async () => {
-            const published_trace = (executionResult as any).marshalled_trace;
-            console.log(published_trace);
-            await this.onGqlSubscribeResponse(onDemandContext, executionResult);
+            const marshalled_trace = (() => {
+              if (this.executionContext.operationName) {
+                return (executionResult as any)[this.executionContext.operationName]
+                  ?.marshalledTrace;
+              }
+            })();
+            if (marshalled_trace) {
+              const ctx = RumbleshipContext.make(__filename, {
+                marshalled_trace,
+                linked_span: onDemandContext.beeline.getTraceContext()
+              });
+              try {
+                await ctx.beeline.bindFunctionToTrace(() =>
+                  this.onGqlSubscribeResponse(ctx, executionResult)
+                )();
+              } finally {
+                await ctx.release();
+              }
+            } else {
+              await this.onGqlSubscribeResponse(onDemandContext, executionResult);
+            }
             await onDemandContext.reset();
           });
         }
