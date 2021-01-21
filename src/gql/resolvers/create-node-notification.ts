@@ -2,6 +2,7 @@ import { ClassType } from '../../helpers';
 import { BaseReadableResolverInterface } from './base-resolver.interface';
 import { ModelDelta, Node, NodeNotification } from '../relay';
 import { NodeChangePayload } from '../../app/server/rfi-pub-sub-engine.interface';
+import { RumbleshipBeeline } from '@rumbleship/o11y';
 
 export interface RawPayload {
   data: { toString(): string };
@@ -35,7 +36,8 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
         received.action,
         received.idempotency_key,
         node,
-        modeldeltas
+        modeldeltas,
+        RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext())
       );
       return gql_node_notification;
     });
