@@ -6,13 +6,12 @@ export const SubscriptionTracePropagation: MiddlewareFn = async (
   next
 ) => {
   const resp = await next();
-  const marshalled_trace =
-    info.parentType.name === 'Subscription'
-      ? (context as any).beeline.bindFunctionToTrace(() =>
-          RumbleshipBeeline.marshalTraceContext((context as any).beeline.getTraceContext())
-        )()
-      : undefined;
+  if (info.parentType.name === 'Subscription') {
+    const marshalled_trace = (context as any).beeline.bindFunctionToTrace(() =>
+      RumbleshipBeeline.marshalTraceContext((context as any).beeline.getTraceContext())
+    )();
+    Reflect.set(resp, 'marshalled_trace', marshalled_trace);
+  }
 
-  // console.log(resp);
-  return { ...resp, marshalled_trace };
+  return resp;
 };
