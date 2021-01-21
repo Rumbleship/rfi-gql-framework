@@ -12,10 +12,11 @@ export declare class ModelDeltaClass {
     newValue: string;
 }
 export declare abstract class NodeNotification<T extends Node<T>> {
-    marshalledTrace?: string | undefined;
     idempotency_key: string;
     notificationOf: NotificationOf;
     watch_list_deltas: ModelDeltaClass[];
     node: T;
-    constructor(notificationOf: NotificationOf, idempotency_key: string, node: T, watch_list_deltas?: ModelDelta[], marshalledTrace?: string | undefined);
+    marshalledTrace?: string;
+    constructor(notificationOf: NotificationOf, idempotency_key: string, node: T, watch_list_deltas?: ModelDelta[]);
+    setTrace(val: string | undefined): void;
 }

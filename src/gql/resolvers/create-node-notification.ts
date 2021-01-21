@@ -32,13 +32,14 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
         'payload.action': received.action
       });
       const node = await resolver.getOne(received.oid);
-      const marshalled = RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext());
       const gql_node_notification = new NotificationType(
         received.action,
         received.idempotency_key,
         node,
-        modeldeltas,
-        marshalled
+        modeldeltas
+      );
+      gql_node_notification.setTrace(
+        RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext())
       );
       return gql_node_notification;
     });

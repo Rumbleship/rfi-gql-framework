@@ -23,12 +23,12 @@ export abstract class NodeNotification<T extends Node<T>> {
   notificationOf: NotificationOf;
   watch_list_deltas: ModelDeltaClass[] = [];
   node: T;
+  marshalledTrace?: string;
   constructor(
     notificationOf: NotificationOf,
     idempotency_key: string,
     node: T,
-    watch_list_deltas?: ModelDelta[],
-    public marshalledTrace?: string
+    watch_list_deltas?: ModelDelta[]
   ) {
     if (!idempotency_key) {
       throw Error(`Must have a idempotency_key set on change of ${node.constructor.name}`);
@@ -39,5 +39,9 @@ export abstract class NodeNotification<T extends Node<T>> {
     if (watch_list_deltas) {
       this.watch_list_deltas = watch_list_deltas.map(delta => new ModelDeltaClass(delta));
     }
+  }
+
+  setTrace(val: string | undefined): void {
+    this.marshalledTrace = val;
   }
 }
