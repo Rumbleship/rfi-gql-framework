@@ -50,3 +50,11 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
     onGqlSubscribeResponse(ctx: RumbleshipContext, executionResult: ExecutionResult): Promise<void>;
     stop(): Promise<void>;
 }
+/**
+ *
+ * @param executionResult
+ * @returns a cloned copy of {executionResult} with the marshalledTrace removed.
+ * @note the cloned copy of executionResult **cannot** be used throughout the graphql/type-graphql stack
+ * it should (primarily) be used to propagate results to the trace.
+ */
+export declare function traceSafeExecutionResult(executionResult: ExecutionResult): ExecutionResult;

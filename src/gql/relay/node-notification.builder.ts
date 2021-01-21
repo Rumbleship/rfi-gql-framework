@@ -1,4 +1,5 @@
-import { ObjectType, Field } from 'type-graphql';
+import { Scopes } from '@rumbleship/acl';
+import { ObjectType, Field, Authorized } from 'type-graphql';
 import { ClassType } from './../../helpers/';
 import { NotificationOf } from './notification-of.enum';
 import { Node } from './relay.interface';
@@ -28,6 +29,10 @@ export function GqlNodeNotification<T extends Node<T>>(
 
     @Field(type => [GqlModelDelta])
     watch_list_deltas!: ModelDeltaClass[];
+
+    @Authorized(Scopes.SYSADMIN)
+    @Field()
+    marshalledTrace?: string;
 
     constructor(
       notificationOf: NotificationOf,

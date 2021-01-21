@@ -23,6 +23,7 @@ export abstract class NodeNotification<T extends Node<T>> {
   notificationOf: NotificationOf;
   watch_list_deltas: ModelDeltaClass[] = [];
   node: T;
+  marshalledTrace?: string;
   constructor(
     notificationOf: NotificationOf,
     idempotency_key: string,
@@ -38,5 +39,9 @@ export abstract class NodeNotification<T extends Node<T>> {
     if (watch_list_deltas) {
       this.watch_list_deltas = watch_list_deltas.map(delta => new ModelDeltaClass(delta));
     }
+  }
+
+  setTrace(val: string | undefined): void {
+    this.marshalledTrace = val;
   }
 }
