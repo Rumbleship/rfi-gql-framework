@@ -188,6 +188,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         for await (const executionResult of this.activeSubscription) {
           // NOTE we are inside a for await
           await RumbleshipBeeline.runWithoutTrace(async () => {
+            const published_trace = (executionResult as any).marshalled_trace;
+            console.log(published_trace);
             await this.onGqlSubscribeResponse(onDemandContext, executionResult);
             await onDemandContext.reset();
           });
