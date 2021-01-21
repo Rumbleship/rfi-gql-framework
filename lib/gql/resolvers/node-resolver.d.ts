@@ -25,6 +25,7 @@ declare class NodeSubscriptionFilter extends NodeSubscriptionFilter_base {
 declare class ClassGqlNodeNotification extends NodeNotification<any> {
     idempotency_key: string;
     notificationOf: NotificationOf;
+    marshalledTrace?: string;
     node: Node<any>;
     constructor(notificationOf: NotificationOf, idempotency_key: string, node: Node<any>);
 }
@@ -33,7 +34,7 @@ export declare class NodeResolver implements RelayResolver {
     constructor(nodeServices: Array<NodeService<any>>);
     node(oidString: string, ctx: RumbleshipContext): Promise<Node<any> | null>;
     publishLastKnownState(oidString: string, pubSub: PubSubEngine, ctx: RumbleshipContext): Promise<boolean>;
-    onChange(rawPayload: RawPayload, args: NodeSubscriptionFilter): Promise<ClassGqlNodeNotification>;
+    onChange(rawPayload: RawPayload, args: NodeSubscriptionFilter, ctx: RumbleshipContext): Promise<ClassGqlNodeNotification>;
     unWrapOid(oidString: string, ctx: RumbleshipContext): Promise<string>;
     makeOid(scope: string, id: string, ctx: RumbleshipContext): Promise<string>;
 }

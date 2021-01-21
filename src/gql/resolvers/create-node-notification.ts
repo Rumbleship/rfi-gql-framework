@@ -37,6 +37,8 @@ export async function createNodeNotification<TApi extends Node<TApi> = any>(
         node,
         modeldeltas
       );
+      gql_node_notification.setTrace(received.marshalled_trace);
+
       return gql_node_notification;
     });
   })();

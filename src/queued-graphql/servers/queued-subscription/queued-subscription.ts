@@ -125,7 +125,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   @AddToTrace()
   async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
     ctx.beeline.addTraceContext({
-      response,
+      response: traceSafeExecutionResult(response),
       pubsub: { projectId: this.googlePublisher.projectId }
     });
     const subscription_name = this.subscription_name ?? '';
@@ -188,7 +188,29 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         for await (const executionResult of this.activeSubscription) {
           // NOTE we are inside a for await
           await RumbleshipBeeline.runWithoutTrace(async () => {
-            await this.onGqlSubscribeResponse(onDemandContext, executionResult);
+            const marshalled_trace = (() => {
+              const first_operation_name = Object.keys(executionResult.data ?? {})[0];
+              const first_operation_result =
+                first_operation_name && executionResult?.data?.[first_operation_name];
+              const value = first_operation_result?.marshalledTrace;
+              delete first_operation_result.marshalledTrace;
+              return value;
+            })();
+            if (marshalled_trace) {
+              const ctx = RumbleshipContext.make(__filename, {
+                marshalled_trace,
+                linked_span: onDemandContext.beeline.getTraceContext()
+              });
+              try {
+                await ctx.beeline.bindFunctionToTrace(() =>
+                  this.onGqlSubscribeResponse(ctx, executionResult)
+                )();
+              } finally {
+                await ctx.release();
+              }
+            } else {
+              await this.onGqlSubscribeResponse(onDemandContext, executionResult);
+            }
             await onDemandContext.reset();
           });
         }
@@ -225,7 +247,7 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
         subscription: { name: this.subscription_name },
         topic: { name: this.publish_to_topic_name }
       },
-      executionResult
+      executionResult: traceSafeExecutionResult(executionResult)
     });
     if (this.publish_to_topic_name.length) {
       try {
@@ -246,4 +268,19 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       await this.activeSubscription.return();
     }
   }
+}
+
+/**
+ *
+ * @param executionResult
+ * @returns a cloned copy of {executionResult} with the marshalledTrace removed.
+ * @note the cloned copy of executionResult **cannot** be used throughout the graphql/type-graphql stack
+ * it should (primarily) be used to propagate results to the trace.
+ */
+export function traceSafeExecutionResult(executionResult: ExecutionResult): ExecutionResult {
+  const first_operation_name = Object.keys(executionResult.data ?? {})[0];
+  const first_operation_result =
+    first_operation_name && executionResult?.data?.[first_operation_name];
+  const { marshalledTrace, ...rest } = first_operation_result ?? {};
+  return rest;
 }

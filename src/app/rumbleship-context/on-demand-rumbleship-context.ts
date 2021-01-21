@@ -24,6 +24,7 @@ export class OnDemandRumbleshipContext implements RumbleshipContext {
       this._wrappedContext = RumbleshipBeeline.runWithoutTrace(() => {
         return RumbleshipContext.make(__filename, {
           initial_trace_metadata: {
+            name: 'app.OnDemandRumbleshipContext',
             on_demand_context_id: this.on_demand_context_id
           },
           authorizer: this.getAuthorizer()
