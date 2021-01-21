@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * Trace propagates from PubSubEngine through to QueuedSubscriptions
+    * `marshalledTrace` field to generic `NodeNotification` type
+    * Subscription definer _must_ add `marshalledTrace` to the `QSObserver` GQL subscription definition
 ### Removed
 ### Changed
   * Improved tracing around `syncQsrs`

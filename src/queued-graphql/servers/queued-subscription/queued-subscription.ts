@@ -192,7 +192,9 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
               const first_operation_name = Object.keys(executionResult.data ?? {})[0];
               const first_operation_result =
                 first_operation_name && executionResult?.data?.[first_operation_name];
-              return first_operation_result?.marshalledTrace;
+              const value = first_operation_result?.marshalledTrace;
+              delete first_operation_result.marshalledTrace;
+              return value;
             })();
             if (marshalled_trace) {
               const ctx = RumbleshipContext.make(__filename, {
