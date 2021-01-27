@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * No longer replace RumbleshipContext trace with new, unbound one, onConnect() subscription
 ### Deprecated
 ### Security
 

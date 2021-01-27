@@ -205,9 +205,6 @@ export async function initServer(
               subscription: true
             }
           });
-          rumbleship_context.trace = rumbleship_context.beeline.startTrace({
-            name: 'subscription'
-          });
           (context as any).rumbleship_context = rumbleship_context;
           return context;
         }
