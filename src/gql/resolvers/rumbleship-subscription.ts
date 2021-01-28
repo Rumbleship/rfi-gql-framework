@@ -49,7 +49,6 @@ export function RumbleshipSubscriptionOptions<TPayload = any, TArgs = ArgsDictio
     ...opts,
     topics: wrappedTopics,
     filter: opts.filter ?? filterBySubscriptionFilter
-    // ...(!opts.filter ? { filter: filterBySubscriptionFilter } : {})
   };
 }
 

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 ### Fixed
   * No longer replace RumbleshipContext trace with new, unbound one, onConnect() subscription
+  * Handle when rawPayload is undefined in subscription filters and generic `onChange` handler
 ### Deprecated
 ### Security
 
