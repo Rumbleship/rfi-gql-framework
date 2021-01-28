@@ -15,8 +15,8 @@ declare type SubscriptionTopicFunc = (resolverTopicData: ResolverTopicData<any, 
  */
 export declare function enableQueuedSubscriptionSupport<TPayload, TArgs>(params: ResolverTopicData<TPayload, TArgs, OnDemandRumbleshipContext>, topics: string | string[] | SubscriptionTopicFunc | undefined): string | string[];
 export declare function RumbleshipSubscriptionOptions<TPayload = any, TArgs = ArgsDictionary>(opts: SubscriptionOptions): {
-    filter?: typeof filterBySubscriptionFilter | undefined;
     topics: (args: ResolverTopicData<TPayload, TArgs, OnDemandRumbleshipContext>) => string | string[];
+    filter: import("type-graphql/dist/decorators/types").SubscriptionFilterFunc | typeof filterBySubscriptionFilter;
     nullable?: boolean | "items" | "itemsAndList" | undefined;
     defaultValue?: any;
     description?: string | undefined;
@@ -25,8 +25,8 @@ export declare function RumbleshipSubscriptionOptions<TPayload = any, TArgs = Ar
     complexity?: number | import("graphql-query-complexity").ComplexityEstimator | undefined;
     subscribe: import("graphql-subscriptions").ResolverFn;
 } | {
-    filter?: import("type-graphql/dist/decorators/types").SubscriptionFilterFunc | typeof filterBySubscriptionFilter | undefined;
     topics: (args: ResolverTopicData<TPayload, TArgs, OnDemandRumbleshipContext>) => string | string[];
+    filter: import("type-graphql/dist/decorators/types").SubscriptionFilterFunc | typeof filterBySubscriptionFilter;
     nullable?: boolean | "items" | "itemsAndList" | undefined;
     defaultValue?: any;
     description?: string | undefined;

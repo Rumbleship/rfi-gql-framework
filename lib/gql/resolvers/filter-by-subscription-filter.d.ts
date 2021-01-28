@@ -15,7 +15,7 @@ import { RumbleshipContext } from '../../app/rumbleship-context/rumbleship-conte
  * @param param0
  */
 export declare function filterBySubscriptionFilter({ payload: rawPayload, args, context }: {
-    payload: RawPayload;
+    payload?: RawPayload;
     args?: SubscriptionWatchFilter;
     context: RumbleshipContext;
 }): Promise<boolean>;
@@ -25,7 +25,7 @@ export declare function filterBySubscriptionFilter({ payload: rawPayload, args, 
  * @param param0
  */
 export declare function filterById({ payload: rawPayload, args, context }: {
-    payload: RawPayload;
+    payload?: RawPayload;
     args?: {
         id?: string;
     };

@@ -25,10 +25,13 @@ export async function filterBySubscriptionFilter({
   args,
   context
 }: {
-  payload: RawPayload;
+  payload?: RawPayload;
   args?: SubscriptionWatchFilter;
   context: RumbleshipContext;
 }): Promise<boolean> {
+  if (!rawPayload) {
+    return false;
+  }
   const res = await context.beeline.bindFunctionToTrace(async () => {
     return context.beeline.withAsyncSpan(
       { name: 'subscription.filterBySubscriptionFilter' },
@@ -90,10 +93,13 @@ export async function filterById({
   args,
   context
 }: {
-  payload: RawPayload;
+  payload?: RawPayload;
   args?: { id?: string };
   context: RumbleshipContext;
 }): Promise<boolean> {
+  if (!rawPayload) {
+    return false;
+  }
   const res = await context.beeline.bindFunctionToTrace(async () => {
     return context.beeline.withAsyncSpan({ name: 'subscription.filter' }, async () => {
       if (!args?.id) {

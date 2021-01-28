@@ -34,10 +34,13 @@ export function withSubscriptionResolver<
     })
     @AddToTrace()
     async onChange(
-      @Root() rawPayload: RawPayload,
+      @Root() rawPayload: RawPayload | undefined,
       @Args(type => subscriptionFilterClsType) args: SubscriptionWatchFilter
-    ): Promise<NodeNotification<TApi>> {
-      return createNodeNotification(rawPayload, this, notificationClsType, args?.watch_list);
+    ): Promise<NodeNotification<TApi> | null> {
+      if (rawPayload) {
+        return createNodeNotification(rawPayload, this, notificationClsType, args?.watch_list);
+      }
+      return null;
     }
   }
   return SubscriptionResolver;
