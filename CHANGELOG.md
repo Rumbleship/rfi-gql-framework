@@ -5,17 +5,11 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [15.2.0] -- 2021-01-28
 
-### Added
-### Removed
-### Changed
 ### Fixed
   * No longer replace RumbleshipContext trace with new, unbound one, onConnect() subscription
   * Handle when rawPayload is undefined in subscription filters and generic `onChange` handler
-### Deprecated
-### Security
-
 
 ## [15.1.0] -- 2021-01-21
 
