@@ -139,11 +139,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
    */
   @AddToTrace()
   async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
+    const topic = await this.getTopic(ctx);
     const orderingKey = rootNodeFrom(response) ?? this.id.toString() ?? 'qsr';
-    ctx.beeline.addTraceContext({
-      message: { orderingKey, response: traceSafeExecutionResult(response) },
-      pubsub: { projectId: this.googlePublisher.projectId }
-    });
     const subscription_name = this.subscription_name ?? '';
     const message_body: QueuedSubscriptionMessage = {
       owner_id: this.owner_id ?? '',
@@ -152,10 +149,14 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       subscription_response: response,
       marshalled_trace: RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext())
     };
-    const topic = await this.getTopic(ctx);
     ctx.beeline.addTraceContext({
+      message: {
+        orderingKey,
+        response: traceSafeExecutionResult(response)
+      },
       topic: { name: topic.name, orderingKey },
-      subscription: { name: subscription_name, id: message_body.subscription_id, orderingKey }
+      subscription: { name: subscription_name, id: message_body.subscription_id, orderingKey },
+      pubsub: { projectId: this.googlePublisher.projectId }
     });
     const message: MessageOptions = {
       data: Buffer.from(JSON.stringify(message_body)),
