@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Queued Subscription message publishing uses `orderingKey` derived from message body to mitigate messages from backing up
+    * id, node.id
+    * subscription.id
 ### Fixed
 ### Deprecated
 ### Security

@@ -21,6 +21,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
 import { MessageOptions } from '@google-cloud/pubsub/build/src/topic';
+import { rootNodeFrom } from 'src/queued-graphql/helpers/node-id-from-execution-result';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
@@ -141,9 +142,25 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       topic: { name: topic.name },
       subscription: { name: subscription_name, id: message_body.subscription_id }
     });
+    /**
+     * One of the structural goals of the Queued Subscription Infrastructure is to be able to react
+     * to changes to a _single_ record anywhere in the distributed object model in an ordered way
+     * from anywhere else in the distributed object model.
+     *
+     * Goal with generating the orderingKey from the response is to force ordered consumption of
+     * messages that arise from changes to a _single record_ -- without blocking consumption of
+     * other messages flowing through the bus.
+     *
+     * If the `execution_result` doesn't have a node to order on id for, then we go to the
+     * `subscription_id` so failure to process messages for any given subscriptoin does not block
+     * message processing for other subscriptions.
+     *
+     * Failing that, we use the default key (this should never be reached)
+     */
+    const orderingKey = rootNodeFrom(response) ?? this.id.toString() ?? 'qsr';
     const message: MessageOptions = {
       data: Buffer.from(JSON.stringify(message_body)),
-      orderingKey: 'qsr'
+      orderingKey
     };
     const [published] = await topic.publishMessage(message);
     return published;
