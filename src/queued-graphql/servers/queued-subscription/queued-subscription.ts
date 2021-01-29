@@ -21,7 +21,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
 import { MessageOptions } from '@google-cloud/pubsub/build/src/topic';
-import { rootNodeFrom } from 'src/queued-graphql/helpers/node-id-from-execution-result';
+import { rootNodeFrom } from '../../../queued-graphql/helpers/node-id-from-execution-result';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
