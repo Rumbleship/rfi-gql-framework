@@ -206,7 +206,8 @@ export class RfiPubSubSubscription<T> {
             __filename,
             {
               marshalled_trace: (payload as any).marshalled_trace,
-              linked_span: this.beeline.getTraceContext()
+              linked_span: this.beeline.getTraceContext(),
+              initial_trace_metadata: { meta: { source: 'RfiPubSubSubscription.listen' } }
             }
           );
 
