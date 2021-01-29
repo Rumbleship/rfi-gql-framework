@@ -130,9 +130,12 @@ export class RfiPubSubSubscription<T> {
         marshalled_trace?: string;
       } & Record<string, unknown>;
       ctx.beeline.addTraceContext({
-        gcloud_topic_name: this.gcloud_topic_name,
-        gcloud_subscription_name: this.gcloud_subscription_name,
-        projectId: this._pubSub.projectId,
+        topic: { name: this.gcloud_topic_name, orderingKey: message.orderingKey },
+        subscription: {
+          name: this.gcloud_subscription_name,
+          orderingKey: message.orderingKey
+        },
+        pubsub: { projectId: this._pubSub.projectId },
         message: {
           id: message.id,
           deliveryAttempt: message.deliveryAttempt,
