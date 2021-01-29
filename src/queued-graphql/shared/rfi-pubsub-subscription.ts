@@ -201,14 +201,17 @@ export class RfiPubSubSubscription<T> {
       const message_data = message.data.toString();
       const payload = this.parseMessage(message_data);
       if (payload) {
-        const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(__filename, {
-          marshalled_trace: (payload as any).marshalled_trace,
-          linked_span: this.beeline.getTraceContext()
-        });
+        await this.beeline.runWithoutTrace(async () => {
+          const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+            __filename,
+            {
+              marshalled_trace: (payload as any).marshalled_trace,
+              linked_span: this.beeline.getTraceContext()
+            }
+          );
 
-        await this.beeline.runWithoutTrace(() =>
-          this.dispatch(ctx, pending_message as Message, handler, source_name)
-        );
+          await this.dispatch(ctx, pending_message as Message, handler, source_name);
+        });
         if (!start_success) {
           start_success = true;
           this.beeline.finishTrace(trace);
