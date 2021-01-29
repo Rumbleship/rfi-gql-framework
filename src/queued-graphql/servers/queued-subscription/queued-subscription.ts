@@ -21,6 +21,7 @@ import { RumbleshipContext } from '../../../app/rumbleship-context';
 import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { addErrorToTraceContext } from '../../../app/honeycomb-helpers/add_error_to_trace_context';
 import { MessageOptions } from '@google-cloud/pubsub/build/src/topic';
+import { rootNodeFrom } from '../../../queued-graphql/helpers/node-id-from-execution-result';
 
 export class QueuedSubscription implements IQueuedSubscriptionRequest {
   activeSubscription?: AsyncIterableIterator<
@@ -120,14 +121,26 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   }
 
   /**
-   * @note publishes responses to the QueuedSubscriptionRequest
+   * @usage publishes responses to the QueuedSubscriptionRequest
+   *
+   * @note One of the structural goals of the Queued Subscription Infrastructure is to be able to react
+   * to changes to a _single_ record anywhere in the distributed object model in an ordered way
+   * from anywhere else in the distributed object model.
+   *
+   * Goal with generating the orderingKey from the response is to force ordered consumption of
+   * messages that arise from changes to a _single record_ -- without blocking consumption of
+   * other messages flowing through the bus.
+   *
+   * If the `execution_result` doesn't have a node to order on id for, then we go to the
+   * `subscription_id` so failure to process messages for any given subscriptoin does not block
+   * message processing for other subscriptions.
+   *
+   * Failing that, we use the default key (this should never be reached)
    */
   @AddToTrace()
   async publishResponse(ctx: RumbleshipContext, response: SubscriptionResponse): Promise<string> {
-    ctx.beeline.addTraceContext({
-      response: traceSafeExecutionResult(response),
-      pubsub: { projectId: this.googlePublisher.projectId }
-    });
+    const topic = await this.getTopic(ctx);
+    const orderingKey = rootNodeFrom(response) ?? this.id.toString() ?? 'qsr';
     const subscription_name = this.subscription_name ?? '';
     const message_body: QueuedSubscriptionMessage = {
       owner_id: this.owner_id ?? '',
@@ -136,14 +149,18 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       subscription_response: response,
       marshalled_trace: RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext())
     };
-    const topic = await this.getTopic(ctx);
     ctx.beeline.addTraceContext({
-      topic: { name: topic.name },
-      subscription: { name: subscription_name, id: message_body.subscription_id }
+      message: {
+        orderingKey,
+        response: traceSafeExecutionResult(response)
+      },
+      topic: { name: topic.name, orderingKey },
+      subscription: { name: subscription_name, id: message_body.subscription_id, orderingKey },
+      pubsub: { projectId: this.googlePublisher.projectId }
     });
     const message: MessageOptions = {
       data: Buffer.from(JSON.stringify(message_body)),
-      orderingKey: 'qsr'
+      orderingKey
     };
     const [published] = await topic.publishMessage(message);
     return published;
@@ -199,7 +216,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
             if (marshalled_trace) {
               const ctx = RumbleshipContext.make(__filename, {
                 marshalled_trace,
-                linked_span: onDemandContext.beeline.getTraceContext()
+                linked_span: onDemandContext.beeline.getTraceContext(),
+                initial_trace_metadata: { meta: { source: 'QueuedSubscription.start' } }
               });
               try {
                 await ctx.beeline.bindFunctionToTrace(() =>

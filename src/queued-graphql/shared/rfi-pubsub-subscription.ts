@@ -130,9 +130,12 @@ export class RfiPubSubSubscription<T> {
         marshalled_trace?: string;
       } & Record<string, unknown>;
       ctx.beeline.addTraceContext({
-        gcloud_topic_name: this.gcloud_topic_name,
-        gcloud_subscription_name: this.gcloud_subscription_name,
-        projectId: this._pubSub.projectId,
+        topic: { name: this.gcloud_topic_name, orderingKey: message.orderingKey },
+        subscription: {
+          name: this.gcloud_subscription_name,
+          orderingKey: message.orderingKey
+        },
+        pubsub: { projectId: this._pubSub.projectId },
         message: {
           id: message.id,
           deliveryAttempt: message.deliveryAttempt,
@@ -201,14 +204,18 @@ export class RfiPubSubSubscription<T> {
       const message_data = message.data.toString();
       const payload = this.parseMessage(message_data);
       if (payload) {
-        const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(__filename, {
-          marshalled_trace: (payload as any).marshalled_trace,
-          linked_span: this.beeline.getTraceContext()
-        });
+        await this.beeline.runWithoutTrace(async () => {
+          const ctx = Container.get<typeof RumbleshipContext>('RumbleshipContext').make(
+            __filename,
+            {
+              marshalled_trace: (payload as any).marshalled_trace,
+              linked_span: this.beeline.getTraceContext(),
+              initial_trace_metadata: { meta: { source: 'RfiPubSubSubscription.listen' } }
+            }
+          );
 
-        await this.beeline.runWithoutTrace(() =>
-          this.dispatch(ctx, pending_message as Message, handler, source_name)
-        );
+          await this.dispatch(ctx, pending_message as Message, handler, source_name);
+        });
         if (!start_success) {
           start_success = true;
           this.beeline.finishTrace(trace);
