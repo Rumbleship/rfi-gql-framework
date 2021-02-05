@@ -807,7 +807,8 @@ export class SequelizeBaseService<
        * that _removes_ their ability to interact with an object; we can only do this once the
        * update has been performed.
        *
-       * If the update was valid, we then commit the transaction.
+       * If auth is still valid after update, then commit the inner update transaction.
+       * If auth is not valid after update, then roll back the _inner_ update transaction & throw
        */
       isAuthorized = await this.checkDbIsAuthorized(
         dbId,
