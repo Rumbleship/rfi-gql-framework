@@ -749,10 +749,9 @@ export class SequelizeBaseService<
   @AddToTrace()
   async update(
     updateInput: TUpdate,
-    uncloned_options: NodeServiceOptions = {},
+    options: NodeServiceOptions = {},
     target?: TApi
   ): Promise<TApi> {
-    const options: NodeServiceOptions = { ...uncloned_options };
     if (target && !(modelKey in target)) {
       throw new Error(`Invalid target for ${this.relayClass.name}`);
     }
@@ -770,20 +769,6 @@ export class SequelizeBaseService<
     this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
     delete (updateInput as any).id;
     const { id: dbId } = oid.unwrap();
-    /**
-     * All changes (update/create/etc) must be within a transaction, which Sequelize guarantees
-     * to pass to low level model hooks that the publisher listens to.
-     *
-     * We attach data (authorized acting user, marshalled trace, etc) to the transaction object
-     * to take advantage of this behavior and allow a the publisher to make the payloads it
-     * publishes aware of the `RumbleshipContext` that generated them.
-     */
-    options.transaction =
-      options.transaction ??
-      (await this.newTransaction({
-        isolation: NodeServiceIsolationLevel.READ_COMMITTED,
-        autocommit: false
-      }));
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     isAuthorized = isAuthorized
       ? isAuthorized
@@ -792,17 +777,17 @@ export class SequelizeBaseService<
       throw new RFIAuthError();
     }
     // start a (nested) transaction
-    const updateTransaction = await this.newTransaction({
+    const internal_update_transaction = await this.newTransaction({
       parentTransaction: sequelizeOptions.transaction,
       isolation: NodeServiceIsolationLevel.READ_COMMITTED,
       autocommit: false
     });
     try {
       // we are definately authed to go find the model,
-      //  set the context so we can do sequelize finds
+      // set the context so we can do sequelize finds
       // within the rest of this function
       const findOptions = setAuthorizeContext(
-        { ...sequelizeOptions, transaction: updateTransaction },
+        { ...sequelizeOptions, transaction: internal_update_transaction },
         { authApplied: true }
       );
 
@@ -815,18 +800,26 @@ export class SequelizeBaseService<
       }
       await modelInstance.update(cloneAndTransposeDeprecatedValues(updateInput) as any, {
         ...sequelizeOptions,
-        transaction: updateTransaction
+        transaction: internal_update_transaction
       });
+      /**
+       * We recheck the auth here because we want to ensure that a user cannot perform an update
+       * that _removes_ their ability to interact with an object; we can only do this once the
+       * update has been performed.
+       *
+       * If auth is still valid after update, then commit the inner update transaction.
+       * If auth is not valid after update, then roll back the _inner_ update transaction & throw
+       */
       isAuthorized = await this.checkDbIsAuthorized(
         dbId,
         Actions.UPDATE,
-        { ...sequelizeOptions, transaction: updateTransaction as any },
+        { ...sequelizeOptions, transaction: internal_update_transaction as any },
         options
       );
       if (!isAuthorized) {
         throw new RFIAuthError();
       } else {
-        await updateTransaction.commit();
+        await this.endTransaction(internal_update_transaction, 'commit');
       }
       if (target) {
         await reloadNodeFromModel(target, false);
@@ -834,18 +827,9 @@ export class SequelizeBaseService<
       } else {
         return this.gqlFromDbModel(modelInstance as any);
       }
-    } catch (e) {
-      await updateTransaction.rollback();
-      if (!uncloned_options.transaction) {
-        await this.endTransaction(options.transaction, 'rollback');
-        // Explicitly unset it so the finally doesn't commit
-        options.transaction = undefined;
-      }
-      throw e;
-    } finally {
-      if (options.transaction && !uncloned_options.transaction) {
-        await this.endTransaction(options.transaction, 'commit');
-      }
+    } catch (error) {
+      await this.endTransaction(internal_update_transaction, 'rollback');
+      throw error;
     }
   }
 
