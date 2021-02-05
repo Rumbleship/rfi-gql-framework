@@ -158,7 +158,7 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
      * @param options - may include a transaction
      * @param target - if it does... then the prel  oaded Object loaded in that transaction should be passed in
      */
-    update(updateInput: TUpdate, uncloned_options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
+    update(updateInput: TUpdate, options?: NodeServiceOptions, target?: TApi): Promise<TApi>;
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: RelayFilterBase<TAssocApi>, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
     private makeEdge;
