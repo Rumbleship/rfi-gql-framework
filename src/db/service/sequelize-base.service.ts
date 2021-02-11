@@ -798,10 +798,13 @@ export class SequelizeBaseService<
       if (!modelInstance) {
         throw new Error('invalid model in db');
       }
-      await modelInstance.update(cloneAndTransposeDeprecatedValues(updateInput) as any, {
-        ...sequelizeOptions,
-        transaction: internal_update_transaction
-      });
+      const updated = await modelInstance.update(
+        cloneAndTransposeDeprecatedValues(updateInput) as any,
+        {
+          ...sequelizeOptions,
+          transaction: internal_update_transaction
+        }
+      );
       /**
        * We recheck the auth here because we want to ensure that a user cannot perform an update
        * that _removes_ their ability to interact with an object; we can only do this once the
@@ -825,14 +828,8 @@ export class SequelizeBaseService<
         await reloadNodeFromModel(target, false);
         return target;
       } else {
-        /**
-         * TEST for out-of-sync publishes showing up in banking:
-         * I think that we don't have a guarantee that `modelInstance` has the absolute latest data
-         * even though we've awaited the `Model.update()` call. Once the internal transaction has
-         * been commited, we should re-find the updated row within context of parent transaction.
-         */
         // return this.gqlFromDbModel(modelInstance as any);
-        return this.gqlFromDbModel((await this.getOne(oid, options)) as any);
+        return this.gqlFromDbModel(updated as any);
       }
     } catch (error) {
       await this.endTransaction(internal_update_transaction, 'rollback');
