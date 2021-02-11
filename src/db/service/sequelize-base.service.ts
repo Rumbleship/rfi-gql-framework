@@ -798,10 +798,13 @@ export class SequelizeBaseService<
       if (!modelInstance) {
         throw new Error('invalid model in db');
       }
-      await modelInstance.update(cloneAndTransposeDeprecatedValues(updateInput) as any, {
-        ...sequelizeOptions,
-        transaction: internal_update_transaction
-      });
+      const updated = await modelInstance.update(
+        cloneAndTransposeDeprecatedValues(updateInput) as any,
+        {
+          ...sequelizeOptions,
+          transaction: internal_update_transaction
+        }
+      );
       /**
        * We recheck the auth here because we want to ensure that a user cannot perform an update
        * that _removes_ their ability to interact with an object; we can only do this once the
@@ -825,7 +828,8 @@ export class SequelizeBaseService<
         await reloadNodeFromModel(target, false);
         return target;
       } else {
-        return this.gqlFromDbModel(modelInstance as any);
+        // return this.gqlFromDbModel(modelInstance as any);
+        return this.gqlFromDbModel(updated as any);
       }
     } catch (error) {
       await this.endTransaction(internal_update_transaction, 'rollback');
