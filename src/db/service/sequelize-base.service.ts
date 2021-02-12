@@ -48,6 +48,7 @@ import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-serv
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
 import { NotFoundError } from '../../app/errors';
 import { NodeServiceMap } from '../../app/server/add-node-services-to-container';
+import { getScopeFor } from 'src/app';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -527,6 +528,14 @@ export class SequelizeBaseService<
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     filterBy = cloneAndTransposeDeprecatedValues(filterBy);
+    if ((filterBy as any).id) {
+      const oid = new Oid((filterBy as any).id);
+      const { scope } = oid.unwrap();
+      const acceptable_scope = getScopeFor(this.model);
+      if (scope !== acceptable_scope) {
+        throw new Error(`Invalid oid: ${oid.toString()} does not match ${acceptable_scope}`);
+      }
+    }
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -621,7 +630,11 @@ export class SequelizeBaseService<
   @AddToTrace()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
-    const { id } = oid.unwrap();
+    const { id, scope } = oid.unwrap();
+    const acceptable_scope = getScopeFor(this.model);
+    if (scope !== acceptable_scope) {
+      throw new Error(`Invalid oid: ${oid.toString()} does not match ${acceptable_scope}`);
+    }
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const findOptions: FindOptions = {
       where: { id },

@@ -1,6 +1,7 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 import { RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { Oid } from '@rumbleship/oid';
+import { ModelClass } from '../../db';
 
 let theSequelizeInstance: Sequelize | null;
 /**
@@ -23,8 +24,10 @@ export interface DbModelAndOidScope {
 }
 const theDbModels: DbModelAndOidScope[] = [];
 
-export function getScopeFor(model: Model): string | undefined {
-  const found = theDbModels.find(entry => model instanceof entry.dbModel);
+export function getScopeFor(model: Model | ModelClass<any>): string | undefined {
+  const found = theDbModels.find(
+    entry => model instanceof entry.dbModel || entry.dbModel === model
+  );
   return found?.scope;
 }
 export function getOidFor(model: Model): Oid {

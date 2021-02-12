@@ -1,6 +1,7 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 import { RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { Oid } from '@rumbleship/oid';
+import { ModelClass } from '../../db';
 /**
  * Returns the global instance of sequelize used by this application
  */
@@ -13,7 +14,7 @@ export interface DbModelAndOidScope {
     scope: string;
     dbModel: ModelCtor & typeof Model;
 }
-export declare function getScopeFor(model: Model): string | undefined;
+export declare function getScopeFor(model: Model | ModelClass<any>): string | undefined;
 export declare function getOidFor(model: Model): Oid;
 /**
  * initializes sequelize for the app and sets up a global sequelize
