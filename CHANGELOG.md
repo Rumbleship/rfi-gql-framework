@@ -12,10 +12,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
-  * (test) possible publish of expired data on model update
 ### Deprecated
 ### Security
 
+
+## [15.3.2] -- 2021-02-11
+
+### Fixed
+  * (test) possible publish of expired data on model update
 
 ## [15.3.1] -- 2021-02-05
 
