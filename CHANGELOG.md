@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
-  * Only add a QueuedSubscription if it is marked active
+  * Only add a QueuedSubscription to cache if it is marked active
 ### Deprecated
 ### Security
 
