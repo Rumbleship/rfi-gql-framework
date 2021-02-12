@@ -5,16 +5,10 @@ All notable changes to this project will be documented in this file. Starting wi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [15.4.1] -- 2021-02-12
 
-### Added
-### Removed
-### Changed
 ### Fixed
   * Only add a QueuedSubscription to cache if it is marked active
-### Deprecated
-### Security
-
 
 ## [15.4.0] -- 2021-02-12
 
