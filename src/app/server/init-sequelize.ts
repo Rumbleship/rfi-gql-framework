@@ -1,7 +1,7 @@
 import { Sequelize, Model, ModelCtor } from 'sequelize-typescript';
 import { RumbleshipDatabaseOptions } from '@rumbleship/config';
 import { Oid } from '@rumbleship/oid';
-import { ModelClass } from '../../db';
+import { ModelClass } from '../../db/service/sequelize-base-service.interface';
 
 let theSequelizeInstance: Sequelize | null;
 /**

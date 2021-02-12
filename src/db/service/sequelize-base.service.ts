@@ -48,7 +48,7 @@ import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-serv
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
 import { NotFoundError } from '../../app/errors';
 import { NodeServiceMap } from '../../app/server/add-node-services-to-container';
-import { getScopeFor } from 'src/app';
+import { getScopeFor } from '../../app/server/init-sequelize';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
