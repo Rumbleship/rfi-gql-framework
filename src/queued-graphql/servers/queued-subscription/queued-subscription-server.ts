@@ -235,10 +235,9 @@ export class QueuedSubscriptionServer {
         await this.removeSubscription(ctx, key);
       }
     }
-    // find qsr's that have to be added
     for (const [key, qsr] of qsrCache.cache.entries()) {
       if (!this.queuedSubscriptions.has(key)) {
-        this.addSubscriptionAndStart(ctx, key, qsr);
+        await this.addSubscriptionAndStart(ctx, key, qsr);
       }
     }
     return qsrCache.highest_cache_consistency_id;
@@ -274,27 +273,28 @@ export class QueuedSubscriptionServer {
     this.queuedSubscriptions.clear();
   }
   /**
-   * Adds and starts the subscription
-   * @param request
+   * @Usage If and only if the subscription is marked `active:true` add it to list of subscriptions
+   * and it without blocking.
+   *
+   * @note method is marked `async` because `@AddToTrace()` forces return of a promise
    */
   @AddToTrace()
-  addSubscriptionAndStart(
+  async addSubscriptionAndStart(
     ctx: RumbleshipContext,
     key: string,
     request: IQueuedSubscriptionRequest
-  ): QueuedSubscription {
+  ): Promise<void> {
     if (this.queuedSubscriptions.has(key)) {
       throw new Error(
         `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
       );
     }
     const queuedSubscription = new QueuedSubscription(this.schema, request, this.config.Gcp);
-
-    this.queuedSubscriptions.set(key, queuedSubscription);
-    // start it asynchonously
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    void queuedSubscription.start();
-    return queuedSubscription;
+    if (queuedSubscription.active) {
+      this.queuedSubscriptions.set(key, queuedSubscription);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      void queuedSubscription.start();
+    }
   }
 
   @AddToTrace()

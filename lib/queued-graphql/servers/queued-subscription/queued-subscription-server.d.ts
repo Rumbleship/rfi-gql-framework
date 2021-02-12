@@ -45,10 +45,12 @@ export declare class QueuedSubscriptionServer {
     stop(ctx: RumbleshipContext): Promise<void>;
     stopAndClearSubscriptions(ctx: RumbleshipContext): Promise<void>;
     /**
-     * Adds and starts the subscription
-     * @param request
+     * @Usage If and only if the subscription is marked `active:true` add it to list of subscriptions
+     * and it without blocking.
+     *
+     * @note method is marked `async` because `@AddToTrace()` forces return of a promise
      */
-    addSubscriptionAndStart(ctx: RumbleshipContext, key: string, request: IQueuedSubscriptionRequest): QueuedSubscription;
+    addSubscriptionAndStart(ctx: RumbleshipContext, key: string, request: IQueuedSubscriptionRequest): Promise<void>;
     removeSubscription(ctx: RumbleshipContext, key: string): Promise<void>;
     hasSubscription(key: string): boolean;
     getSubscription(key: string): QueuedSubscription | undefined;
