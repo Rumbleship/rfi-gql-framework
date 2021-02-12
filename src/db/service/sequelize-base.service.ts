@@ -46,8 +46,9 @@ import {
 } from '../transformers';
 import { ModelClass, SequelizeBaseServiceInterface } from './sequelize-base-service.interface';
 import { calculateLimitAndOffset, calculateBeforeAndAfter } from '../helpers';
-import { NotFoundError } from '../../app/errors';
+import { InvalidOidError, NotFoundError } from '../../app/errors';
 import { NodeServiceMap } from '../../app/server/add-node-services-to-container';
+import { getScopeFor } from '../../app/server/init-sequelize';
 
 export function getSequelizeServiceInterfaceFor<
   TApi extends Node<TApi>,
@@ -527,6 +528,10 @@ export class SequelizeBaseService<
   @AddToTrace()
   async getAll(filterBy: TFilter, options?: NodeServiceOptions): Promise<TConnection> {
     filterBy = cloneAndTransposeDeprecatedValues(filterBy);
+    if ((filterBy as any).id) {
+      // this will throw if the passed id does not match scope for NodeService implementation
+      this.getDbIdFor((filterBy as any).id);
+    }
     this.addTraceContext(filterBy);
     const { after, before, first, last, order_by, ...filter } = filterBy as RelayFilterBase<TApi>;
 
@@ -621,7 +626,7 @@ export class SequelizeBaseService<
   @AddToTrace()
   async getOne(oid: Oid, options?: NodeServiceOptions): Promise<TApi> {
     this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
-    const { id } = oid.unwrap();
+    const id = this.getDbIdFor(oid);
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     const findOptions: FindOptions = {
       where: { id },
@@ -768,7 +773,7 @@ export class SequelizeBaseService<
     }
     this.ctx.beeline.addTraceContext({ 'relay.node.id': oid.toString() });
     delete (updateInput as any).id;
-    const { id: dbId } = oid.unwrap();
+    const dbId = this.getDbIdFor(oid);
     const sequelizeOptions = this.convertServiceOptionsToSequelizeOptions(options);
     isAuthorized = isAuthorized
       ? isAuthorized
@@ -957,5 +962,21 @@ export class SequelizeBaseService<
     edge.cursor = cursor;
     edge.node = node;
     return edge;
+  }
+
+  /**
+   *
+   * @param oid
+   * @returns the data base id for the oid
+   * @throws { InvalidOidError } if the Oid is for a different NodeService implementation
+   */
+  private getDbIdFor(_oid: Oid | string): number {
+    const oid = _oid instanceof Oid ? _oid : new Oid(_oid);
+    const { id, scope } = oid.unwrap();
+    const expected_scope = getScopeFor(this.model);
+    if (scope !== expected_scope) {
+      throw new InvalidOidError(oid, expected_scope as string);
+    }
+    return id as number;
   }
 }

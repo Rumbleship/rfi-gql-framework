@@ -162,4 +162,11 @@ export declare class SequelizeBaseService<TApi extends Node<TApi>, TModel extend
     getAssociatedMany<TAssocApi extends Node<TAssocApi>, TAssocConnection extends Connection<TAssocApi>, TAssocEdge extends Edge<TAssocApi>>(source: TApi, assoc_key: string, filterBy: RelayFilterBase<TAssocApi>, assocApiClass: ClassType<TAssocApi>, assocEdgeClass: ClassType<TAssocEdge>, assocConnectionClass: ClassType<TAssocConnection>, options?: NodeServiceOptions): Promise<TAssocConnection>;
     getAssociated<TAssocApi extends Node<TAssocApi>>(source: TApi, assoc_key: string, assocApiClass: ClassType<TAssocApi>, options?: NodeServiceOptions): Promise<TAssocApi | undefined>;
     private makeEdge;
+    /**
+     *
+     * @param oid
+     * @returns the data base id for the oid
+     * @throws { InvalidOidError } if the Oid is for a different NodeService implementation
+     */
+    private getDbIdFor;
 }
