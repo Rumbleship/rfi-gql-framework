@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * Runtime typecheck to manage `type:number` when turning a maybe-oid into a dbid.
 ### Deprecated
 ### Security
 
