@@ -21,7 +21,7 @@ import { QueuedSubscriptionMessage } from './queued-subscription-message';
 import { NodeChangePayload } from '../../../app/server/rfi-pub-sub-engine.interface';
 import { NODE_CHANGE_NOTIFICATION } from '../../../gql/relay';
 import { Oid } from '@rumbleship/oid';
-import { AddToTrace } from '@rumbleship/o11y';
+import { AddToTrace, RumbleshipBeeline } from '@rumbleship/o11y';
 import { Transaction } from 'sequelize/types';
 
 export const QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC = `QUEUED_SUBSCRIPTION_REPO_CHANGE_TOPIC`;
@@ -153,19 +153,20 @@ export class QueuedSubscriptionServer {
         const qsrCache = await this.loadCache(ctx, this.config.Gcp.gaeVersion, { transaction });
         let cache_dirty = false;
         const validateAndAddToCache = (request: IQueuedSubscriptionRequest): void => {
-          try {
-            QueuedSubscription.validateSubscriptionRequest(this.schema, request);
-            qsrCache.add([request]);
-            cache_dirty = true;
-          } catch (error) {
-            // swollow the error
-            // TODO Honeycomb determine the type of error and swollow or spit it out
-            ctx.logger.log(
-              `Couldnt process qsr: ${request.id} in ${
-                this.config.serviceName
-              }. Error: ${error.toString()}`
-            );
-          }
+          ctx.beeline.withSpan({ name: 'QueuedSubscriptionServer.validateAndAddtoCache' }, () => {
+            try {
+              addQsoToTraceMetadata(ctx.beeline, request);
+              QueuedSubscription.validateSubscriptionRequest(this.schema, request);
+              qsrCache.add([request]);
+              cache_dirty = true;
+            } catch (error) {
+              ctx.logger.log(
+                `Couldnt process qsr: ${request.id} in ${
+                  this.config.serviceName
+                }. Error: ${error.toString()}`
+              );
+            }
+          });
         };
         for (const incomingQsr of incomingQsrs) {
           // and only process if we are on the list
@@ -284,6 +285,7 @@ export class QueuedSubscriptionServer {
     key: string,
     request: IQueuedSubscriptionRequest
   ): Promise<void> {
+    addQsoToTraceMetadata(ctx.beeline, request);
     if (this.queuedSubscriptions.has(key)) {
       throw new Error(
         `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
@@ -505,4 +507,39 @@ export class QueuedSubscriptionServer {
         return loadCache(version, opts);
       })
     )();
+}
+
+function addQsoToTraceMetadata(beeline: RumbleshipBeeline, qso: IQueuedSubscriptionRequest): void {
+  const {
+    owner_id,
+    marshalled_acl,
+    publish_to_topic_name,
+    create_unique_subscription,
+    serviced_by,
+    deleted_at,
+    cache_consistency_id,
+    gql_query_string,
+    query_attributes,
+    operation_name,
+    subscription_name,
+    active,
+    id
+  } = qso;
+  beeline.addTraceContext({
+    qso: {
+      owner_id,
+      marshalled_acl,
+      publish_to_topic_name,
+      create_unique_subscription,
+      serviced_by,
+      deleted_at,
+      cache_consistency_id,
+      gql_query_string,
+      query_attributes,
+      operation_name,
+      subscription_name,
+      active,
+      id
+    }
+  });
 }
