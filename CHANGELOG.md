@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
-  * more metadata to trace for qso syncing
 ### Removed
 ### Changed
 ### Fixed
@@ -16,6 +15,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 ### Security
 
+
+## [15.4.3] -- 2021-02-23
+
+### Added
+  * more metadata to trace
 
 ## [15.4.2] -- 2021-02-16
 
