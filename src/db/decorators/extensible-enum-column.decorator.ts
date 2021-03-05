@@ -28,7 +28,7 @@ export function ExtensibleEnumColumn<T extends Record<string, any>>(
         if (options.allowNull && !raw) {
           return undefined;
         }
-        const val = raw.replace(/ /g, '_');
+        const val = raw?.replace(/ /g, '_');
         if (val in target_enum) {
           return (val as unknown) as T;
         }
