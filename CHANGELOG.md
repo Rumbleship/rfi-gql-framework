@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * ExtensibleEnumColumn doesn't throw for {allowNull:true}
 ### Deprecated
 ### Security
 
