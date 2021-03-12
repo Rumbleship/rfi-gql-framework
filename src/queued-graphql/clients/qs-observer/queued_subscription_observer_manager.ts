@@ -147,6 +147,9 @@ export class QueuedSubscriptionObserverManager {
     ctx: RumbleshipContext,
     message: QueuedSubscriptionMessage
   ): Promise<void> {
+    ctx.beeline.addTraceContext({
+      message
+    });
     const handler = this.handlers.get(message.subscription_name);
     if (handler && handler.observer_class) {
       // We use typedi to construct the resolver..
