@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 ### Changed
 ### Fixed
+  * dispatching a message to a QSObserver handler automatically adds message to trace context: https://www.pivotaltracker.com/story/show/177323139
 ### Deprecated
 ### Security
 
