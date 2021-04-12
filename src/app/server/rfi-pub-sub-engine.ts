@@ -258,7 +258,7 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
       try {
         await this.pubSubClient.createTopic(topicName);
       } catch (e) {
-        if (!(e.code === TOPIC_ALREADY_EXISTS_GCP_MAGIC_NUMBER)) {
+        if (e.code !== TOPIC_ALREADY_EXISTS_GCP_MAGIC_NUMBER) {
           // A topic can be created many times concurrently; Google only lets one get created
           // and throws a specific error for those that fail. Only rethrow.
           throw e;
