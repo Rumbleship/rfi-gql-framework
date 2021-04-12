@@ -36,11 +36,12 @@ export class QueuedSubscriptionObserverManager {
   ) {
     const pubsub = new GooglePubSub(this.config.Gcp.Auth);
     pubsub.projectId = pubsub.projectId.replace('-private', '-public');
-    this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}`;
+    // this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}`;
+    this.qsrTopicName = `${this.config.PubSub.topicPrefix}_QSR_PUBLISH_TO.${config.serviceName}.${config.Gcp.gaeVersion}`;
     // Only one instance of the service listens to this...But each version of the service live has its own subscription
     // this ensures that if a new QueuedSubscription is live, any versions trhat are live will all get the mesage
     // and are free to discard
-    this.qsrSubscriptionName = `${this.qsrTopicName}.${config.Gcp.gaeVersion}`;
+    this.qsrSubscriptionName = `${this.qsrTopicName}`;
     // define the gcloud topic and subscription to observe (all qsrs for *this* service use the same topic)
     this.qsr_subscription = new RfiPubSubSubscription<QueuedSubscriptionMessage>(
       config,
