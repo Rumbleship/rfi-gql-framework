@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Domain model changes propagate only to instances within in the same deploy group:
+    * Domain model topic includes `publisher_version`
 ### Fixed
 ### Deprecated
 ### Security
