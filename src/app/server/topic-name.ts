@@ -1,7 +1,7 @@
 import { NODE_CHANGE_NOTIFICATION } from '../../gql/relay/notification-of.enum';
 
 export function triggerName(
-  publisher_version: string = process.env.GAE_VERSION ?? 'date-version-branch-default',
+  publisher_version: string = process.env.GAE_VERSION ?? 'date-version-branch-development',
   scope?: string,
   prefix?: string
 ): string {
