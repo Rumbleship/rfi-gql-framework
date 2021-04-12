@@ -5,7 +5,7 @@ import { hostname } from 'os';
 import { IPubSubConfig, IGcpAuthConfig } from '@rumbleship/config';
 import { RumbleshipBeeline } from '@rumbleship/o11y';
 import { ClassType } from './../../helpers/classtype';
-import { ModelDelta, NotificationOf, NODE_CHANGE_NOTIFICATION } from '../../gql';
+import { ModelDelta, NotificationOf } from '../../gql';
 import { DbModelAndOidScope, getOidFor, getScopeFor } from './init-sequelize';
 import {
   RfiPubSubEngine,
@@ -17,6 +17,7 @@ import { uniqueSubscriptionNamePart } from './unique-subscription-name-part';
 import { CreateOptions, UpdateOptions, Model as SequelizeModel, Transaction } from 'sequelize';
 import { getContextId, getAuthorizedUser } from '../rumbleship-context';
 import uuid = require('uuid');
+import { triggerName } from './topic-name';
 /**
  * @NOTE This pubsub is used for both websocket graphql subscriptions (eg playground, ApolloClient)
  * as well as graphql subscriptions delivered over a google pubsub topic. Eg 'QueuedSubscriptions'
@@ -218,8 +219,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
     const oidScope = getScopeFor(model);
     // const topicName = `${NODE_CHANGE_NOTIFICATION}_${oidScope}_${this.publisher_version}`;
-    const version_scoped_topic_name = this.triggerName();
-    const model_scoped_topic_name = this.triggerName(oidScope);
+    const version_scoped_topic_name = triggerName();
+    const model_scoped_topic_name = triggerName(undefined, oidScope);
     // Publish the change on most generic topic
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.publish(version_scoped_topic_name, payload);
@@ -241,29 +242,12 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
   public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]): Promise<void> {
     await P.map(dbModels, async ({ scope }) => {
-      const model_scoped_topic_name = this.triggerName(scope, this.topicPrefix);
+      const model_scoped_topic_name = triggerName(this.publisher_version, scope, this.topicPrefix);
       await this.createTopicIfNotExist(model_scoped_topic_name);
       await this.pubSubClient
         .topic(model_scoped_topic_name)
         .createSubscription(model_scoped_topic_name + `-${hostname()}`);
     });
-  }
-
-  private triggerName(scope?: string, prefix?: string): string {
-    const elements = [NODE_CHANGE_NOTIFICATION];
-    if (prefix) {
-      elements.unshift(prefix);
-    }
-    if (scope) {
-      elements.push(scope);
-    }
-    elements.push(this.publisher_version);
-    return elements.join('_');
-    if (prefix) {
-      return `${this.topicPrefix}_${NODE_CHANGE_NOTIFICATION}_${scope}_${this.publisher_version}`;
-    } else {
-      return `${NODE_CHANGE_NOTIFICATION}_${scope}_${this.publisher_version}`;
-    }
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {

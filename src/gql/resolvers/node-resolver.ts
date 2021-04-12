@@ -24,7 +24,6 @@ import {
   NodeNotification,
   NotificationOf,
   NodeService,
-  NODE_CHANGE_NOTIFICATION,
   withTimeStampsFilter
 } from '../relay';
 import { RawPayload, createNodeNotification } from './create-node-notification';
@@ -34,6 +33,7 @@ import { withSubscriptionFilter } from '../relay/mixins/with-subscription-filter
 import { filterBySubscriptionFilter } from './filter-by-subscription-filter';
 import { RumbleshipContext } from './../../app/rumbleship-context';
 import { Scopes } from '@rumbleship/acl';
+import { triggerName } from '../../app/server/topic-name';
 
 class Empty {}
 class NodeSubscriptionFilter extends withSubscriptionFilter(
@@ -98,7 +98,7 @@ export class NodeResolver implements RelayResolver {
 
   @RumbleshipSubscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
-    topics: `${NODE_CHANGE_NOTIFICATION}`,
+    topics: triggerName(),
     filter: filterBySubscriptionFilter,
     nullable: true
   })

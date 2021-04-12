@@ -61,6 +61,5 @@ export declare class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     publishModelChange(notification: NotificationOf, idempotency_key: string, model: Model, deltas: ModelDelta[], context_id?: string, authorized_user?: string): void;
     deleteCurrentSubscriptionsMatchingPrefix(): Promise<void>;
     createSubscriptionsFor(dbModels: DbModelAndOidScope[]): Promise<void>;
-    private triggerName;
     private createTopicIfNotExist;
 }
