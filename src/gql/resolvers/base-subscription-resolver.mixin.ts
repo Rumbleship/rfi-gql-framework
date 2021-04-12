@@ -20,13 +20,14 @@ export function withSubscriptionResolver<
   subscriptionFilterClsType: ClassType<TSubscriptionFilter>,
   defaultScope: Scopes | Scopes[]
 ) {
+  const model_scoped_topic_name = triggerName(undefined, capitalizedName);
   @Resolver({ isAbstract: true })
   class SubscriptionResolver extends Base {
     @Authorized(defaultScope)
     @RumbleshipSubscription(type => notificationClsType, {
       name: `on${capitalizedName}Change`,
       // topics: `${NODE_CHANGE_NOTIFICATION}_${capitalizedName}`,
-      topics: triggerName(undefined, capitalizedName),
+      topics: model_scoped_topic_name,
       nullable: true
     })
     @AddToTrace()

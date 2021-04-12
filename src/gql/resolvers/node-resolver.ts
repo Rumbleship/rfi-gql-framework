@@ -35,6 +35,7 @@ import { RumbleshipContext } from './../../app/rumbleship-context';
 import { Scopes } from '@rumbleship/acl';
 import { triggerName } from '../../app/server/topic-name';
 
+const version_scoped_topic = triggerName();
 class Empty {}
 class NodeSubscriptionFilter extends withSubscriptionFilter(
   withTimeStampsFilter(Empty),
@@ -98,7 +99,7 @@ export class NodeResolver implements RelayResolver {
 
   @RumbleshipSubscription(type => ClassGqlNodeNotification, {
     name: `onNodeChange`,
-    topics: triggerName(),
+    topics: version_scoped_topic,
     filter: filterBySubscriptionFilter,
     nullable: true
   })
