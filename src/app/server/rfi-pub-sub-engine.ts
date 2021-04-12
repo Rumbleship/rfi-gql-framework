@@ -217,13 +217,15 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
     const payload = JSON.stringify(rval);
 
     const oidScope = getScopeFor(model);
-    const topicName = `${NODE_CHANGE_NOTIFICATION}_${oidScope}_${this.publisher_version}`;
+    // const topicName = `${NODE_CHANGE_NOTIFICATION}_${oidScope}_${this.publisher_version}`;
+    const version_scoped_topic_name = this.triggerName();
+    const model_scoped_topic_name = this.triggerName(oidScope);
     // Publish the change on most generic topic
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.publish(NODE_CHANGE_NOTIFICATION, payload);
+    this.publish(version_scoped_topic_name, payload);
     // Also publish the change topic specific to _this_ model
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.publish(topicName, payload);
+    this.publish(model_scoped_topic_name, payload);
   }
 
   public async deleteCurrentSubscriptionsMatchingPrefix(): Promise<void> {
@@ -239,10 +241,29 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
   public async createSubscriptionsFor(dbModels: DbModelAndOidScope[]): Promise<void> {
     await P.map(dbModels, async ({ scope }) => {
-      const triggerName = `${this.topicPrefix}_NODE_CHANGE_NOTIFICATION_${scope}`;
-      await this.createTopicIfNotExist(triggerName);
-      await this.pubSubClient.topic(triggerName).createSubscription(triggerName + `-${hostname()}`);
+      const model_scoped_topic_name = this.triggerName(scope, this.topicPrefix);
+      await this.createTopicIfNotExist(model_scoped_topic_name);
+      await this.pubSubClient
+        .topic(model_scoped_topic_name)
+        .createSubscription(model_scoped_topic_name + `-${hostname()}`);
     });
+  }
+
+  private triggerName(scope?: string, prefix?: string): string {
+    const elements = [NODE_CHANGE_NOTIFICATION];
+    if (prefix) {
+      elements.unshift(prefix);
+    }
+    if (scope) {
+      elements.push(scope);
+    }
+    elements.push(this.publisher_version);
+    return elements.join('_');
+    if (prefix) {
+      return `${this.topicPrefix}_${NODE_CHANGE_NOTIFICATION}_${scope}_${this.publisher_version}`;
+    } else {
+      return `${NODE_CHANGE_NOTIFICATION}_${scope}_${this.publisher_version}`;
+    }
   }
 
   private async createTopicIfNotExist(topicName: string): Promise<void> {
