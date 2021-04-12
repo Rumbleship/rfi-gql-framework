@@ -219,8 +219,8 @@ export class RfiPubSub extends GooglePubSub implements RfiPubSubEngine {
 
     const oidScope = getScopeFor(model);
     // const topicName = `${NODE_CHANGE_NOTIFICATION}_${oidScope}_${this.publisher_version}`;
-    const version_scoped_topic_name = triggerName();
-    const model_scoped_topic_name = triggerName(undefined, oidScope);
+    const version_scoped_topic_name = triggerName(this.publisher_version);
+    const model_scoped_topic_name = triggerName(this.publisher_version, oidScope);
     // Publish the change on most generic topic
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.publish(version_scoped_topic_name, payload);
