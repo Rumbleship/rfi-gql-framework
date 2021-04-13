@@ -291,7 +291,7 @@ export class QueuedSubscriptionServer {
         `QueuedSubscription: id: ${key}, Name: ${request.subscription_name} already running`
       );
     }
-    const queuedSubscription = new QueuedSubscription(this.schema, request, this.config.Gcp);
+    const queuedSubscription = new QueuedSubscription(this.schema, request, this.config);
     if (queuedSubscription.active) {
       this.queuedSubscriptions.set(key, queuedSubscription);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
