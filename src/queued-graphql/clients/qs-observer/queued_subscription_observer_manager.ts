@@ -147,12 +147,19 @@ export class QueuedSubscriptionObserverManager {
     ctx: RumbleshipContext,
     message: QueuedSubscriptionMessage
   ): Promise<void> {
+    // Same service, different versions means a domain model changes originated from a different
+    // running version of self; we filter these messages out to enable blue/green deploys.
+    if (
+      message.publisher_service_name === this.config.serviceName &&
+      message.publisher_version !== this.config.Gcp.gaeVersion
+    ) {
+      return;
+    }
     ctx.beeline.addTraceContext({
       message
     });
     const handler = this.handlers.get(message.subscription_name);
     if (handler && handler.observer_class) {
-      // We use typedi to construct the resolver..
       const observer = ctx.container.get(handler.observer_class);
       const hndlr = handler.handler.bind(observer);
       return hndlr(ctx, message);

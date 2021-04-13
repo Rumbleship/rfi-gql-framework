@@ -38,7 +38,6 @@ export function QSObserver<T>(metadata: QueuedSubscriptionObserverMetadata): Met
       const meta = Reflect.getMetadata(QUEUED_SUBSCRIPTION_OBSERVER_META, target) ?? [];
       const handler: QueuedSubscriptionHandler = {
         qso_metadata: metadata,
-
         handler: descriptor.value
       };
       meta.push(handler);

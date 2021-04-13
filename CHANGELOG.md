@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ### Removed
 ### Changed
+  * Only process messages from self-service that originate from the same version (enable blue/green deploys and rollbacks)
+    * QSMessage contains `publisher_version` and `publisher_service_name`
 ### Fixed
 ### Deprecated
 ### Security
