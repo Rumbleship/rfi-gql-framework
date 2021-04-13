@@ -1,11 +1,12 @@
 import { GraphQLSchema, ExecutionResult } from 'graphql';
 import { GqlExecutionParams } from '../../helpers/gql-execution-params';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
-import { IGcpConfig } from '@rumbleship/config';
+import { ISharedSchema } from '@rumbleship/config';
 import { IQueuedSubscriptionRequest, SubscriptionResponse } from './queued-subscription-request.interface';
 import { RumbleshipContext } from '../../../app/rumbleship-context';
 export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
     private schema;
+    private config;
     private googlePublisher;
     activeSubscription?: AsyncIterableIterator<ExecutionResult<{
         [key: string]: any;
@@ -32,7 +33,7 @@ export declare class QueuedSubscription implements IQueuedSubscriptionRequest {
      * @param publishToTopicName
      * @param pesistent_id
      */
-    constructor(schema: GraphQLSchema, subscriptionRequest: IQueuedSubscriptionRequest, config: IGcpConfig, googlePublisher?: GooglePubSub);
+    constructor(schema: GraphQLSchema, subscriptionRequest: IQueuedSubscriptionRequest, config: ISharedSchema, googlePublisher?: GooglePubSub);
     /**
      * static so it can be used to validate subscriptions at the point of API
      * Note: Does not validate that the queryAttibutes are valid.

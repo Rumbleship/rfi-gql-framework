@@ -10,7 +10,7 @@ import { GqlExecutionParams } from '../../helpers/gql-execution-params';
 import { OnDemandRumbleshipContext } from '../../../app/rumbleship-context/on-demand-rumbleship-context';
 import { isASubscriptionOperation } from '../../helpers/is-subscription-operation';
 import { PubSub as GooglePubSub, Topic } from '@google-cloud/pubsub';
-import { IGcpConfig } from '@rumbleship/config';
+import { ISharedSchema } from '@rumbleship/config';
 import { gcpGetTopic } from '../../helpers/gcp_helpers';
 import {
   IQueuedSubscriptionRequest,
@@ -55,8 +55,8 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
   constructor(
     private schema: GraphQLSchema,
     subscriptionRequest: IQueuedSubscriptionRequest,
-    config: IGcpConfig,
-    private googlePublisher = new GooglePubSub(config.Auth)
+    private config: ISharedSchema,
+    private googlePublisher = new GooglePubSub(config.Gcp.Auth)
   ) {
     this.googlePublisher.projectId = this.googlePublisher.projectId.replace('-private', '-public');
     // This object is a very longlived 'active' object, so we dont want to have
@@ -147,7 +147,9 @@ export class QueuedSubscription implements IQueuedSubscriptionRequest {
       subscription_name,
       subscription_id: this.id.toString(),
       subscription_response: response,
-      marshalled_trace: RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext())
+      marshalled_trace: RumbleshipBeeline.marshalTraceContext(ctx.beeline.getTraceContext()),
+      publisher_version: this.config.Gcp.gaeVersion,
+      publisher_service_name: this.config.serviceName
     };
     ctx.beeline.addTraceContext({
       message: {
