@@ -30,6 +30,7 @@ export declare class RumbleshipContext implements Context {
     static make(filename: string, options?: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
     static withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
     constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: Record<string, any>, marshalled_trace?: string, linked_span?: HoneycombSpan);
+    makeChild(filename: string): RumbleshipContext;
     release(): Promise<void>;
 }
 export declare const RumbleshipContextIdKey = "_@RumbleshipContextId";
