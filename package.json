@@ -1,6 +1,7 @@
 {
   "name": "@rumbleship/gql",
   "version": "16.0.1",
+  "licenses": [{"license":"mit"}],
   "authors": [
     "Mat Henshall <mat.henshall@rumbleship.com>",
     "Isaac Sparling <isaac@rumbleship.com"

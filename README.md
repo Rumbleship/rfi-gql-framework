@@ -1,22 +1,11 @@
 # @rumbleship/gql
-Rumbleship's RelayAPI style framework for creating graphql/sequelize  services
+Rumbleship's RelayAPI style framework, which ties together Apollo, Hapi, TypeGraphQL, Sequelize, and Google PubSub to build backend services that power a distributed and reactive data model.
 
-# upgrade form 12 to 13
+Provided in conjunction with standalone libs that weren't packaged internal to this framework: [acl](https://github.com/rumbleship/acl), [oid](https://github.com/rumbleship/oid), [o11y](https://github.com/rumbleship/o11y), [service factory map](https://github.com/rumbleship/service-factory-map).
 
-QSR change...
+You will have to provide your own version of config; a small wrapper around [node-convict](https://github.com/mozilla/node-convict) customized for Rumbleship's needs.
 
-When an instance of a service spins up, it sends its schema and the hash of the schema to Qsr Management Service (currently hosted in orders) If it is different (or new) each qsr  is checked to see if the schema is compatible with the qsr's query... if it is, or has become compatible, the qsr is updated. 
-
-Each service is listening for changes to Qsr's and when a change is observed, it determines if the Qsr has a query it can service, if it does, it adds it to its internal list and cache.
-
-On start up, each service requests a list of active Qsr's and updates its cache as appropriate.
-
-
-# Upgrade from 11 to 12 check list
-1) Make sure that application has migrations 2 to 7 added from:
-  src/queued-subscription-server/_db/_example_migrations
-    
-# Upgrade from version 10 to 11 check list
+# Examples
 
 1) Change package.json to point to latest framework and yarn<br>
   1.1 make sure peer dependancies are fixed especially config<br>
@@ -147,8 +136,6 @@ export class OrderEventResolverBase extends OrderEventBaseResolver {
 }
 ```
 
-
-
 4) Look for Resolvers that use `createReadOnlyBaseResolver()` and `createBaseResolver()` both these fiunctions should be complaining that they dont have aenough arguments
 
 Add the xxxxSubscriptionFilter class that you added as per above to the function as directed by the 'hover over'
@@ -158,3 +145,5 @@ Add the xxxxSubscriptionFilter class that you added as per above to the function
 6) copy the migrations from ./src/queued-subscription-server/_db/_example_migrations to the app migration folder
 
 
+# License
+This code is licensed under the terms of the MIT license.
