@@ -69,4 +69,10 @@ export class OnDemandRumbleshipContext implements RumbleshipContext {
       });
     }
   }
+
+  makeChild(filename: string): RumbleshipContext {
+    return RumbleshipContext.make(filename, {
+      marshalled_trace: this.beeline.marshalTraceContext(this.beeline.getTraceContext())
+    });
+  }
 }

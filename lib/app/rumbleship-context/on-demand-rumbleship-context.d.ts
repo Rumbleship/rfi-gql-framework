@@ -20,4 +20,5 @@ export declare class OnDemandRumbleshipContext implements RumbleshipContext {
     get trace(): HoneycombSpan | undefined;
     release(): Promise<void>;
     reset(): Promise<void>;
+    makeChild(filename: string): RumbleshipContext;
 }
