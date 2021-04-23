@@ -200,6 +200,12 @@ export class RumbleshipContext implements Context {
     }
   }
 
+  makeChild(filename: string): RumbleshipContext {
+    return RumbleshipContext.make(filename, {
+      marshalled_trace: this.beeline.marshalTraceContext(this.beeline.getTraceContext())
+    });
+  }
+
   async release(): Promise<void> {
     // interface TextRow {
     //   Variable_name: string;

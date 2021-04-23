@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [UNRELEASED]
 
 ### Added
+  * RumbleshipContext can generate a fresh, child context
 ### Removed
 ### Changed
 ### Fixed
