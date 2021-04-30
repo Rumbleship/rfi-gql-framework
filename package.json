@@ -7,7 +7,7 @@
   ],
   "main": "lib/index.js",
   "description": "Rumbleship framework for gql and sequelize services",
-  "license": "Propriatary",
+  "license": "mit",
   "private": true,
   "engines": {
     "node": "12.x.x"
