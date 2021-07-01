@@ -18,7 +18,11 @@ export class OnDemandRumbleshipContext implements RumbleshipContext {
   }
   private getAuthorizer() {
     if (!this._authorizer) {
-      this._authorizer = OnDemandRumbleshipContext.AuthorizerCls.make(this.marshalled_acl);
+      this._authorizer = OnDemandRumbleshipContext.AuthorizerCls.make(
+        this.marshalled_acl ||
+          // hack until I get the whole stack up and working with auth0 auth?
+          'null'
+      );
     }
     return this._authorizer;
   }
