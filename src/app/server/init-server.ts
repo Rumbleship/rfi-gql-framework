@@ -7,7 +7,7 @@ import { buildSchema, BuildSchemaOptions } from 'type-graphql';
 import { ConnectionContext } from 'subscriptions-transport-ws';
 import { printSchema, GraphQLSchema } from 'graphql';
 import { writeFileSync } from 'fs';
-import { InvalidJWTError, Authorizer } from '@rumbleship/acl';
+import { InvalidJWTError, Auth0Authorizer as Authorizer, Auth0Config } from '@rumbleship/acl';
 import { ApolloServer, AuthenticationError, Config } from '@rumbleship/apollo-server-hapi';
 import { ISharedSchema } from '@rumbleship/config';
 import { RumbleshipContextControl, getRumbleshipContextFrom } from '@rumbleship/context-control';
@@ -40,6 +40,7 @@ export let globalGraphQlSchema: GraphQLSchema | undefined;
 
 export async function initServer(
   config: ISharedSchema,
+  auth0Config: Auth0Config,
   InjectedBeeline: typeof RumbleshipBeeline,
   injected_hapi_plugins: Array<Hapi.ServerRegisterPluginObject<any>>,
   injected_apollo_server_options: Pick<Config, 'plugins' | 'uploads'> = {},
@@ -57,7 +58,7 @@ export async function initServer(
     dbSuffix?: string;
   }
 ): Promise<Hapi.Server> {
-  Authorizer.initialize(config);
+  Authorizer.initialize(config, auth0Config);
 
   const rumbleshipContextFactory = Container.get<typeof RumbleshipContext>('RumbleshipContext');
   const serverLogger = logging.getLogger(config.Logging, { filename: __filename });
@@ -142,12 +143,12 @@ export async function initServer(
   if (config.PubSub.resetHostedSubscriptions) {
     try {
       await pubSub.deleteCurrentSubscriptionsMatchingPrefix();
-    } catch (error) {
+    } catch (error: any) {
       serverLogger.error('Error deleting subscriptions', error);
     }
     try {
       await pubSub.createSubscriptionsFor(injected_models);
-    } catch (error) {
+    } catch (error: any) {
       serverLogger.error('Error creating subscriptions...', error);
     }
   }
@@ -196,11 +197,11 @@ export async function initServer(
           })();
           try {
             authorizer.authenticate();
-          } catch (e) {
-            throw new AuthenticationError(e.message);
+          } catch (error: any) {
+            throw new AuthenticationError(error.message);
           }
           const rumbleship_context = rumbleshipContextFactory.make(__filename, {
-            authorizer,
+            authorizer: authorizer as any,
             initial_trace_metadata: {
               subscription: true
             }
@@ -263,7 +264,7 @@ export async function initServer(
       // these function starts all the active queued subscriptions and requests and then returns
       //
       await startQueuedGraphQl(ctx);
-    } catch (error) {
+    } catch (error: any) {
       addErrorToTraceContext(ctx, error);
       serverLogger.error(error);
       serverLogger.error('Error starting Queued graphql servers');
@@ -283,7 +284,7 @@ export async function initServer(
     });
     try {
       await stopQueuedGraphQl(ctx);
-    } catch (error) {
+    } catch (error: any) {
       addErrorToTraceContext(ctx, error);
       serverLogger.error('Error stopping  Queued graphql servers', {
         stack: error.stack,
