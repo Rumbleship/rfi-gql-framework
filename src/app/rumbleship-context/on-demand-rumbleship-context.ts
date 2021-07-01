@@ -6,15 +6,19 @@ import { SpyglassLogger } from '@rumbleship/spyglass';
 import { v4 } from 'uuid';
 
 export class OnDemandRumbleshipContext implements RumbleshipContext {
+  private static AuthorizerCls: typeof AuthorizerAbstract;
   private on_demand_context_id = v4();
   private _wrappedContext?: RumbleshipContext;
   private _authorizer?: AuthorizerAbstract = undefined;
 
   constructor(private marshalled_acl: string, public isQueuedSubscription = true) {}
 
+  static initialize(authorizer_cls: typeof AuthorizerAbstract): void {
+    OnDemandRumbleshipContext.AuthorizerCls = authorizer_cls;
+  }
   private getAuthorizer() {
     if (!this._authorizer) {
-      this._authorizer = AuthorizerAbstract.make(this.marshalled_acl);
+      this._authorizer = OnDemandRumbleshipContext.AuthorizerCls.make(this.marshalled_acl);
     }
     return this._authorizer;
   }
