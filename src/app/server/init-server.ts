@@ -181,7 +181,7 @@ export async function initServer(
     schema: globalGraphQlSchema,
     introspection: true,
     subscriptions: {
-      onConnect: (connectionParams, webSocket, context: ConnectionContext) => {
+      onConnect: async (connectionParams, webSocket, context: ConnectionContext) => {
         const bearer_token =
           (connectionParams as any).Authorization || (connectionParams as any).authorization;
         if (bearer_token) {
@@ -196,7 +196,7 @@ export async function initServer(
             }
           })();
           try {
-            authorizer.authenticate();
+            await authorizer.authenticate();
           } catch (error: any) {
             throw new AuthenticationError(error.message);
           }
