@@ -1094,7 +1094,7 @@
 
 "@rumbleship/acl@git+ssh://git@github.com/rumbleship/acl.git#auth0":
   version "2.2.0"
-  resolved "git+ssh://git@github.com/rumbleship/acl.git#895db3cb56f80405bd266aea4b95be3bf4fdfbf6"
+  resolved "git+ssh://git@github.com/rumbleship/acl.git#617ea818c0e23c714063ff7693c85766973fbe6c"
   dependencies:
     jsonwebtoken "^8.5.1"
     jwks-rsa "^2.0.3"
