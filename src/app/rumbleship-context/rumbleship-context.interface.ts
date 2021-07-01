@@ -1,6 +1,6 @@
 import { ContainerInstance } from 'typedi';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
-import { Authorizer } from '@rumbleship/acl';
+import { Auth0Authorizer as Authorizer } from '@rumbleship/acl';
 export interface Context {
   id: string;
   beeline: RumbleshipBeeline;
