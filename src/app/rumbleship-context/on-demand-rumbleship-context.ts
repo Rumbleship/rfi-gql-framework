@@ -1,5 +1,5 @@
 import { RumbleshipContext } from '.';
-import { Auth0Authorizer as Authorizer } from '@rumbleship/acl';
+import { Authorizer } from '@rumbleship/acl';
 import { ContainerInstance } from 'typedi';
 import { HoneycombSpan, RumbleshipBeeline } from '@rumbleship/o11y';
 import { SpyglassLogger } from '@rumbleship/spyglass';
