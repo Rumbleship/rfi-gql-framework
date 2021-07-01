@@ -31,8 +31,8 @@ import { Oid } from '@rumbleship/oid';
 import { QueuedCacheScopeAndDb } from '../../queued-graphql';
 import { addErrorToTraceContext } from '../honeycomb-helpers/add_error_to_trace_context';
 import {
-  initQueuedGraphql,
-  startQueuedGraphQl,
+  // initQueuedGraphql,
+  // startQueuedGraphQl,
   stopQueuedGraphQl
 } from '../../queued-graphql/init_queued_graphql';
 
@@ -252,7 +252,7 @@ export async function initServer(
   // Set up subscriptions for websocket clients
   apolloServer.installSubscriptionHandlers(server.listener);
   // setup subscription server for GooglePubSub  clients
-  initQueuedGraphql(config, globalGraphQlSchema, injected_schema_options.resolvers as any);
+  // initQueuedGraphql(config, globalGraphQlSchema, injected_schema_options.resolvers as any);
 
   server.events.on('start', async () => {
     const ctx = RumbleshipContext.make(__filename, {
