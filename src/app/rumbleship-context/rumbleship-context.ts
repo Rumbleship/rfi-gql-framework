@@ -1,6 +1,6 @@
 import { Container, ContainerInstance } from 'typedi';
 import uuid = require('uuid');
-import { Authorizer, Scopes } from '@rumbleship/acl';
+import { Auth0Authorizer, AuthorizerAbstract, Scopes } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { logging } from '@rumbleship/spyglass';
@@ -9,7 +9,7 @@ import { ISharedSchema } from '@rumbleship/config';
 
 export interface RumbleshipContextOptionsPlain {
   id?: string;
-  authorizer?: Authorizer;
+  authorizer?: AuthorizerAbstract;
   logger?: SpyglassLogger;
   container?: ContainerInstance;
   initial_trace_metadata?: Record<string, any>;
@@ -20,7 +20,7 @@ export interface RumbleshipContextOptionsPlain {
 class RumbleshipContextOptionsWithDefaults {
   private readonly _logger: SpyglassLogger;
   private readonly _container: ContainerInstance;
-  private readonly _authorizer: Authorizer;
+  private readonly _authorizer: AuthorizerAbstract;
   private readonly _id: string;
   private readonly _initial_trace_metadata: Record<string, any>;
   private readonly _marshalled_trace?: string;
@@ -60,8 +60,8 @@ class RumbleshipContextOptionsWithDefaults {
     this._logger = options.logger ?? logging.getLogger(config.Logging, { filename });
     this._authorizer =
       options.authorizer ??
-      Authorizer.make(
-        Authorizer.createAuthHeader(
+      Auth0Authorizer.make(
+        Auth0Authorizer.createAuthHeader(
           {
             user: config.ServiceUser.id,
             roles: {},
@@ -181,7 +181,7 @@ export class RumbleshipContext implements Context {
     public id: string,
     public container: ContainerInstance,
     public logger: SpyglassLogger,
-    public authorizer: Authorizer,
+    public authorizer: AuthorizerAbstract,
     public beeline: RumbleshipBeeline,
     initial_trace_metadata: Record<string, any>,
     marshalled_trace?: string,
@@ -259,7 +259,7 @@ export function getContextId(target: Record<string, any>): string | undefined {
 export const RumbleshipActingUserKey = '_@RumbleshipActingUserKey';
 export function setAuthorizedUser<T extends Record<string, any>>(
   target: T,
-  authorizer: Authorizer
+  authorizer: AuthorizerAbstract
 ): T & { [RumbleshipActingUserKey]: string } {
   Reflect.set(target, RumbleshipActingUserKey, authorizer.getUser());
   return target as T & { [RumbleshipActingUserKey]: string };

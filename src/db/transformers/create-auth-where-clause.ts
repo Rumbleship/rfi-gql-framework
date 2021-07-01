@@ -1,4 +1,4 @@
-import { Permissions, Authorizer, Actions, AuthorizerTreatAsMap } from '@rumbleship/acl';
+import { Permissions, AuthorizerAbstract, Actions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 import { Op, WhereOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
@@ -59,7 +59,7 @@ export function AuthorizeThrough(
 
 export function createAuthWhereClause(
   permissions: Permissions,
-  authorizer: Authorizer,
+  authorizer: AuthorizerAbstract,
   action: Actions,
   authorizingAttributes: AuthorizerTreatAsMap,
   associationName?: string | symbol

@@ -1,5 +1,5 @@
 import { RumbleshipContext } from '.';
-import { Authorizer } from '@rumbleship/acl';
+import { AuthorizerAbstract } from '@rumbleship/acl';
 import { ContainerInstance } from 'typedi';
 import { HoneycombSpan, RumbleshipBeeline } from '@rumbleship/o11y';
 import { SpyglassLogger } from '@rumbleship/spyglass';
@@ -8,13 +8,13 @@ import { v4 } from 'uuid';
 export class OnDemandRumbleshipContext implements RumbleshipContext {
   private on_demand_context_id = v4();
   private _wrappedContext?: RumbleshipContext;
-  private _authorizer?: Authorizer = undefined;
+  private _authorizer?: AuthorizerAbstract = undefined;
 
   constructor(private marshalled_acl: string, public isQueuedSubscription = true) {}
 
   private getAuthorizer() {
     if (!this._authorizer) {
-      this._authorizer = Authorizer.make(this.marshalled_acl);
+      this._authorizer = AuthorizerAbstract.make(this.marshalled_acl);
     }
     return this._authorizer;
   }
@@ -33,7 +33,7 @@ export class OnDemandRumbleshipContext implements RumbleshipContext {
     }
     return this._wrappedContext;
   }
-  get authorizer(): Authorizer {
+  get authorizer(): AuthorizerAbstract {
     return this.wrappedContext.authorizer;
   }
   get container(): ContainerInstance {

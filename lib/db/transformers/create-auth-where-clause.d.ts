@@ -1,4 +1,4 @@
-import { Permissions, Authorizer, Actions, AuthorizerTreatAsMap } from '@rumbleship/acl';
+import { Permissions, AuthorizerAbstract, Actions, AuthorizerTreatAsMap } from '@rumbleship/acl';
 import { WhereOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 import { ClassType } from '../../helpers';
@@ -23,7 +23,7 @@ export declare function addAuthorizeThrough(target: Record<string, any>, authThr
  * @param associationName if the name of the property is NOT the name of the association, then can be overridden here
  */
 export declare function AuthorizeThrough(targetClass: () => ClassType<Record<string, any>>, associationName?: string): PropertyDecorator;
-export declare function createAuthWhereClause(permissions: Permissions, authorizer: Authorizer, action: Actions, authorizingAttributes: AuthorizerTreatAsMap, associationName?: string | symbol): WhereOptions;
+export declare function createAuthWhereClause(permissions: Permissions, authorizer: AuthorizerAbstract, action: Actions, authorizingAttributes: AuthorizerTreatAsMap, associationName?: string | symbol): WhereOptions;
 /**
  * Holds the information needed to calculate the
  * additional where clause to ensure that the current authorized user

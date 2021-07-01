@@ -1,12 +1,12 @@
 import { ContainerInstance } from 'typedi';
-import { Authorizer } from '@rumbleship/acl';
+import { AuthorizerAbstract } from '@rumbleship/acl';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
 import { RFIFactory } from '@rumbleship/service-factory-map';
 import { SpyglassLogger, Context } from './rumbleship-context.interface';
 import { ISharedSchema } from '@rumbleship/config';
 export interface RumbleshipContextOptionsPlain {
     id?: string;
-    authorizer?: Authorizer;
+    authorizer?: AuthorizerAbstract;
     logger?: SpyglassLogger;
     container?: ContainerInstance;
     initial_trace_metadata?: Record<string, any>;
@@ -17,7 +17,7 @@ export declare class RumbleshipContext implements Context {
     id: string;
     container: ContainerInstance;
     logger: SpyglassLogger;
-    authorizer: Authorizer;
+    authorizer: AuthorizerAbstract;
     beeline: RumbleshipBeeline;
     trace: HoneycombSpan | undefined;
     private static initialized;
@@ -29,7 +29,7 @@ export declare class RumbleshipContext implements Context {
     static releaseAllContexts(): Promise<void>;
     static make(filename: string, options?: RumbleshipContextOptionsPlain, factories?: Map<string, RFIFactory<any>>): RumbleshipContext;
     static withRumbleshipContext<T>(filename: string, options: RumbleshipContextOptionsPlain, fn: (ctx: RumbleshipContext) => T): Promise<T>;
-    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: Authorizer, beeline: RumbleshipBeeline, initial_trace_metadata: Record<string, any>, marshalled_trace?: string, linked_span?: HoneycombSpan);
+    constructor(id: string, container: ContainerInstance, logger: SpyglassLogger, authorizer: AuthorizerAbstract, beeline: RumbleshipBeeline, initial_trace_metadata: Record<string, any>, marshalled_trace?: string, linked_span?: HoneycombSpan);
     makeChild(filename: string): RumbleshipContext;
     release(): Promise<void>;
 }
@@ -39,7 +39,7 @@ export declare function setContextId<T extends Record<string, any>>(target: T, c
 };
 export declare function getContextId(target: Record<string, any>): string | undefined;
 export declare const RumbleshipActingUserKey = "_@RumbleshipActingUserKey";
-export declare function setAuthorizedUser<T extends Record<string, any>>(target: T, authorizer: Authorizer): T & {
+export declare function setAuthorizedUser<T extends Record<string, any>>(target: T, authorizer: AuthorizerAbstract): T & {
     [RumbleshipActingUserKey]: string;
 };
 export declare function getAuthorizedUser(target: Record<string, any>): string | undefined;

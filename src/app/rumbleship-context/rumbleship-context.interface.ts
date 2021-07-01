@@ -1,12 +1,12 @@
 import { ContainerInstance } from 'typedi';
 import { RumbleshipBeeline, HoneycombSpan } from '@rumbleship/o11y';
-import { Authorizer } from '@rumbleship/acl';
+import { AuthorizerAbstract } from '@rumbleship/acl';
 export interface Context {
   id: string;
   beeline: RumbleshipBeeline;
   trace?: HoneycombSpan;
   container: ContainerInstance;
-  authorizer: Authorizer;
+  authorizer: AuthorizerAbstract;
   logger: SpyglassLogger;
 }
 
