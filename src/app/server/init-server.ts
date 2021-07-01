@@ -263,7 +263,7 @@ export async function initServer(
     try {
       // these function starts all the active queued subscriptions and requests and then returns
       //
-      await startQueuedGraphQl(ctx);
+      // await startQueuedGraphQl(ctx);
     } catch (error: any) {
       addErrorToTraceContext(ctx, error);
       serverLogger.error(error);
